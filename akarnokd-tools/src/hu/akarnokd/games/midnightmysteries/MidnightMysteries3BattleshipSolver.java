@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 David Karnok
+ * Copyright 2012-2013 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import com.google.common.collect.Lists;
 /**
  * Solve the battleship-like puzzle in
  * Midnight Mysteries 3.
- * @author karnok, 2012.07.28.
+ * @author akarnokd, 2012.07.28.
  */
 public final class MidnightMysteries3BattleshipSolver {
 	/** Utility class. */

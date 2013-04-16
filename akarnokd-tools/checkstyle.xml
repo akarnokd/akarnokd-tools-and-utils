@@ -5,7 +5,7 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: Local
+    Checkstyle-Configuration: local
     Description: none
 -->
 <module name="Checker">
@@ -77,7 +77,6 @@
       <property name="severity" value="ignore"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
-    <module name="DoubleCheckedLocking"/>
     <module name="EmptyStatement">
       <property name="severity" value="ignore"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
@@ -161,7 +160,10 @@
     <property name="severity" value="ignore"/>
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
   </module>
-  <module name="NewlineAtEndOfFile"/>
+  <module name="NewlineAtEndOfFile">
+    <property name="severity" value="ignore"/>
+    <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+  </module>
   <module name="Translation">
     <property name="severity" value="ignore"/>
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
@@ -171,7 +173,8 @@
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
   </module>
   <module name="RegexpHeader">
-    <property name="header" value="^/\*$\n^ \* Copyright 2011 David Karnok.*$\n^ \*$\n^ \* Licensed under the Apache License, Version 2\.0.*$"/>
-    <metadata name="com.atlassw.tools.eclipse.checkstyle.comment" value="GE header"/>
+    <property name="header" value="^/\*$\n^ \* Copyright 2012-2013 David Karnok*$\n^ \*.*$\n^ \* Licensed under the Apache License, Version 2.0.*$"/>
+    <property name="fileExtensions" value="java"/>
+    <metadata name="com.atlassw.tools.eclipse.checkstyle.comment" value="Advance header"/>
   </module>
 </module>

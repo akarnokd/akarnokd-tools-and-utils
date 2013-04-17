@@ -30,6 +30,17 @@ import com.google.common.io.ByteStreams;
  *
  */
 public class ByteArray extends ByteArrayOutputStream {
+	/** Construct a byte array with a default capacity. */
+	public ByteArray() {
+		super();
+	}
+	/**
+	 * Construct a byte array with the given initial capacity.
+	 * @param capacity the capacity
+	 */
+	public ByteArray(int capacity) {
+		super(capacity);
+	}
 	/**
 	 * Returns an input stream view of the current
 	 * content of this byte array.
@@ -140,105 +151,250 @@ public class ByteArray extends ByteArrayOutputStream {
 		}
 	}
 	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
+	 * @return Retrieve a view into the array with the default java byte ordering.
 	 */
-	public void set(int index, byte v) {
-		buf[index] = v;
+	public ByteAccess byteAccess() {
+		return byteAccess(false);
 	}
 	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
+	 * Retrieve a view into the array with the specified endianness.
+	 * @param littleEndian use little endian byte format
+	 * @return the byte access object
 	 */
-	public void set(int index, short v) {
-		buf[index] = (byte)((v >> 8) & 0xFF); 
-		buf[index + 1] = (byte)(v & 0xFF); 
+	public ByteAccess byteAccess(boolean littleEndian) {
+		if (littleEndian) {
+			return new ByteAccessLE();
+		}
+		return new ByteAccessBE();
 	}
 	/**
-	 * Set a value at the specified index in little endian format.
-	 * @param index the index
-	 * @param v the value
+	 * Byte access implementation with big endian format. 
+	 * @author akarnokd, 2013.04.17.
 	 */
-	public void setLE(int index, short v) {
-		buf[index + 1] = (byte)((v >> 8) & 0xFF); 
-		buf[index] = (byte)(v & 0xFF); 
+	class ByteAccessBE implements ByteAccess {
+		@Override
+		public void set(int index, byte v) {
+			buf[index] = v;
+		}
+		@Override
+		public void set(int index, short v) {
+			buf[index] = (byte)((v >> 8) & 0xFF); 
+			buf[index + 1] = (byte)(v & 0xFF); 
+		}
+		@Override
+		public void set(int index, int v) {
+			buf[index] = (byte)((v >> 24) & 0xFF); 
+			buf[index + 1] = (byte)((v >> 16) & 0xFF); 
+			buf[index + 2] = (byte)((v >> 8) & 0xFF); 
+			buf[index + 3] = (byte)(v & 0xFF); 
+		}
+		@Override
+		public void set(int index, long v) {
+			buf[index] = (byte)((v >> 56) & 0xFF); 
+			buf[index + 1] = (byte)((v >> 48) & 0xFF); 
+			buf[index + 2] = (byte)((v >> 40) & 0xFF); 
+			buf[index + 3] = (byte)((v >> 32) & 0xFF); 
+			buf[index + 4] = (byte)((v >> 24) & 0xFF); 
+			buf[index + 5] = (byte)((v >> 16) & 0xFF); 
+			buf[index + 6] = (byte)((v >> 8) & 0xFF); 
+			buf[index + 7] = (byte)(v & 0xFF); 
+		}
+		@Override
+		public void set(int index, float v) {
+			set(index, Float.floatToRawIntBits(v));
+		}
+		@Override
+		public void set(int index, double v) {
+			set(index, Double.doubleToRawLongBits(v));
+		}
+		@Override
+		public void set(int index, char v) {
+			set(index, (short)v);
+		}
+		@Override
+		public byte getByte(int index) {
+			return buf[index];
+		}
+		@Override
+		public int getUnsignedByte(int index) {
+			return getByte(index) & 0xFF;
+		}
+		@Override
+		public short getShort(int index) {
+			return (short)(((buf[index] & 0xFF) << 8) | (buf[index + 1] & 0xFF));
+		}
+		@Override
+		public int getUnsignedShort(int index) {
+			return (((buf[index] & 0xFF) << 8) | (buf[index + 1] & 0xFF));
+		}
+		@Override
+		public int getInt(int index) {
+			return (
+					((buf[index] & 0xFF) << 24)
+					| ((buf[index + 1] & 0xFF) << 16)
+					| ((buf[index + 2] & 0xFF) << 8) 
+					| (buf[index + 3] & 0xFF));
+		}
+		@Override
+		public long getUnsignedInt(int index) {
+			return (
+					((buf[index] & 0xFFL) << 24)
+					| ((buf[index + 1] & 0xFFL) << 16)
+					| ((buf[index + 2] & 0xFFL) << 8) 
+					| (buf[index + 3] & 0xFFL));
+		}
+		@Override
+		public long getLong(int index) {
+			return (
+					((buf[index] & 0xFFL) << 56)
+					| ((buf[index + 1] & 0xFFL) << 48)
+					| ((buf[index + 2] & 0xFFL) << 40)
+					| ((buf[index + 3] & 0xFFL) << 32)
+					| ((buf[index + 4] & 0xFFL) << 24)
+					| ((buf[index + 5] & 0xFFL) << 16)
+					| ((buf[index + 6] & 0xFFL) << 8) 
+					| (buf[index + 7] & 0xFFL));
+		}
+		@Override
+		public float getFloat(int index) {
+			return Float.intBitsToFloat(getInt(index));
+		}
+		@Override
+		public double getDouble(int index) {
+			return Double.longBitsToDouble(getLong(index));
+		}
+		@Override
+		public char getChar(int index) {
+			return (char)getShort(index);
+		}
+		
 	}
 	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
+	 * Byte access implementation with little endian format.
+	 * @author akarnokd, 2013.04.17.
+	 *
 	 */
-	public void set(int index, int v) {
-		buf[index] = (byte)((v >> 24) & 0xFF); 
-		buf[index + 1] = (byte)((v >> 16) & 0xFF); 
-		buf[index + 2] = (byte)((v >> 8) & 0xFF); 
-		buf[index + 3] = (byte)(v & 0xFF); 
-	}
-	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
-	 */
-	public void setLE(int index, int v) {
-		buf[index + 3] = (byte)((v >> 24) & 0xFF); 
-		buf[index + 2] = (byte)((v >> 16) & 0xFF); 
-		buf[index + 1] = (byte)((v >> 8) & 0xFF); 
-		buf[index] = (byte)(v & 0xFF); 
-	}
-	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
-	 */
-	public void set(int index, long v) {
-		buf[index] = (byte)((v >> 56) & 0xFF); 
-		buf[index + 1] = (byte)((v >> 48) & 0xFF); 
-		buf[index + 2] = (byte)((v >> 40) & 0xFF); 
-		buf[index + 3] = (byte)((v >> 32) & 0xFF); 
-		buf[index + 4] = (byte)((v >> 24) & 0xFF); 
-		buf[index + 5] = (byte)((v >> 16) & 0xFF); 
-		buf[index + 6] = (byte)((v >> 8) & 0xFF); 
-		buf[index + 7] = (byte)(v & 0xFF); 
-	}
-	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
-	 */
-	public void setLE(int index, long v) {
-		buf[index + 7] = (byte)((v >> 56) & 0xFF); 
-		buf[index + 6] = (byte)((v >> 48) & 0xFF); 
-		buf[index + 5] = (byte)((v >> 40) & 0xFF); 
-		buf[index + 4] = (byte)((v >> 32) & 0xFF); 
-		buf[index + 3] = (byte)((v >> 24) & 0xFF); 
-		buf[index + 2] = (byte)((v >> 16) & 0xFF); 
-		buf[index + 1] = (byte)((v >> 8) & 0xFF); 
-		buf[index] = (byte)(v & 0xFF); 
-	}
-	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
-	 */
-	public void set(int index, float v) {
-		set(index, Float.floatToRawIntBits(v));
-	}
-	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
-	 */
-	public void set(int index, double v) {
-		set(index, Double.doubleToRawLongBits(v));
-	}
-	/**
-	 * Set a value at the specified index.
-	 * @param index the index
-	 * @param v the value
-	 */
-	public void set(int index, char v) {
-		set(index, (short)v);
+	class ByteAccessLE implements ByteAccess {
+		@Override
+		public void set(int index, byte v) {
+			buf[index] = v;
+		}
+		@Override
+		public void set(int index, short v) {
+			buf[index + 1] = (byte)((v >> 8) & 0xFF); 
+			buf[index] = (byte)(v & 0xFF); 
+		}
+		@Override
+		public void set(int index, int v) {
+			buf[index + 3] = (byte)((v >> 24) & 0xFF); 
+			buf[index + 2] = (byte)((v >> 16) & 0xFF); 
+			buf[index + 1] = (byte)((v >> 8) & 0xFF); 
+			buf[index] = (byte)(v & 0xFF); 
+		}
+		@Override
+		public void set(int index, long v) {
+			buf[index + 7] = (byte)((v >> 56) & 0xFF); 
+			buf[index + 6] = (byte)((v >> 48) & 0xFF); 
+			buf[index + 5] = (byte)((v >> 40) & 0xFF); 
+			buf[index + 4] = (byte)((v >> 32) & 0xFF); 
+			buf[index + 3] = (byte)((v >> 24) & 0xFF); 
+			buf[index + 2] = (byte)((v >> 16) & 0xFF); 
+			buf[index + 1] = (byte)((v >> 8) & 0xFF); 
+			buf[index] = (byte)(v & 0xFF); 
+		}
+		@Override
+		public void set(int index, float v) {
+			set(index, Float.floatToRawIntBits(v));
+		}
+		@Override
+		public void set(int index, double v) {
+			set(index, Double.doubleToRawLongBits(v));
+		}
+		@Override
+		public void set(int index, char v) {
+			set(index, (short)v);
+		}
+		@Override
+		public byte getByte(int index) {
+			return buf[index];
+		}
+		@Override
+		public int getUnsignedByte(int index) {
+			return getByte(index) & 0xFF;
+		}
+		@Override
+		public short getShort(int index) {
+			return (short)(
+					((buf[index] & 0xFF)) 
+					| ((buf[index + 1] & 0xFF) << 8)
+					);
+		}
+		@Override
+		public int getUnsignedShort(int index) {
+			return (
+					((buf[index] & 0xFF)) 
+					| ((buf[index + 1] & 0xFF) << 8)
+					);
+		}
+		@Override
+		public int getInt(int index) {
+			return (
+					  ((buf[index + 0] & 0xFF)) 
+					| ((buf[index + 1] & 0xFF) << 8)
+					| ((buf[index + 2] & 0xFF) << 16)
+					| ((buf[index + 3] & 0xFF) << 24)
+					);
+		}
+		@Override
+		public long getUnsignedInt(int index) {
+			return (
+					  ((buf[index + 0] & 0xFFL)) 
+					| ((buf[index + 1] & 0xFFL) << 8)
+					| ((buf[index + 2] & 0xFFL) << 16)
+					| ((buf[index + 3] & 0xFFL) << 24)
+					);
+		}
+		@Override
+		public long getLong(int index) {
+			return (
+					((buf[index] & 0xFFL)) 
+					| ((buf[index + 1] & 0xFFL) << 8)
+					| ((buf[index + 2] & 0xFFL) << 16)
+					| ((buf[index + 3] & 0xFFL) << 24)
+					| ((buf[index + 4] & 0xFFL) << 32)
+					| ((buf[index + 5] & 0xFFL) << 40)
+					| ((buf[index + 6] & 0xFFL) << 48)
+					| ((buf[index + 7] & 0xFFL) << 56)
+					);
+		}
+		@Override
+		public float getFloat(int index) {
+			return Float.intBitsToFloat(
+					  ((buf[index + 0] & 0xFF) << 24)
+					| ((buf[index + 1] & 0xFF) << 16)
+					| ((buf[index + 2] & 0xFF) << 8)
+					| ((buf[index + 3] & 0xFF))
+			);
+		}
+		@Override
+		public double getDouble(int index) {
+			return Double.longBitsToDouble(
+					  ((buf[index + 0] & 0xFFL) << 56) 
+					| ((buf[index + 1] & 0xFFL) << 48)
+					| ((buf[index + 2] & 0xFFL) << 40)
+					| ((buf[index + 3] & 0xFFL) << 32)
+					| ((buf[index + 4] & 0xFFL) << 24)
+					| ((buf[index + 5] & 0xFFL) << 16)
+					| ((buf[index + 6] & 0xFFL) << 8)
+					| ((buf[index + 7] & 0xFFL))
+			);
+		}
+		@Override
+		public char getChar(int index) {
+			return (char)(
+				  ((buf[index + 0] & 0xFF) << 8) 
+				| ((buf[index + 1] & 0xFF))
+			);
+		}
 	}
 }

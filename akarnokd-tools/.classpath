@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/guava-14.0.1.jar" sourcepath="lib/guava-14.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.2.jar" sourcepath="lib/joda-time-2.2.jar"/>
 	<classpathentry kind="lib" path="lib/reactive4java-0.97.jar" sourcepath="lib/reactive4java-0.97.jar"/>
+	<classpathentry kind="lib" path="lib/annotations.jar" sourcepath="lib/annotations.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

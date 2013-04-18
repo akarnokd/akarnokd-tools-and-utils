@@ -29,12 +29,12 @@ import org.junit.Test;
 public class ByteArrayTest {
 
 	/**
-	 * Test method for {@link hu.akarnokd.utils.io.ByteArray#byteAccess(boolean)}.
+	 * Test method for {@link hu.akarnokd.utils.io.ByteArrayStream#byteAccess(boolean)}.
 	 * @throws IOException should never occrr
 	 */
 	@Test
 	public void testByteAccessBoolean() throws IOException {
-		try (ByteArray ba = new ByteArray()) {
+		try (ByteArrayStream ba = new ByteArrayStream()) {
 		
 			long c = 0x0123_4567_89AB_CDEFL;
 			
@@ -47,12 +47,12 @@ public class ByteArrayTest {
 	}
 
 	/**
-	 * Test method for {@link hu.akarnokd.utils.io.ByteArray#byteAccess(boolean)}.
+	 * Test method for {@link hu.akarnokd.utils.io.ByteArrayStream#byteAccess(boolean)}.
 	 * @throws IOException should never occrr
 	 */
 	@Test
 	public void testByteAccessBoolean2() throws IOException {
-		try (ByteArray ba = new ByteArray()) {
+		try (ByteArrayStream ba = new ByteArrayStream()) {
 		
 			long c = 0x0123_4567_89AB_CDEFL;
 			

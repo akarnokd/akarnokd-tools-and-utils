@@ -29,16 +29,16 @@ import com.google.common.io.ByteStreams;
  * @author akarnokd, 2013.04.16.
  *
  */
-public class ByteArray extends ByteArrayOutputStream {
+public class ByteArrayStream extends ByteArrayOutputStream {
 	/** Construct a byte array with a default capacity. */
-	public ByteArray() {
+	public ByteArrayStream() {
 		super();
 	}
 	/**
 	 * Construct a byte array with the given initial capacity.
 	 * @param capacity the capacity
 	 */
-	public ByteArray(int capacity) {
+	public ByteArrayStream(int capacity) {
 		super(capacity);
 	}
 	/**
@@ -54,13 +54,13 @@ public class ByteArray extends ByteArrayOutputStream {
 			int mark = -1;
 			@Override
 			public int read() throws IOException {
-				synchronized (ByteArray.this) {
+				synchronized (ByteArrayStream.this) {
 					return buf[offset++];
 				}
 			}
 			@Override
 			public int read(byte[] b, int off, int len) throws IOException {
-				synchronized (ByteArray.this) {
+				synchronized (ByteArrayStream.this) {
 					int remaining = count - offset;
 					int toRead = Math.min(len, remaining);
 					System.arraycopy(buf, offset, b, off, toRead);
@@ -70,8 +70,8 @@ public class ByteArray extends ByteArrayOutputStream {
 			}
 			@Override
 			public int available() throws IOException {
-				synchronized (ByteArray.this) {
-					return Math.max(0, ByteArray.this.count - offset);
+				synchronized (ByteArrayStream.this) {
+					return Math.max(0, ByteArrayStream.this.count - offset);
 				}
 			}
 			@Override
@@ -79,13 +79,13 @@ public class ByteArray extends ByteArrayOutputStream {
 			}
 			@Override
 			public void mark(int readlimit) {
-				synchronized (ByteArray.this) {
+				synchronized (ByteArrayStream.this) {
 					mark = offset;
 				}
 			}
 			@Override
 			public long skip(long n) throws IOException {
-				synchronized (ByteArray.this) {
+				synchronized (ByteArrayStream.this) {
 					int oldOffset = offset;
 					int newOffset = Math.min(count, (int)(offset + n));
 					offset = newOffset;
@@ -98,7 +98,7 @@ public class ByteArray extends ByteArrayOutputStream {
 			}
 			@Override
 			public void reset() throws IOException {
-				synchronized (ByteArray.this) {
+				synchronized (ByteArrayStream.this) {
 					if (mark >= 0) {
 						offset = mark;
 						mark = -1;

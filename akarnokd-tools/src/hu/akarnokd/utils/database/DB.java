@@ -15,6 +15,7 @@
  */
 package hu.akarnokd.utils.database;
 
+import hu.akarnokd.reactive4java.base.Action1E;
 import hu.akarnokd.reactive4java.base.Action2E;
 import hu.akarnokd.reactive4java.base.Func1E;
 import hu.akarnokd.reactive4java.util.Closeables;
@@ -36,7 +37,9 @@ import java.sql.Types;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
 import javax.xml.stream.XMLStreamException;
 
 import org.joda.time.DateTime;
@@ -46,6 +49,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * Simple collection of JDBC access methods.
@@ -502,7 +506,8 @@ public class DB implements Closeable {
 	 * @param marshaller the marshaller that fills in the statement, should *NOT* call the addBatch
 	 * @throws SQLException on error
 	 */
-	public <T> void save(@NonNull String sql, 
+	public <T> void save(
+			@NonNull CharSequence sql, 
 			@NonNull Iterable<T> items, 
 			@NonNull Action2E<? super PreparedStatement, ? super T, ? extends SQLException> marshaller) throws SQLException {
 		PreparedStatement pstmt = prepare(sql);
@@ -676,5 +681,185 @@ public class DB implements Closeable {
 	 */
 	public static void addConnection(@NonNull DBInfo info) {
 		CONNECTION_INFOS.put(info.id, new DBInfo(info));
+	}
+	/**
+	 * Returns a nullable int field from the result set as an Integer object.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Integer getInt(@Nonnull ResultSet rs, int index) throws SQLException {
+		int value = rs.getInt(index);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a nullable int field from the result set as a Long object.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Long getLong(@NonNull ResultSet rs, int index) throws SQLException {
+		long value = rs.getLong(index);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a single element from the query or null if the result set is empty.
+	 * @param <T> the result type
+	 * @param sql the query
+	 * @param unmarshaller the record unmarshaller
+	 * @param params the optional parameter sequence
+	 * @return the unmarshalled value or null if the query result was empty
+	 * @throws SQLException on error
+	 */
+	public <T> T querySingle(
+			@NonNull CharSequence sql, 
+			@NonNull Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller, 
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(sql, false, params)) {
+			try (ResultSet rs = pstmt.executeQuery()) {
+				if (rs.next()) {
+					return unmarshaller.invoke(rs);
+				}
+				return null;
+			}
+		}
+	}
+	/**
+	 * Returns a single element from the query or null if the result set is empty.
+	 * @param <T> the result type
+	 * @param sql the query
+	 * @param unmarshaller the record unmarshaller
+	 * @param params the parameter sequence
+	 * @return the unmarshalled value or null if the query result was empty
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public <T> T querySingle(
+			@NonNull CharSequence sql, 
+			@NonNull Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller, 
+			@NonNull Iterable<?> params) throws SQLException {
+		return querySingle(sql, unmarshaller, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Execute a single-valued parametric insert and return a generated long key.
+	 * @param sql the query
+	 * @param params the optional parameter array
+	 * @return the long key
+	 * @throws SQLException on error
+	 */
+	public long insertAuto(
+			@NonNull CharSequence sql, 
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(sql, true, params)) {
+			pstmt.executeUpdate();
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+				if (rs.next()) {
+					return rs.getLong(1);
+				}
+			}
+		}
+		return 0L;
+	}
+	/**
+	 * Execute a single-valued parametric insert and return a generated long key.
+	 * @param sql the query
+	 * @param params the parameter sequence
+	 * @return the long key
+	 * @throws SQLException on error
+	 */
+	public long updateAuto(
+			@NonNull CharSequence sql, 
+			@NonNull Iterable<?> params) throws SQLException {
+		return insertAuto(sql, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Execute a single-valued parametric insert and invoke an action for the generated
+	 * key result set.
+	 * @param sql the query
+	 * @param setAutoKey the action to extract the generated keys.
+	 * @param params the optional parameter array
+	 * @throws SQLException on error
+	 */
+	public void insertAuto(
+			@NonNull CharSequence sql, 
+			@NonNull Action1E<? super ResultSet, ? extends SQLException> setAutoKey, 
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(sql, true, params)) {
+			pstmt.executeUpdate();
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+				if (rs.next()) {
+					setAutoKey.invoke(rs);
+				}
+			}
+		}
+		
+	}
+	/**
+	 * Execute a single-valued parametric insert and invoke an action for the generated
+	 * key result set.
+	 * @param sql the query
+	 * @param setAutoKey the action to extract the generated keys.
+	 * @param params the parameter sequence
+	 * @throws SQLException on error
+	 */
+	public void insertAuto(
+			@NonNull CharSequence sql,
+			@NonNull Action1E<? super ResultSet, ? extends SQLException> setAutoKey, 
+			@NonNull Iterable<?> params) throws SQLException {
+		insertAuto(sql, setAutoKey, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Wraps the resultset into an iterable sequence to be used by a 
+	 * simple for-each loop.
+	 * <p>Throws an IllegalStateException if the resultset's next() throws an exception.</p>
+	 * @param rs the result set to wrap
+	 * @return the iterable with the result set
+	 */
+	public static Iterable<ResultSet> iterate(@NonNull final ResultSet rs) {
+		return new Iterable<ResultSet>() {
+			@Override
+			public Iterator<ResultSet> iterator() {
+				return new Iterator<ResultSet>() {
+					boolean moved;
+					boolean done;
+					@Override
+					public boolean hasNext() {
+						if (!done) {
+							if (!moved) {
+								try {
+									done = rs.next();
+								} catch (SQLException ex) {
+									throw new IllegalStateException(ex);
+								}
+								moved = true;
+							}
+						}
+						return !done;
+					}
+					@Override
+					public ResultSet next() {
+						if (hasNext()) {
+							moved = false;
+							return rs;
+						}
+						throw new NoSuchElementException();
+					}
+					@Override
+					public void remove() {
+						throw new UnsupportedOperationException();
+					}
+				};
+			}
+		};
 	}
 }

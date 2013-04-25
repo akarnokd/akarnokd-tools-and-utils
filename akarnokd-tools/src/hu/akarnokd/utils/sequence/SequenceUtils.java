@@ -16,7 +16,13 @@
 
 package hu.akarnokd.utils.sequence;
 
+import hu.akarnokd.reactive4java.base.Action1E;
+import hu.akarnokd.reactive4java.base.Func1E;
+
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Iterator;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -138,5 +144,24 @@ public final class SequenceUtils {
 			// should not happen
 		}
 		return result.toString();
+	}
+	/**
+	 * Creates an action which fills the target collection from
+	 * the resultset by using the mapper function.
+	 * @param <T> the element type
+	 * @param out the output collection
+	 * @param map the mapper function
+	 * @return the action
+	 */
+	@NonNull
+	public static <T> Action1E<ResultSet, SQLException> into(
+			@NonNull final Collection<? super T> out, 
+			@NonNull final Func1E<? super ResultSet, ? extends T, ? extends SQLException> map) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				out.add(map.invoke(t));
+			}
+		};
 	}
 }

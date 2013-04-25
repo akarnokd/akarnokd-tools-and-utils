@@ -19,6 +19,7 @@ import hu.akarnokd.reactive4java.base.Action1E;
 import hu.akarnokd.reactive4java.base.Action2E;
 import hu.akarnokd.reactive4java.base.CloseableIterator;
 import hu.akarnokd.reactive4java.base.Func1E;
+import hu.akarnokd.reactive4java.base.Func2E;
 import hu.akarnokd.reactive4java.util.Closeables;
 import hu.akarnokd.utils.Base64;
 import hu.akarnokd.utils.xml.XElement;
@@ -48,6 +49,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
 import com.google.common.collect.Iterables;
@@ -131,6 +133,30 @@ public class DB implements Closeable {
 		}
 	};
 	/** Returns a single long value. */
+	public static final SQLResult<Integer> SELECT_INT = new SQLResult<Integer>() {
+		@Override
+		public Integer invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getInt(1);
+		}
+	};
+	/** Returns a single long value or null. */
+	public static final SQLResult<Long> SELECT_LONG_OPTION = new SQLResult<Long>() {
+		@Override
+		public Long invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getLong(param1, 1);
+		}
+	};
+	/** Returns a single long value or null. */
+	public static final SQLResult<Integer> SELECT_INT_OPTION = new SQLResult<Integer>() {
+		@Override
+		public Integer invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getInt(param1, 1);
+		}
+	};
+	/** Returns a single long value. */
 	public static final SQLResult<String> SELECT_STRING = new SQLResult<String>() {
 		@Override
 		public String invoke(ResultSet param1)
@@ -151,7 +177,23 @@ public class DB implements Closeable {
 		@Override
 		public DateTime invoke(ResultSet param1)
 				throws SQLException {
-			return new DateTime(param1.getTimestamp(1).getTime());
+			Timestamp timestamp = param1.getTimestamp(1);
+			if (timestamp != null) {
+				return new DateTime(timestamp.getTime());
+			}
+			return null;
+		}
+	};
+	/** Returns a single datemidnight value. */
+	public static final SQLResult<DateMidnight> SELECT_DATEMIDNIGHT = new SQLResult<DateMidnight>() {
+		@Override
+		public DateMidnight invoke(ResultSet param1)
+				throws SQLException {
+			Timestamp timestamp = param1.getTimestamp(1);
+			if (timestamp != null) {
+				return new DateMidnight(timestamp.getTime());
+			}
+			return null;
 		}
 	};
 	static {
@@ -474,6 +516,9 @@ public class DB implements Closeable {
 			if (o instanceof DateMidnight) {
 				rs.updateDate(i, new Date(((DateMidnight)o).getMillis()));
 			} else
+			if (o instanceof LocalDate) {
+				rs.updateDate(i, new Date(((LocalDate)o).toDateMidnight().getMillis()));
+			} else
 			if (o instanceof InputStream) {
 				rs.updateBlob(i, (InputStream)o);
 			} else
@@ -543,7 +588,7 @@ public class DB implements Closeable {
 				if (o == Time.class || o == LocalTime.class) {
 					pstmt.setNull(i, Types.TIME);
 				} else
-				if (o == Date.class || o == DateMidnight.class) {
+				if (o == Date.class || o == DateMidnight.class || o == LocalDate.class) {
 					pstmt.setNull(i, Types.DATE);
 				} else
 				if (o == String.class) {
@@ -603,6 +648,9 @@ public class DB implements Closeable {
 			} else
 			if (o instanceof DateMidnight) {
 				pstmt.setDate(i, new Date(((DateMidnight)o).getMillis()));
+			} else
+			if (o instanceof LocalDate) {
+				pstmt.setDate(i, new Date(((LocalDate)o).toDateMidnight().getMillis()));
 			} else
 			if (o instanceof InputStream) {
 				pstmt.setBlob(i, (InputStream)o);
@@ -676,7 +724,7 @@ public class DB implements Closeable {
 			@NonNull CharSequence sql, 
 			@NonNull Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller, 
 			@NonNull Iterable<?> params) throws SQLException {
-		return query(sql, unmarshaller, Iterables.toArray(params, Object.class));
+		return queryReadOnly(sql, unmarshaller, Iterables.toArray(params, Object.class));
 	}
 	/**
 	 * Query the values from the database.
@@ -707,6 +755,51 @@ public class DB implements Closeable {
 		return result;
 	}
 	/**
+	 * Query the values from the database with an indexed unmarshaller.
+	 * @param <T> the element type
+	 * @param sql the query
+	 * @param unmarshaller the record unmarshaller, indexed
+	 * @param params the sequence of query parameters
+	 * @return the value list
+	 * @throws SQLException on error
+	 */
+	@NonNull
+	public <T> List<T> queryReadOnly(
+			@NonNull CharSequence sql, 
+			@NonNull Func2E<? super ResultSet, ? super Integer, ? extends T, ? extends SQLException> unmarshaller, 
+			@NonNull Iterable<?> params) throws SQLException {
+		return queryReadOnly(sql, unmarshaller, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Query the values from the database with an indexed unmarshaller.
+	 * @param <T> the element type
+	 * @param sql the query
+	 * @param unmarshaller the record unmarshaller, indexed
+	 * @param params the query parameters
+	 * @return the value list or the error
+	 * @throws SQLException on error
+	 */
+	@NonNull
+	public <T> List<T> queryReadOnly(
+			@NonNull CharSequence sql, 
+			@NonNull Func2E<? super ResultSet, ? super Integer, ? extends T, ? extends SQLException> unmarshaller, 
+			Object... params) throws SQLException {
+		List<T> result = Lists.newArrayList();
+		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
+			try (ResultSet rs = pstmt.executeQuery()) {
+				if (fetchSize != -1) {
+					rs.setFetchSize(fetchSize);
+				}
+				int i = 0;
+				while (rs.next()) {
+					T t = unmarshaller.invoke(rs, i++);
+					result.add(t);
+				}
+			}
+		}
+		return result;
+	}
+	/**
 	 * Execute the action for each resultset row returned by the query.
 	 * @param sql the query
 	 * @param action the action to call
@@ -721,6 +814,39 @@ public class DB implements Closeable {
 			try (ResultSet rs = pstmt.executeQuery()) {
 				while (rs.next()) {
 					action.invoke(rs);
+				}
+			}
+		}
+	}
+	/**
+	 * Execute the indexed action for each resultset row returned by the query.
+	 * @param sql the query
+	 * @param action the action to call
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void query(
+			@NonNull CharSequence sql,
+			@NonNull Action2E<? super ResultSet, ? super Integer, ? extends SQLException> action,
+			@NonNull Iterable<?> params) throws SQLException {
+		query(sql, action, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Execute the indexed action for each resultset row returned by the query.
+	 * @param sql the query
+	 * @param action the action to call
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void query(
+			@NonNull CharSequence sql,
+			@NonNull Action2E<? super ResultSet, ? super Integer, ? extends SQLException> action,
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(false, sql, params)) {
+			try (ResultSet rs = pstmt.executeQuery()) {
+				int i = 0;
+				while (rs.next()) {
+					action.invoke(rs, i++);
 				}
 			}
 		}

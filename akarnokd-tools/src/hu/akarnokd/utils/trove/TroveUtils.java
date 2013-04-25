@@ -17,6 +17,8 @@
 package hu.akarnokd.utils.trove;
 
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,6 +52,7 @@ import gnu.trove.list.array.TFloatArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.list.array.TShortArrayList;
+import hu.akarnokd.reactive4java.base.Action1E;
 import hu.akarnokd.reactive4java.base.Func0;
 
 /**
@@ -1255,5 +1258,104 @@ public final class TroveUtils {
 		while (it.hasNext()) {
 			target.add(it.next());
 		}
+	}
+	/**
+	 * Returns an action which adds the first column's data into the supplied collection.
+	 * @param coll the target collection
+	 * @return the action
+	 */
+	@NonNull
+	public static Action1E<ResultSet, SQLException> into(@NonNull final TByteCollection coll) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				coll.add(t.getByte(1));
+			}
+		};
+	}
+	/**
+	 * Returns an action which adds the first column's data into the supplied collection.
+	 * @param coll the target collection
+	 * @return the action
+	 */
+	@NonNull
+	public static Action1E<ResultSet, SQLException> into(@NonNull final TShortCollection coll) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				coll.add(t.getShort(1));
+			}
+		};
+	}
+	/**
+	 * Returns an action which adds the first column's data into the supplied collection.
+	 * @param coll the target collection
+	 * @return the action
+	 */
+	@NonNull
+	public static Action1E<ResultSet, SQLException> into(@NonNull final TCharCollection coll) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				coll.add(t.getString(1).charAt(0));
+			}
+		};
+	}
+	/**
+	 * Returns an action which adds the first column's data into the supplied collection.
+	 * @param coll the target collection
+	 * @return the action
+	 */
+	@NonNull
+	public static Action1E<ResultSet, SQLException> into(@NonNull final TIntCollection coll) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				coll.add(t.getInt(1));
+			}
+		};
+	}
+	/**
+	 * Returns an action which adds the first column's data into the supplied collection.
+	 * @param coll the target collection
+	 * @return the action
+	 */
+	@NonNull
+	public static Action1E<ResultSet, SQLException> into(@NonNull final TLongCollection coll) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				coll.add(t.getLong(1));
+			}
+		};
+
+	}
+	/**
+	 * Returns an action which adds the first column's data into the supplied collection.
+	 * @param coll the target collection
+	 * @return the action
+	 */
+	@NonNull
+	public static Action1E<ResultSet, SQLException> into(@NonNull final TFloatCollection coll) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				coll.add(t.getFloat(1));
+			}
+		};
+	}
+	/**
+	 * Returns an action which adds the first column's data into the supplied collection.
+	 * @param coll the target collection
+	 * @return the action
+	 */
+	@NonNull
+	public static Action1E<ResultSet, SQLException> into(@NonNull final TDoubleCollection coll) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				coll.add(t.getDouble(1));
+			}
+		};
 	}
 }

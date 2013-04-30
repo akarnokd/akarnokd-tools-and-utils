@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package hu.akarnokd.utils.sequence;
+package hu.akarnokd.utils.collection;
 
 import java.util.Comparator;
 import java.util.HashSet;

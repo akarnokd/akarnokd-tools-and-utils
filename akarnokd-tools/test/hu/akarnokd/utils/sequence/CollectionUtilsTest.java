@@ -16,6 +16,8 @@
 
 package hu.akarnokd.utils.sequence;
 
+import hu.akarnokd.utils.collection.CollectionUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +35,7 @@ import com.google.common.collect.Sets;
 public class CollectionUtilsTest {
 
 	/**
-	 * Test method for {@link hu.akarnokd.utils.sequence.CollectionUtils#minKey(java.util.Map)}.
+	 * Test method for {@link hu.akarnokd.utils.collection.CollectionUtils#minKey(java.util.Map)}.
 	 */
 	@Test
 	public void testMinKey() {
@@ -45,7 +47,7 @@ public class CollectionUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link hu.akarnokd.utils.sequence.CollectionUtils#maxKey(java.util.Map)}.
+	 * Test method for {@link hu.akarnokd.utils.collection.CollectionUtils#maxKey(java.util.Map)}.
 	 */
 	@Test
 	public void testMaxKey() {
@@ -57,7 +59,7 @@ public class CollectionUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link hu.akarnokd.utils.sequence.CollectionUtils#minKeys(java.util.Map)}.
+	 * Test method for {@link hu.akarnokd.utils.collection.CollectionUtils#minKeys(java.util.Map)}.
 	 */
 	@Test
 	public void testMinKeys() {
@@ -70,7 +72,7 @@ public class CollectionUtilsTest {
 	}
 
 	/**
-	 * Test method for {@link hu.akarnokd.utils.sequence.CollectionUtils#maxKeys(java.util.Map)}.
+	 * Test method for {@link hu.akarnokd.utils.collection.CollectionUtils#maxKeys(java.util.Map)}.
 	 */
 	@Test
 	public void testMaxKeys() {

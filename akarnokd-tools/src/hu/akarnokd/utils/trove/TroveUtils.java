@@ -569,6 +569,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(Byte.toString(it.next()));
+			i++;
 		}
 	}
 	/**
@@ -603,6 +604,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(Short.toString(it.next()));
+			i++;
 		}
 	}
 	/**
@@ -637,6 +639,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(it.next());
+			i++;
 		}
 	}
 	/**
@@ -671,6 +674,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(Integer.toString(it.next()));
+			i++;
 		}
 	}
 	/**
@@ -705,6 +709,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(Long.toString(it.next()));
+			i++;
 		}
 	}
 	/**
@@ -739,6 +744,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(Float.toString(it.next()));
+			i++;
 		}
 	}
 	/**
@@ -773,6 +779,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(Double.toString(it.next()));
+			i++;
 		}
 	}
 	/**
@@ -808,6 +815,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(String.format(format, it.next()));
+			i++;
 		}
 	}
 	/**
@@ -844,6 +852,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(String.format(format, it.next()));
+			i++;
 		}
 	}
 	/**
@@ -880,6 +889,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(String.format(format, it.next()));
+			i++;
 		}
 	}
 	/**
@@ -916,6 +926,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(String.format(format, it.next()));
+			i++;
 		}
 	}
 	/**
@@ -952,6 +963,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(String.format(format, it.next()));
+			i++;
 		}
 	}
 	/**
@@ -988,6 +1000,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(String.format(format, it.next()));
+			i++;
 		}
 	}
 	/**
@@ -1024,6 +1037,7 @@ public final class TroveUtils {
 				append.append(separator);
 			}
 			append.append(String.format(format, it.next()));
+			i++;
 		}
 	}
 	/**

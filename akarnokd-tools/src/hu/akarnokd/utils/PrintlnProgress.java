@@ -83,7 +83,9 @@ public class PrintlnProgress {
 	 */
 	public void reset() {
 		count = 0L;
-		stopwatch.stop();
+		if (stopwatch.isRunning()) {
+			stopwatch.stop();
+		}
 		stopwatch.reset();
 	}
 	/** Start the counting operation. */

@@ -124,4 +124,10 @@ implements AggregatorMap2<K1, K2, V> {
 	public Iterable<V> values2() {
 		return allValues();
 	}
+	@Override
+	public V getValue(Object key1, Object key2, V defaultValue) {
+		AggregatorMap1<K2, V> m = getValue(key1, null);
+		return m != null ? m.getValue(key2, defaultValue) : defaultValue;
+	}
+	
 }

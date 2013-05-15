@@ -114,4 +114,9 @@ implements AggregatorMap3<K1, K2, K3, V> {
 			}
 		});
 	}
+	@Override
+	public V getValue(Object key1, Object key2, Object key3, V defaultValue) {
+		AggregatorMap1<K3, V> m = getValue(key1, key2, null);
+		return m != null ? m.getValue(key3, defaultValue) : defaultValue;
+	}
 }

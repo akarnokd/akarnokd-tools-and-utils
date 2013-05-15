@@ -42,6 +42,18 @@ extends AggregatorMap5<K1, K2, K3, K4, K5, AggregatorMap1<K6, V>> {
 	 */
 	V get(Object key1, Object key2, Object key3, Object key4, Object key5, Object key6);
 	/**
+	 * Retrieve a value or return the default value if not present.
+	 * @param key1 the first key
+	 * @param key2 the second key
+	 * @param key3 the third key
+	 * @param key4 the fourth key
+	 * @param key5 the fifth key
+	 * @param key6 the sixth key
+	 * @param defaultValue the default value
+	 * @return the value
+	 */
+	V getValue(Object key1, Object key2, Object key3, Object key4, Object key5, Object key6, V defaultValue);
+	/**
 	 * Set a value with two keys.
 	 * @param key1 the first key
 	 * @param key2 the second key

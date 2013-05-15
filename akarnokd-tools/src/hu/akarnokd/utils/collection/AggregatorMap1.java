@@ -82,4 +82,17 @@ public interface AggregatorMap1<K, V> {
 	 * Clears the contents of this map.
 	 */
 	void clear();
+	/**
+	 * Check if the given key is in the map.
+	 * @param key the key
+	 * @return true if in the map
+	 */
+	boolean containsKey(Object key);
+	/**
+	 * Retrieves the key or the default value if not present.
+	 * @param key the key
+	 * @param defaultValue the default value
+	 * @return the value
+	 */
+	V getValue(Object key, V defaultValue);
 }

@@ -103,4 +103,15 @@ public class AggregatorHashMap1<K, V> implements AggregatorMap1<K, V> {
 	public void clear() {
 		map.clear();
 	}
+	@Override
+	public boolean containsKey(Object key) {
+		return map.containsKey(key);
+	}
+	@Override
+	public V getValue(Object key, V defaultValue) {
+		if (containsKey(key)) {
+			return get(key);
+		}
+		return defaultValue;
+	}
 }

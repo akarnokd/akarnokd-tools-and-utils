@@ -29,10 +29,18 @@ public interface AggregatorMap2<K1, K2, V> extends AggregatorMap1<K1, Aggregator
 	/**
 	 * Get or create a value with two keys.
 	 * @param key1 the first key
-	 * @param key2 the second 
+	 * @param key2 the second key
 	 * @return the value
 	 */
 	V get(Object key1, Object key2);
+	/**
+	 * Retrieve a value or return the default value if not present.
+	 * @param key1 the first key
+	 * @param key2 the second key
+	 * @param defaultValue the default value
+	 * @return the value
+	 */
+	V getValue(Object key1, Object key2, V defaultValue);
 	/**
 	 * Set a value with two keys.
 	 * @param key1 the first key

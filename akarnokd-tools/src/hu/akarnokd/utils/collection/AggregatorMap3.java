@@ -35,6 +35,15 @@ public interface AggregatorMap3<K1, K2, K3, V> extends AggregatorMap2<K1, K2, Ag
 	 */
 	V get(Object key1, Object key2, Object key3);
 	/**
+	 * Retrieve a value or return the default value if not present.
+	 * @param key1 the first key
+	 * @param key2 the second key
+	 * @param key3 the third key
+	 * @param defaultValue the default value
+	 * @return the value
+	 */
+	V getValue(Object key1, Object key2, Object key3, V defaultValue);
+	/**
 	 * Set a value with two keys.
 	 * @param key1 the first key
 	 * @param key2 the second key

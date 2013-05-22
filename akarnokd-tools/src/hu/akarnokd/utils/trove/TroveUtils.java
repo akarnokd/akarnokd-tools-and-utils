@@ -7584,6 +7584,6 @@ public final class TroveUtils {
 //		generateIsNullOrEmpty();
 //		generateSingleton();
 //		generateMinMaxSum();
-		generateIntersection();
+//		generateIntersection();
 	}
 }

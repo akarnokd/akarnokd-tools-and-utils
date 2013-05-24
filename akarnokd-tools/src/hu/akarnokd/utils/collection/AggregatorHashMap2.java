@@ -39,7 +39,7 @@ implements AggregatorMap2<K1, K2, V> {
 	 * Default constructor.
 	 */
 	public AggregatorHashMap2() {
-		setItemCreator(new Func1<Object, AggregatorHashMap1<K2, V>>() {
+		super(new Func1<Object, AggregatorHashMap1<K2, V>>() {
 			@Override
 			public AggregatorHashMap1<K2, V> invoke(Object param1) {
 				return new AggregatorHashMap1<K2, V>();
@@ -51,7 +51,7 @@ implements AggregatorMap2<K1, K2, V> {
 	 * @param itemCreator the item creator
 	 */
 	public AggregatorHashMap2(@NonNull final Func1<Object, ? extends V> itemCreator) {
-		setItemCreator(new Func1<Object, AggregatorHashMap1<K2, V>>() {
+		super(new Func1<Object, AggregatorHashMap1<K2, V>>() {
 			@Override
 			public AggregatorHashMap1<K2, V> invoke(Object param1) {
 				return new AggregatorHashMap1<K2, V>(itemCreator);

@@ -39,7 +39,12 @@ implements AggregatorMap4<K1, K2, K3, K4, V> {
 	 * Default constructor.
 	 */
 	public AggregatorHashMap4() {
-		super();
+		super(new Func1<Object, AggregatorMap1<K4, V>>() {
+			@Override
+			public AggregatorMap1<K4, V> invoke(Object param1) {
+				return new AggregatorHashMap1<>();
+			}
+		});
 	}
 	/**
 	 * Constructor with the item creator.

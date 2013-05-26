@@ -108,7 +108,6 @@ public class ByteArrayStream extends ByteArrayOutputStream {
 				synchronized (ByteArrayStream.this) {
 					if (mark >= 0) {
 						offset = mark;
-						mark = -1;
 					} else {
 						throw new IOException("Stream not marked");
 					}

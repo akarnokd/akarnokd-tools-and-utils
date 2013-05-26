@@ -17,6 +17,7 @@
 package hu.akarnokd.utils.xml;
 
 import hu.akarnokd.reactive4java.base.Action1;
+import hu.akarnokd.utils.lang.ReflectionUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -963,7 +964,7 @@ public class XElement {
 	 * @param depthFirst do a depth first search?
 	 * @param action the action to invoke, non-null
 	 */
-	public void visit(boolean depthFirst, Action1<XElement> action) {
+	public void visit(boolean depthFirst, Action1<? super XElement> action) {
 		Deque<XElement> queue = new LinkedList<XElement>();
 		queue.add(this);
 		while (!queue.isEmpty()) {
@@ -986,7 +987,7 @@ public class XElement {
 	 * @param o the object, non-null
 	 */
 	public void saveFields(Object o) {
-		for (Field f : o.getClass().getDeclaredFields()) {
+		for (Field f : ReflectionUtils.allDeclaredFields(o.getClass())) {
 			if (f.getType() == Boolean.TYPE
 					|| f.getType() == Byte.TYPE
 					|| f.getType() == Short.TYPE
@@ -1010,7 +1011,7 @@ public class XElement {
 	 * @param o the object, non-null
 	 */
 	public void loadFields(Object o) {
-		for (Field f : o.getClass().getDeclaredFields()) {
+		for (Field f : ReflectionUtils.allDeclaredFields(o.getClass())) {
 			try {
 				if (f.getType() == Boolean.TYPE) {
 					f.set(o, getBoolean(f.getName(), (Boolean)f.get(o)));

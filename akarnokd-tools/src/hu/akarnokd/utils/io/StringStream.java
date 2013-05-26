@@ -300,4 +300,23 @@ public class StringStream extends Writer {
 			}
 		} while (true);
 	}
+	/**
+	 * Returns a substring of the contents from the starting
+	 * position.
+	 * @param start the start position inclusive
+	 * @return the substring
+	 */
+	public String substring(int start) {
+		return buffer.substring(start);
+	}
+	/**
+	 * Returns a substring of the contents from the
+	 * starting position up to the end position.
+	 * @param start the start position inclusive
+	 * @param end end position inclusive
+	 * @return the substring
+	 */
+	public String substirng(int start, int end) {
+		return buffer.substring(start, end);
+	}
 }

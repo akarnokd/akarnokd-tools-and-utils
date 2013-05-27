@@ -114,4 +114,8 @@ public class AggregatorHashMap1<K, V> implements AggregatorMap1<K, V> {
 		}
 		return defaultValue;
 	}
+	@Override
+	public V remove(Object key) {
+		return map.remove(key);
+	}
 }

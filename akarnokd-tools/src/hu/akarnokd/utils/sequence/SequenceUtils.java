@@ -53,13 +53,13 @@ public final class SequenceUtils {
 	 * @throws IOException if the append methods throw
 	 */
 	public static void join(@NonNull Iterator<?> sequence, CharSequence separator, @NonNull Appendable append) throws IOException {
-		int i = 0;
+		boolean first = true;
 		while (sequence.hasNext()) {
-			if (i > 0) {
+			if (!first) {
 				append.append(separator);
 			}
 			append.append(String.valueOf(sequence.next()));
-			i = 1;
+			first = false;
 		}
 	}
 	/**
@@ -84,13 +84,13 @@ public final class SequenceUtils {
 	 * @throws IOException if the append methods throw
 	 */
 	public static void join(@NonNull Iterator<?> sequence, CharSequence separator, @NonNull String format, @NonNull Appendable append) throws IOException {
-		int i = 0;
+		boolean first = true;
 		while (sequence.hasNext()) {
-			if (i > 0) {
+			if (!first) {
 				append.append(separator);
 			}
 			append.append(String.format(format, sequence.next()));
-			i = 1;
+			first = false;
 		}
 	}
 	/**

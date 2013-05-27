@@ -17,6 +17,7 @@
 package hu.akarnokd.utils.xml;
 
 import hu.akarnokd.reactive4java.base.Action1;
+import hu.akarnokd.utils.collection.ParameterMap;
 import hu.akarnokd.utils.lang.ReflectionUtils;
 
 import java.io.BufferedInputStream;
@@ -44,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
 
@@ -56,7 +58,7 @@ import javax.xml.stream.XMLStreamReader;
  * A simplified XML element model.
  * @author akarnokd
  */
-public class XElement {
+public class XElement implements ParameterMap {
 	/** The element name. */
 	public final String name;
 	/** The content of a simple node. */
@@ -83,70 +85,39 @@ public class XElement {
 	public XElement(String name) {
 		this.name = name;
 	}
-	/**
-	 * Retrieve an attribute or throw an IllegalArgumentException.
-	 * @param attributeName the attribute name
-	 * @return the attribute value or null if no such attribute
-	 */
+	@Override
 	public String get(String attributeName) {
 		String s = attributes.get(attributeName);
 		if (s == null) {
-			throw new IllegalArgumentException(this + ": missing attribute: " + attributeName);
+			throw new NoSuchElementException(this + ": missing attribute: " + attributeName);
 		}
 		return s;
 	}
-	/**
-	 * The element has the given attribute.
-	 * @param attributeName the name
-	 * @return attribute exists?
-	 */
+	@Override
 	public boolean has(String attributeName) {
 		return attributes.containsKey(attributeName);
 	}
-	/**
-	 * Retrieve an attribute.
-	 * @param attributeName the attribute name
-	 * @param def the default value if not present
-	 * @return the attribute value or null if no such attribute
-	 */
+	@Override
 	public String get(String attributeName, String def) {
 		String s = attributes.get(attributeName); 
 		return s != null ? s : def;
 	}
-	/**
-	 * Get an integer attribute or return the default value if not present.
-	 * @param attributeName the attribute name
-	 * @param def the default value if the attribute is not present
-	 * @return the integer value
-	 */
+	@Override
 	public int getInt(String attributeName, int def) {
 		String val = attributes.get(attributeName);
 		return val != null ? Integer.parseInt(val) : def;
 	}
-	/**
-	 * Get an integer attribute.
-	 * @param attributeName the attribute name
-	 * @return the integer value
-	 */
+	@Override
 	public long getLong(String attributeName) {
 		String val = get(attributeName);
 		return Long.parseLong(val);
 	}
-	/**
-	 * Get an integer attribute or return the default value if not present.
-	 * @param attributeName the attribute name
-	 * @param def the default value if the attribute is not present
-	 * @return the integer value
-	 */
+	@Override
 	public long getLong(String attributeName, long def) {
 		String val = attributes.get(attributeName);
 		return val != null ? Long.parseLong(val) : def;
 	}
-	/**
-	 * Get an integer attribute.
-	 * @param attributeName the attribute name
-	 * @return the integer value
-	 */
+	@Override
 	public int getInt(String attributeName) {
 		String val = get(attributeName);
 		return Integer.parseInt(val);
@@ -175,11 +146,7 @@ public class XElement {
 		}
 		return null;
 	}
-	/**
-	 * Get an float attribute.
-	 * @param attributeName the attribute name
-	 * @return the float value
-	 */
+	@Override
 	public float getFloat(String attributeName) {
 		String val = get(attributeName);
 		return Float.parseFloat(val);
@@ -873,21 +840,11 @@ public class XElement {
 		}
 		return cal.getTime();
 	}
-	/**
-	 * Retrieve a boolean attribute value.
-	 * <p>The attribute must exist.</p>
-	 * @param name the attribute name
-	 * @return true or false
-	 */
+	@Override
 	public boolean getBoolean(String name) {
 		return "true".equals(get(name));
 	}
-	/**
-	 * Retrieve a boolean attribute value.
-	 * @param name the attribute name
-	 * @param defaultValue the default value if the attribute doesn't exist
-	 * @return true or false
-	 */
+	@Override
 	public boolean getBoolean(String name, boolean defaultValue) {
 		String s = attributes.get(name);
 		return s != null ? "true".equals(s) : defaultValue;
@@ -896,33 +853,16 @@ public class XElement {
 	public Map<String, String> attributes() {
 		return attributes;
 	}
-	/**
-	 * Retrieve a double attribute value.
-	 * <p>Attribute must exist.</p>
-	 * @param name the attribute name
-	 * @return the value
-	 */
+	@Override
 	public double getDouble(String name) {
 		return Double.parseDouble(get(name));
 	}
-	/**
-	 * Retrieve a double attribute value.
-	 * @param name the attribute name
-	 * @param defaultValue the default value if the attribute doesn't exist
-	 * @return the value
-	 */
+	@Override
 	public double getDouble(String name, double defaultValue) {
 		String s = attributes.get(name);
 		return s != null ? Double.parseDouble(s) : defaultValue;
 	}
-	/**
-	 * Returns an instance of the given enumeration from the attribute.
-	 * <p>The attribute should exist.</p>
-	 * @param <T> the enum type
-	 * @param name the attribute name
-	 * @param clazz the attribute class
-	 * @return the enumeration value
-	 */
+	@Override
 	public <T extends Enum<T>> T getEnum(String name, Class<T> clazz) {
 		String s = get(name);
 		T[] values = clazz.getEnumConstants();
@@ -931,16 +871,9 @@ public class XElement {
 				return t;
 			}
 		}
-		throw new IllegalArgumentException(String.format("Attribute %s = %s is not a valid enum for %s", name, s, clazz.getName()));
+		throw new NoSuchElementException(String.format("Attribute %s = %s is not a valid enum for %s", name, s, clazz.getName()));
 	}
-	/**
-	 * Returns an instance of the given enumeration from the attribute.
-	 * @param <T> the enum type
-	 * @param name the attribute name
-	 * @param clazz the attribute class
-	 * @param defaultValue the default value if the attribute is missing or not supported
-	 * @return the enumeration value
-	 */
+	@Override
 	public <T extends Enum<T>> T getEnum(String name, Class<T> clazz, T defaultValue) {
 		String s = attributes.get(name);
 		if (s != null) {
@@ -1204,4 +1137,73 @@ public class XElement {
 		}
 		return false;
 	}
+	@Override
+	public byte getByte(String key) {
+		String attr = get(key);
+		return Byte.parseByte(attr);
+	}
+	@Override
+	public byte getByte(String key, byte defaultValue) {
+		String attr = attributes.get(key);
+		if (attr != null) {
+			return Byte.parseByte(attr);
+		}
+		return defaultValue;
+	}
+	@Override
+	public short getShort(String key) {
+		String attr = get(key);
+		return Short.parseShort(attr);
+	}
+	@Override
+	public short getShort(String key, short defaultValue) {
+		String attr = attributes.get(key);
+		if (attr != null) {
+			return Short.parseShort(attr);
+		}
+		return defaultValue;
+	}
+	@Override
+	public float getFloat(String key, float defaultValue) {
+		String attr = attributes.get(key);
+		return Float.parseFloat(attr);
+	}
+	@Override
+	public char getChar(String key) {
+		String attr = get(key);
+		if (attr != null && !attr.isEmpty()) {
+			return attr.charAt(0);
+		}
+		throw new NoSuchElementException(key);
+	}
+	@Override
+	public char getChar(String key, char defaultValue) {
+		String attr = attributes.get(key);
+		if (attr != null && !attr.isEmpty()) {
+			return attr.charAt(0);
+		}
+		return defaultValue;
+	}
+	@Override
+	public <E extends Enum<E>> E getEnum(String key, E[] universe) {
+		String attr = get(key);
+		for (E e : universe) {
+			if (e.name().equals(attr)) {
+				return e;
+			}
+		}
+		throw new NoSuchElementException(key);
+	}
+	@Override
+	public <E extends Enum<E>> E getEnum(String key, E[] universe,
+			E defaultValue) {
+		String attr = attributes.get(key);
+		for (E e : universe) {
+			if (e.name().equals(attr)) {
+				return e;
+			}
+		}
+		return defaultValue;
+	}
+	
 }

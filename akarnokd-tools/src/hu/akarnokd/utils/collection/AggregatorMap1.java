@@ -95,4 +95,10 @@ public interface AggregatorMap1<K, V> {
 	 * @return the value
 	 */
 	V getValue(Object key, V defaultValue);
+	/**
+	 * Removes the given key and value.
+	 * @param key the key to remove
+	 * @return the current value
+	 */
+	V remove(Object key);
 }

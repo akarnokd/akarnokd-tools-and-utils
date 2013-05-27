@@ -108,430 +108,377 @@ public class DB implements Closeable {
 	protected static final Map<String, DBInfo> CONNECTION_INFOS = Maps.newConcurrentMap();
 	/** The connection data file. */
 	protected static final String CONNECTION_DATA = "/db.xml";
-	/** The underlying connection. */
-	protected Connection conn;
-	/** The defualt query fetch size. */
-	protected int fetchSize = -1;
-	/** The name of the default connection. */
-	protected static final String DEFAULT = "default";
 	/**
-	 * Sets a single parameter to the long value, used for delete auto-keyed items.
+	 * Adds a new database info record to the common DB object.
+	 * @param info the new info to add
 	 */
-	public static final SQLAction<Long> DELETE_LONG = new SQLAction<Long>() {
-		@Override
-		public void invoke(PreparedStatement t, Long u)
-				throws SQLException {
-			t.setLong(1, u);
+	public static void addConnection(@NonNull DBInfo info) {
+		CONNECTION_INFOS.put(info.id, new DBInfo(info));
+	}
+	/**
+	 * Execute an action under the default connection.
+	 * @param action the action to execute
+	 * @throws SQLException the exception raised when connecting or when executing the action
+	 * @see SQLExecute
+	 */
+	public static void execute(
+			@NonNull Action1E<? super DB, ? extends SQLException> action) throws SQLException {
+		try (DB db = DB.connect()) {
+			action.invoke(db);
+		} catch (IOException ex) {
+			throw new SQLException(ex);
 		}
-	};
-	/** Returns a single long value. */
-	public static final SQLResult<Long> SELECT_LONG = new SQLResult<Long>() {
-		@Override
-		public Long invoke(ResultSet param1)
-				throws SQLException {
-			return param1.getLong(1);
+	}
+	/**
+	 * Execute a function under the default connection.
+	 * @param <T> the return type 
+	 * @param func the function to execute
+	 * @return the value
+	 * @throws SQLException the exception raised when connecting or when executing the action
+	 * @see SQLCall
+	 */
+	public static <T> T execute(
+			@NonNull Func1E<? super DB, ? extends T, ? extends SQLException> func) throws SQLException {
+		try (DB db = DB.connect()) {
+			return func.invoke(db);
+		} catch (IOException ex) {
+			throw new SQLException(ex);
 		}
-	};
-	/** Returns a single long value. */
-	public static final SQLResult<Integer> SELECT_INT = new SQLResult<Integer>() {
-		@Override
-		public Integer invoke(ResultSet param1)
-				throws SQLException {
-			return param1.getInt(1);
+	}
+	/**
+	 * Execute an action under the given connection id.
+	 * @param id the connection identifier 
+	 * @param action the action to execute
+	 * @throws SQLException the exception raised when connecting or when executing the action
+	 * @see SQLExecute
+	 */
+	public static void execute(
+			@NonNull String id, 
+			@NonNull Action1E<? super DB, ? extends SQLException> action) throws SQLException {
+		try (DB db = DB.connect(id)) {
+			action.invoke(db);
+		} catch (IOException ex) {
+			throw new SQLException(ex);
 		}
-	};
-	/** Returns a single long value or null. */
-	public static final SQLResult<Long> SELECT_LONG_OPTION = new SQLResult<Long>() {
-		@Override
-		public Long invoke(ResultSet param1)
-				throws SQLException {
-			return DB.getLong(param1, 1);
+	}
+	/**
+	 * Execute a function under the given connection id.
+	 * @param <T> the return type
+	 * @param id the connection identifier 
+	 * @param func the function to execute
+	 * @return the value
+	 * @throws SQLException the exception raised when connecting or when executing the action
+	 * @see SQLCall
+	 */
+	public static <T> T execute(
+			@NonNull String id, 
+			@NonNull Func1E<? super DB, ? extends T, ? extends SQLException> func) throws SQLException {
+		try (DB db = DB.connect(id)) {
+			return func.invoke(db);
+		} catch (IOException ex) {
+			throw new SQLException(ex);
 		}
-	};
-	/** Returns a single long value or null. */
-	public static final SQLResult<Integer> SELECT_INT_OPTION = new SQLResult<Integer>() {
-		@Override
-		public Integer invoke(ResultSet param1)
-				throws SQLException {
-			return DB.getInt(param1, 1);
-		}
-	};
-	/** Returns a single long value. */
-	public static final SQLResult<String> SELECT_STRING = new SQLResult<String>() {
-		@Override
-		public String invoke(ResultSet param1)
-				throws SQLException {
-			return param1.getString(1);
-		}
-	};
-	/** Returns a single timestamp value. */
-	public static final SQLResult<Timestamp> SELECT_TIMESTAMP = new SQLResult<Timestamp>() {
-		@Override
-		public Timestamp invoke(ResultSet param1)
-				throws SQLException {
-			return param1.getTimestamp(1);
-		}
-	};
-	/** Returns a single datetime value. */
-	public static final SQLResult<DateTime> SELECT_DATETIME = new SQLResult<DateTime>() {
-		@Override
-		public DateTime invoke(ResultSet param1)
-				throws SQLException {
-			Timestamp timestamp = param1.getTimestamp(1);
-			if (timestamp != null) {
-				return new DateTime(timestamp.getTime());
-			}
+	}
+	/**
+	 * Returns a nullable short field from the result set as a Double object.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Byte getByte(@NonNull ResultSet rs, int index) throws SQLException {
+		byte value = rs.getByte(index);
+		if (rs.wasNull()) {
 			return null;
 		}
-	};
-	/** Returns a single datemidnight value. */
-	public static final SQLResult<DateMidnight> SELECT_DATEMIDNIGHT = new SQLResult<DateMidnight>() {
-		@Override
-		public DateMidnight invoke(ResultSet param1)
-				throws SQLException {
-			Timestamp timestamp = param1.getTimestamp(1);
-			if (timestamp != null) {
-				return new DateMidnight(timestamp.getTime());
-			}
+		return value;
+	}
+	/**
+	 * Returns a nullable double field from the result set as a Double object.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Double getDouble(@NonNull ResultSet rs, int index) throws SQLException {
+		double value = rs.getDouble(index);
+		if (rs.wasNull()) {
 			return null;
 		}
-	};
-	static {
-		URL res = DB.class.getResource(CONNECTION_DATA);
-		if (res != null) {
-			try {
-				XElement xdbs = XElement.parseXML(res);
-				for (XElement xdb : xdbs.childrenWithName("database")) {
-					DBInfo dbi = new DBInfo();
-					
-					dbi.id = xdb.get("id");
-					dbi.driverClass = xdb.childValue("driver-class");
-					dbi.connectionURL = xdb.childValue("connection-url");
-					dbi.user = xdb.childValue("user");
-					dbi.password = xdb.childValue("password");
-					dbi.encodePassword = xdb.childElement("password").getBoolean("encoded", false);
-					dbi.schema = xdb.childValue("schema");
-					dbi.maxConnection = Integer.parseInt(xdb.childValue("max-connection"));
-					
-					if (dbi.password != null && !dbi.password.isEmpty() && dbi.encodePassword) {
-						dbi.password = new String(Base64.decode(dbi.password), "UTF-8");
+		return value;
+	}
+	/**
+	 * Returns a nullable float field from the result set as a Double object.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Float getFloat(@NonNull ResultSet rs, int index) throws SQLException {
+		float value = rs.getFloat(index);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a nullable int field from the result set as an Integer object.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Integer getInt(@Nonnull ResultSet rs, int index) throws SQLException {
+		int value = rs.getInt(index);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a nullable long field from the result set as a Long object.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Long getLong(@NonNull ResultSet rs, int index) throws SQLException {
+		long value = rs.getLong(index);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a nullable short field from the result set as a Double object.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Short getShort(@NonNull ResultSet rs, int index) throws SQLException {
+		short value = rs.getShort(index);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Wraps the resultset into an iterable sequence to be used by a 
+	 * simple for-each loop.
+	 * <p>Throws an SQLRuntimeException if the resultset's next() throws an exception.</p>
+	 * @param rs the result set to wrap
+	 * @return the iterable with the result set
+	 */
+	@NonNull 
+	public static Iterable<ResultSet> iterate(
+			@NonNull final ResultSet rs) {
+		return new Iterable<ResultSet>() {
+			@Override
+			public Iterator<ResultSet> iterator() {
+				return new Iterator<ResultSet>() {
+					/** The resultset has finished. */
+					boolean done;
+					/** The cursor has been moved. */
+					boolean moved;
+					@Override
+					public boolean hasNext() {
+						if (!done) {
+							if (!moved) {
+								try {
+									done = rs.next();
+								} catch (SQLException ex) {
+									throw new SQLRuntimeException(ex);
+								}
+								moved = true;
+							}
+						}
+						return !done;
 					}
-					
-					CONNECTION_INFOS.put(dbi.id, dbi);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (XMLStreamException e) {
-				e.printStackTrace();
+					@Override
+					public ResultSet next() {
+						if (hasNext()) {
+							moved = false;
+							return rs;
+						}
+						throw new NoSuchElementException();
+					}
+					@Override
+					public void remove() {
+						throw new UnsupportedOperationException();
+					}
+				};
 			}
-		}
+		};
 	}
 	/**
-	 * Connect to the default database.
-	 * @return the connection or the error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
-	@NonNull
-	public static DB connect() {
-		return connect(DEFAULT);
+	@NonNull 
+	public static Object maybeNull(BigDecimal value) {
+		return value != null ? value : BigDecimal.class;
 	}
 	/**
-	 * Establish a connection to the given database.
-	 * @param dbi the the database info 
-	 * @return the database instance
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
-	@NonNull
-	public static DB connect(@NonNull DBInfo dbi) {
-		if (dbi == null) {
-			throw new IllegalArgumentException("dbi is null");
-		}
-		
-		try {
-			Class.forName(dbi.driverClass);
-		} catch (ClassNotFoundException ex) {
-			throw new IllegalArgumentException("Driver error: " + dbi.driverClass, ex);
-		}
-		
-		DB result = new DB();
-		try {
-			result.conn = DriverManager.getConnection(dbi.connectionURL, dbi.user, dbi.password);
-		} catch (SQLException ex) {
-			Closeables.closeSilently(result);
-			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
-		}
-		try {
-			result.conn.setAutoCommit(false);
-		} catch (SQLException ex) {
-			Closeables.closeSilently(result);
-			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
-		}
-		
-		return result;
+	@NonNull 
+	public static Object maybeNull(BigInteger value) {
+		return value != null ? value : BigInteger.class;
 	}
 	/**
-	 * Connect to the specified database.
-	 * @param databaseId the database identifier
-	 * @return the connection object or the exception
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
-	@NonNull
-	public static DB connect(@NonNull String databaseId) {
-		DBInfo dbi = CONNECTION_INFOS.get(databaseId);
-		return connect(dbi);
+	@NonNull 
+	public static Object maybeNull(Boolean value) {
+		return value != null ? value : Boolean.class;
+	}
+	/**
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
+	 */
+	@NonNull 
+	public static Object maybeNull(Byte value) {
+		return value != null ? value : Byte.class;
+	}
+	/**
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
+	 */
+	@NonNull 
+	public static Object maybeNull(byte[] value) {
+		return value != null ? value : byte[].class;
 	}
 	
 	/**
-	 * Wraps the given connection into a DB instance.
-	 * @param conn the connection object
-	 * @return the new DB instance
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
 	@NonNull 
-	public static DB connect(@NonNull Connection conn) {
-		DB result = new DB();
-		result.conn = conn;
-		
-		return result;
-	}
-	@Override
-	public void close() throws IOException {
-		Connection c = conn;
-		if (c != null) {
-			conn = null;
-			try {
-				c.close();
-			} catch (SQLException ex) {
-				throw new IOException(ex);
-			}
-		}
+	public static Object maybeNull(CharSequence value) {
+		return value != null ? value : String.class;
 	}
 	/**
-	 * Commit the current transaction.
-	 * @throws SQLException on error
-	 */
-	public void commit() throws SQLException {
-		conn.commit();
-	}
-	/**
-	 * Roll back the current transaction.
-	 * Exceptions are suppressed.
-	 */
-	public void rollback() {
-		try {
-			conn.rollback();
-		} catch (SQLException ex) {
-			// suppressed
-		}
-	}
-	/**
-	 * Create a prepared statement.
-	 * @param direction the read direction constant from ResultSet
-	 * @param concurrency the concurrency constant from ResultSet
-	 * @param sql the query
-	 * @param params the optional parameters
-	 * @return the statement
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
 	@NonNull 
-	public PreparedStatement prepare(
-			int direction, 
-			int concurrency,
-			@NonNull CharSequence sql,
-			Object... params) throws SQLException {
-		PreparedStatement pstmt = conn.prepareStatement(sql.toString(), direction, concurrency);
-		setParams(pstmt, params);
-		return pstmt;
+	public static Object maybeNull(Date value) {
+		return value != null ? value : Date.class;
 	}
 	/**
-	 * Create a prepared statement wit the given SQL hints and parameters.
-	 * @param sql the query
-	 * @param direction the read direction constant from ResultSet
-	 * @param concurrency the concurrency constant from ResultSet
-	 * @param values the parameter values
-	 * @return the statement
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
 	@NonNull 
-	public PreparedStatement prepare(
-			int direction, 
-			int concurrency,
-			@NonNull CharSequence sql, 
-			@NonNull Iterable<?> values) throws SQLException {
-		PreparedStatement pstmt = conn.prepareStatement(sql.toString(), direction, concurrency);
-		setParams(pstmt, Iterables.toArray(values, Object.class));
-		return pstmt;
+	public static Object maybeNull(DateMidnight value) {
+		return value != null ? value : DateMidnight.class;
 	}
 	/**
-	 * Returns a list of the generated keys for the given statement as long values.
-	 * @param pstmt the statement
-	 * @return the list of generated keys
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
 	@NonNull 
-	public List<Long> generatedKeys(@NonNull PreparedStatement pstmt) throws SQLException {
-		List<Long> result = Lists.newArrayList();
-		ResultSet rs = pstmt.getGeneratedKeys();
-		try {
-			if (fetchSize != 0) {
-				rs.setFetchSize(fetchSize);
-			}
-			while (rs.next()) {
-				result.add(rs.getLong(1));
-			}
-		} finally {
-			rs.close();
-		}
-		return result;
+	public static Object maybeNull(DateTime value) {
+		return value != null ? value : DateTime.class;
 	}
 	/**
-	 * Prepare a query statement with the given parameters.
-	 * Null-values must be represented via a class value, e.g., Integer.class
-	 * @param sql the query
-	 * @param autoResult should expect autogenerated keys?
-	 * @param values the parameters
-	 * @return the statement
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
 	@NonNull 
-	public PreparedStatement prepare(
-			boolean autoResult, 
-			@NonNull CharSequence sql, 
-			@NonNull Iterable<?> values) throws SQLException {
-		return prepare(autoResult, sql, Iterables.toArray(values, Object.class));
+	public static Object maybeNull(Double value) {
+		return value != null ? value : Double.class;
 	}
 	/**
-	 * Prepare a query statement with the given parameters.
-	 * Null-values must be represented via a class value, e.g., Integer.class
-	 * @param sql the query
-	 * @param values the parameters
-	 * @return the statement
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
 	@NonNull 
-	public PreparedStatement prepare(
-			@NonNull CharSequence sql, 
-			@NonNull Iterable<?> values) throws SQLException {
-		return prepare(false, sql, Iterables.toArray(values, Object.class));
+	public static Object maybeNull(Float value) {
+		return value != null ? value : Float.class;
 	}
 	/**
-	 * Prepare a query statement with the given parameters.
-	 * Null-values must be represented via a class value, e.g., Integer.class
-	 * @param sql the query
-	 * @param params the optional parameters
-	 * @return the statement
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
 	@NonNull 
-	public PreparedStatement prepare(
-			@NonNull CharSequence sql, 
-			Object... params) throws SQLException {
-		return prepare(false, sql, params);
+	public static Object maybeNull(InputStream value) {
+		return value != null ? value : InputStream.class;
 	}
 	/**
-	 * Prepare a query statement with the given parameters.
-	 * Null-values must be represented via a class value, e.g., Integer.class
-	 * @param sql the query
-	 * @param autoResult should expect autogenerated keys?
-	 * @param values the parameters
-	 * @return the statement
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
 	@NonNull 
-	public PreparedStatement prepare(
-			boolean autoResult, 
-			@NonNull CharSequence sql, 
-			Object... values) throws SQLException {
-		PreparedStatement pstmt = conn.prepareStatement(sql.toString(), autoResult ? PreparedStatement.RETURN_GENERATED_KEYS : PreparedStatement.NO_GENERATED_KEYS);
-		setParams(pstmt, values);
-		return pstmt;
+	public static Object maybeNull(Integer value) {
+		return value != null ? value : Integer.class;
 	}
 	/**
-	 * Sets the parameters on a result set.
-	 * @param rs the result set
-	 * @param values the list of values
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
-	public static void setParams(
-			@NonNull ResultSet rs, 
-			@NonNull Iterable<?> values)
-			throws SQLException {
-		setParams(rs, Iterables.toArray(values, Object.class));
+	@NonNull 
+	public static Object maybeNull(LocalTime value) {
+		return value != null ? value : LocalTime.class;
 	}
 	/**
-	 * Sets the parameters on a result set.
-	 * @param rs the result set
-	 * @param values the list of values
-	 * @throws SQLException on error
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
 	 */
-	public static void setParams(
-			@NonNull ResultSet rs, 
-			Object... values) throws SQLException {
-		int i = 1;
-		for (Object o : values) {
-			if (o instanceof Class<?>) {
-				rs.updateNull(i);
-			} else
-			if (o instanceof CharSequence) {
-				rs.updateString(i, ((CharSequence)o).toString());
-			} else
-			if (o instanceof Byte) {
-				rs.updateByte(i, (Byte)o);
-			} else
-			if (o instanceof Short) {
-				rs.updateShort(i, (Short)o);
-			} else
-			if (o instanceof Integer) {
-				rs.updateInt(i, (Integer)o);
-			} else
-			if (o instanceof Long) {
-				rs.updateLong(i, (Long)o);
-			} else
-			if (o instanceof Character) {
-				rs.updateString(i, ((Character)o).toString());
-			} else
-			if (o instanceof Date) {
-				rs.updateDate(i, (Date)o);
-			} else
-			if (o instanceof Timestamp) {
-				rs.updateTimestamp(i, (Timestamp)o);
-			} else
-			if (o instanceof Double) {
-				rs.updateDouble(i, (Double)o);
-			} else
-			if (o instanceof Float) {
-				rs.updateFloat(i, (Float)o);
-			} else
-			if (o instanceof BigDecimal) {
-				rs.updateBigDecimal(i, (BigDecimal)o);
-			} else
-			if (o instanceof BigInteger) {
-				rs.updateBigDecimal(i, new BigDecimal((BigInteger)o));
-			} else
-			if (o instanceof Boolean) {
-				rs.updateBoolean(i, (Boolean)o);
-			} else
-			if (o instanceof Time) {
-				rs.updateTime(i, (Time)o);
-			} else 
-			if (o instanceof DateTime) {
-				rs.updateTimestamp(i, new Timestamp(((DateTime)o).getMillis()));
-			} else
-			if (o instanceof DateMidnight) {
-				rs.updateDate(i, new Date(((DateMidnight)o).getMillis()));
-			} else
-			if (o instanceof LocalDate) {
-				rs.updateDate(i, new Date(((LocalDate)o).toDateMidnight().getMillis()));
-			} else
-			if (o instanceof InputStream) {
-				rs.updateBlob(i, (InputStream)o);
-			} else
-			if (o instanceof byte[]) {
-				rs.updateBytes(i, (byte[])o);
-			} else
-			if (o instanceof LocalTime) {
-				rs.updateTime(i, new Time(((LocalTime)o).getMillisOfDay()));
-			} else {
-				throw new SQLException("Unknown type " + o + ", " + (o != null ? o.getClass() : "?") + " for parameter " + i);
-			}
-			i++;
-		}
+	@NonNull 
+	public static Object maybeNull(Long value) {
+		return value != null ? value : Long.class;
+	}
+	/**
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
+	 */
+	@NonNull 
+	public static Object maybeNull(Short value) {
+		return value != null ? value : Short.class;
+	}
+	/**
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
+	 */
+	@NonNull 
+	public static Object maybeNull(Time value) {
+		return value != null ? value : Time.class;
+	}
+	/**
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
+	 */
+	@NonNull 
+	public static Object maybeNull(Timestamp value) {
+		return value != null ? value : Timestamp.class;
 	}
 	/**
 	 * Sets the parameters on a prepared statement.
@@ -659,11 +606,629 @@ public class DB implements Closeable {
 				pstmt.setBytes(i, (byte[])o);
 			} else
 			if (o instanceof LocalTime) {
-				pstmt.setTime(i, new Time(((LocalTime)o).getMillisOfDay()));
+				LocalTime lt = (LocalTime)o;
+				pstmt.setTime(i, toSQLTime(lt));
 			} else {
 				throw new SQLException("Unknown type " + o + ", " + (o != null ? o.getClass() : "?") + " for parameter " + i);
 			}
 			i++;
+		}
+	}
+	/**
+	 * Convert the local time to SQL time object, considering
+	 * the timezone and DST offsets.
+	 * @param time the local time
+	 * @return the sql time
+	 */
+	public static Time toSQLTime(LocalTime time) {
+		DateTime epochTime = new DateTime(1970, 1, 1, 
+				time.getHourOfDay(), time.getMinuteOfHour(), 
+				time.getSecondOfMinute(), time.getMillisOfSecond());
+		return new Time(epochTime.getMillis());
+	}
+	/**
+	 * Sets the parameters on a result set.
+	 * @param rs the result set
+	 * @param values the list of values
+	 * @throws SQLException on error
+	 */
+	public static void setParams(
+			@NonNull ResultSet rs, 
+			@NonNull Iterable<?> values)
+			throws SQLException {
+		setParams(rs, Iterables.toArray(values, Object.class));
+	}
+	/**
+	 * Sets the parameters on a result set.
+	 * @param rs the result set
+	 * @param values the list of values
+	 * @throws SQLException on error
+	 */
+	public static void setParams(
+			@NonNull ResultSet rs, 
+			Object... values) throws SQLException {
+		int i = 1;
+		for (Object o : values) {
+			if (o instanceof Class<?>) {
+				rs.updateNull(i);
+			} else
+			if (o instanceof CharSequence) {
+				rs.updateString(i, ((CharSequence)o).toString());
+			} else
+			if (o instanceof Byte) {
+				rs.updateByte(i, (Byte)o);
+			} else
+			if (o instanceof Short) {
+				rs.updateShort(i, (Short)o);
+			} else
+			if (o instanceof Integer) {
+				rs.updateInt(i, (Integer)o);
+			} else
+			if (o instanceof Long) {
+				rs.updateLong(i, (Long)o);
+			} else
+			if (o instanceof Character) {
+				rs.updateString(i, ((Character)o).toString());
+			} else
+			if (o instanceof Date) {
+				rs.updateDate(i, (Date)o);
+			} else
+			if (o instanceof Timestamp) {
+				rs.updateTimestamp(i, (Timestamp)o);
+			} else
+			if (o instanceof Double) {
+				rs.updateDouble(i, (Double)o);
+			} else
+			if (o instanceof Float) {
+				rs.updateFloat(i, (Float)o);
+			} else
+			if (o instanceof BigDecimal) {
+				rs.updateBigDecimal(i, (BigDecimal)o);
+			} else
+			if (o instanceof BigInteger) {
+				rs.updateBigDecimal(i, new BigDecimal((BigInteger)o));
+			} else
+			if (o instanceof Boolean) {
+				rs.updateBoolean(i, (Boolean)o);
+			} else
+			if (o instanceof Time) {
+				rs.updateTime(i, (Time)o);
+			} else 
+			if (o instanceof DateTime) {
+				rs.updateTimestamp(i, new Timestamp(((DateTime)o).getMillis()));
+			} else
+			if (o instanceof DateMidnight) {
+				rs.updateDate(i, new Date(((DateMidnight)o).getMillis()));
+			} else
+			if (o instanceof LocalDate) {
+				rs.updateDate(i, new Date(((LocalDate)o).toDateMidnight().getMillis()));
+			} else
+			if (o instanceof InputStream) {
+				rs.updateBlob(i, (InputStream)o);
+			} else
+			if (o instanceof byte[]) {
+				rs.updateBytes(i, (byte[])o);
+			} else
+			if (o instanceof LocalTime) {
+				rs.updateTime(i, toSQLTime((LocalTime)o));
+			} else {
+				throw new SQLException("Unknown type " + o + ", " + (o != null ? o.getClass() : "?") + " for parameter " + i);
+			}
+			i++;
+		}
+	}
+	/** The underlying connection. */
+	protected Connection conn;
+	/** The defualt query fetch size. */
+	protected int fetchSize = -1;
+	/** The name of the default connection. */
+	protected static final String DEFAULT = "default";
+	/** Log the queries? */
+	protected boolean logQueries;
+	/**
+	 * Sets a single parameter to the long value, used for delete auto-keyed items.
+	 */
+	public static final SQLAction<Long> DELETE_LONG = new SQLAction<Long>() {
+		@Override
+		public void invoke(PreparedStatement t, Long u)
+				throws SQLException {
+			t.setLong(1, u);
+		}
+	};
+	/** Returns a single long value. */
+	public static final SQLResult<Long> SELECT_LONG = new SQLResult<Long>() {
+		@Override
+		public Long invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getLong(1);
+		}
+	};
+	/** Returns a single long value. */
+	public static final SQLResult<Integer> SELECT_INT = new SQLResult<Integer>() {
+		@Override
+		public Integer invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getInt(1);
+		}
+	};
+	/** Returns a single long value or null. */
+	public static final SQLResult<Long> SELECT_LONG_OPTION = new SQLResult<Long>() {
+		@Override
+		public Long invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getLong(param1, 1);
+		}
+	};
+	/** Returns a single long value or null. */
+	public static final SQLResult<Integer> SELECT_INT_OPTION = new SQLResult<Integer>() {
+		@Override
+		public Integer invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getInt(param1, 1);
+		}
+	};
+	/** Returns a single long value. */
+	public static final SQLResult<String> SELECT_STRING = new SQLResult<String>() {
+		@Override
+		public String invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getString(1);
+		}
+	};
+	/** Returns a single timestamp value. */
+	public static final SQLResult<Timestamp> SELECT_TIMESTAMP = new SQLResult<Timestamp>() {
+		@Override
+		public Timestamp invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getTimestamp(1);
+		}
+	};
+	/** Returns a single datetime value. */
+	public static final SQLResult<DateTime> SELECT_DATETIME = new SQLResult<DateTime>() {
+		@Override
+		public DateTime invoke(ResultSet param1)
+				throws SQLException {
+			Timestamp timestamp = param1.getTimestamp(1);
+			if (timestamp != null) {
+				return new DateTime(timestamp.getTime());
+			}
+			return null;
+		}
+	};
+	/** Returns a single datemidnight value. */
+	public static final SQLResult<DateMidnight> SELECT_DATEMIDNIGHT = new SQLResult<DateMidnight>() {
+		@Override
+		public DateMidnight invoke(ResultSet param1)
+				throws SQLException {
+			Timestamp timestamp = param1.getTimestamp(1);
+			if (timestamp != null) {
+				return new DateMidnight(timestamp.getTime());
+			}
+			return null;
+		}
+	};
+	static {
+		URL res = DB.class.getResource(CONNECTION_DATA);
+		if (res != null) {
+			try {
+				XElement xdbs = XElement.parseXML(res);
+				for (XElement xdb : xdbs.childrenWithName("database")) {
+					DBInfo dbi = new DBInfo();
+					
+					dbi.id = xdb.get("id");
+					dbi.driverClass = xdb.childValue("driver-class");
+					dbi.connectionURL = xdb.childValue("connection-url");
+					dbi.user = xdb.childValue("user");
+					dbi.password = xdb.childValue("password");
+					dbi.encodePassword = xdb.childElement("password").getBoolean("encoded", false);
+					dbi.schema = xdb.childValue("schema");
+					dbi.maxConnection = Integer.parseInt(xdb.childValue("max-connection"));
+					
+					if (dbi.password != null && !dbi.password.isEmpty() && dbi.encodePassword) {
+						dbi.password = new String(Base64.decode(dbi.password), "UTF-8");
+					}
+					
+					CONNECTION_INFOS.put(dbi.id, dbi);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (XMLStreamException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	/**
+	 * Connect to the default database.
+	 * @return the connection or the error
+	 */
+	@NonNull
+	public static DB connect() {
+		return connect(DEFAULT);
+	}
+	/**
+	 * Wraps the given connection into a DB instance.
+	 * @param conn the connection object
+	 * @return the new DB instance
+	 */
+	@NonNull 
+	public static DB connect(@NonNull Connection conn) {
+		DB result = new DB();
+		result.conn = conn;
+		
+		return result;
+	}
+	/**
+	 * Establish a connection to the given database.
+	 * @param dbi the the database info 
+	 * @return the database instance
+	 */
+	@NonNull
+	public static DB connect(@NonNull DBInfo dbi) {
+		if (dbi == null) {
+			throw new IllegalArgumentException("dbi is null");
+		}
+		
+		try {
+			Class.forName(dbi.driverClass);
+		} catch (ClassNotFoundException ex) {
+			throw new IllegalArgumentException("Driver error: " + dbi.driverClass, ex);
+		}
+		
+		DB result = new DB();
+		try {
+			result.conn = DriverManager.getConnection(dbi.connectionURL, dbi.user, dbi.password);
+		} catch (SQLException ex) {
+			Closeables.closeSilently(result);
+			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
+		}
+		try {
+			result.conn.setAutoCommit(false);
+		} catch (SQLException ex) {
+			Closeables.closeSilently(result);
+			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
+		}
+		
+		return result;
+	}
+	/**
+	 * Connect to the specified database.
+	 * @param databaseId the database identifier
+	 * @return the connection object or the exception
+	 */
+	@NonNull
+	public static DB connect(@NonNull String databaseId) {
+		DBInfo dbi = CONNECTION_INFOS.get(databaseId);
+		return connect(dbi);
+	}
+	@Override
+	public void close() throws IOException {
+		Connection c = conn;
+		if (c != null) {
+			conn = null;
+			try {
+				c.close();
+			} catch (SQLException ex) {
+				throw new IOException(ex);
+			}
+		}
+	}
+	/**
+	 * Commit the current transaction.
+	 * @throws SQLException on error
+	 */
+	public void commit() throws SQLException {
+		conn.commit();
+	}
+	/**
+	 * Returns a list of the generated keys for the given statement as long values.
+	 * @param pstmt the statement
+	 * @return the list of generated keys
+	 * @throws SQLException on error
+	 */
+	@NonNull 
+	public List<Long> generatedKeys(@NonNull PreparedStatement pstmt) throws SQLException {
+		List<Long> result = Lists.newArrayList();
+		ResultSet rs = pstmt.getGeneratedKeys();
+		try {
+			if (fetchSize != 0) {
+				rs.setFetchSize(fetchSize);
+			}
+			while (rs.next()) {
+				result.add(rs.getLong(1));
+			}
+		} finally {
+			rs.close();
+		}
+		return result;
+	}
+	/**
+	 * Execute a single-valued parametric insert and invoke an action for the generated
+	 * key result set.
+	 * @param sql the query
+	 * @param setAutoKey the action to extract the generated keys.
+	 * @param params the parameter sequence
+	 * @throws SQLException on error
+	 */
+	public void insertAuto(
+			@NonNull CharSequence sql,
+			@NonNull Action1E<? super ResultSet, ? extends SQLException> setAutoKey, 
+			@NonNull Iterable<?> params) throws SQLException {
+		insertAuto(sql, setAutoKey, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Execute a single-valued parametric insert and invoke an action for the generated
+	 * key result set.
+	 * @param sql the query
+	 * @param setAutoKey the action to extract the generated keys.
+	 * @param params the optional parameter array
+	 * @throws SQLException on error
+	 */
+	public void insertAuto(
+			@NonNull CharSequence sql, 
+			@NonNull Action1E<? super ResultSet, ? extends SQLException> setAutoKey, 
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(true, sql, params)) {
+			pstmt.executeUpdate();
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+				if (rs.next()) {
+					setAutoKey.invoke(rs);
+				}
+			}
+		}
+		
+	}
+	/**
+	 * Execute a single-valued parametric insert and return a generated long key.
+	 * @param sql the query
+	 * @param params the optional parameter array
+	 * @return the long key
+	 * @throws SQLException on error
+	 */
+	public long insertAuto(
+			@NonNull CharSequence sql, 
+			@NonNull Iterable<?> params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(true, sql, params)) {
+			pstmt.executeUpdate();
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+				if (rs.next()) {
+					return rs.getLong(1);
+				}
+			}
+		}
+		return 0L;
+	}
+	/**
+	 * Execute a single-valued parametric insert and return a generated long key.
+	 * @param sql the query
+	 * @param params the optional parameter array
+	 * @return the long key
+	 * @throws SQLException on error
+	 */
+	public long insertAuto(
+			@NonNull CharSequence sql, 
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(true, sql, params)) {
+			pstmt.executeUpdate();
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+				if (rs.next()) {
+					return rs.getLong(1);
+				}
+			}
+		}
+		return 0L;
+	}
+	/**
+	 * Prepare a query statement with the given parameters.
+	 * Null-values must be represented via a class value, e.g., Integer.class
+	 * @param sql the query
+	 * @param autoResult should expect autogenerated keys?
+	 * @param values the parameters
+	 * @return the statement
+	 * @throws SQLException on error
+	 */
+	@NonNull 
+	public PreparedStatement prepare(
+			boolean autoResult, 
+			@NonNull CharSequence sql, 
+			@NonNull Iterable<?> values) throws SQLException {
+		return prepare(autoResult, sql, Iterables.toArray(values, Object.class));
+	}
+	/**
+	 * Prepare a query statement with the given parameters.
+	 * Null-values must be represented via a class value, e.g., Integer.class
+	 * @param sql the query
+	 * @param autoResult should expect autogenerated keys?
+	 * @param values the parameters
+	 * @return the statement
+	 * @throws SQLException on error
+	 */
+	@NonNull 
+	public PreparedStatement prepare(
+			boolean autoResult, 
+			@NonNull CharSequence sql, 
+			Object... values) throws SQLException {
+		PreparedStatement pstmt = conn.prepareStatement(sql.toString(), autoResult ? PreparedStatement.RETURN_GENERATED_KEYS : PreparedStatement.NO_GENERATED_KEYS);
+		setParams(pstmt, values);
+		if (logQueries) {
+			System.out.println(pstmt);
+		}
+		return pstmt;
+	}
+	/**
+	 * Prepare a query statement with the given parameters.
+	 * Null-values must be represented via a class value, e.g., Integer.class
+	 * @param sql the query
+	 * @param values the parameters
+	 * @return the statement
+	 * @throws SQLException on error
+	 */
+	@NonNull 
+	public PreparedStatement prepare(
+			@NonNull CharSequence sql, 
+			@NonNull Iterable<?> values) throws SQLException {
+		return prepare(false, sql, Iterables.toArray(values, Object.class));
+	}
+	/**
+	 * Prepare a query statement with the given parameters.
+	 * Null-values must be represented via a class value, e.g., Integer.class
+	 * @param sql the query
+	 * @param params the optional parameters
+	 * @return the statement
+	 * @throws SQLException on error
+	 */
+	@NonNull 
+	public PreparedStatement prepare(
+			@NonNull CharSequence sql, 
+			Object... params) throws SQLException {
+		return prepare(false, sql, params);
+	}
+	/**
+	 * Create a prepared statement wit the given SQL hints and parameters.
+	 * @param sql the query
+	 * @param direction the read direction constant from ResultSet
+	 * @param concurrency the concurrency constant from ResultSet
+	 * @param values the parameter values
+	 * @return the statement
+	 * @throws SQLException on error
+	 */
+	@NonNull 
+	public PreparedStatement prepare(
+			int direction, 
+			int concurrency,
+			@NonNull CharSequence sql, 
+			@NonNull Iterable<?> values) throws SQLException {
+		PreparedStatement pstmt = conn.prepareStatement(sql.toString(), direction, concurrency);
+		setParams(pstmt, Iterables.toArray(values, Object.class));
+		if (logQueries) {
+			System.out.println(pstmt);
+		}
+		return pstmt;
+	}
+	/**
+	 * Create a prepared statement.
+	 * @param direction the read direction constant from ResultSet
+	 * @param concurrency the concurrency constant from ResultSet
+	 * @param sql the query
+	 * @param params the optional parameters
+	 * @return the statement
+	 * @throws SQLException on error
+	 */
+	@NonNull 
+	public PreparedStatement prepare(
+			int direction, 
+			int concurrency,
+			@NonNull CharSequence sql,
+			Object... params) throws SQLException {
+		PreparedStatement pstmt = conn.prepareStatement(sql.toString(), direction, concurrency);
+		setParams(pstmt, params);
+		if (logQueries) {
+			System.out.println(pstmt);
+		}
+		return pstmt;
+	}
+	/**
+	 * Prepare a read-only statement with minimum fetch.
+	 * @param sql the query
+	 * @param params the parameter sequence. 
+	 * @return the statement
+	 * @throws SQLException on error
+	 */
+	@NonNull
+	public PreparedStatement prepareReadOnly(
+			@NonNull CharSequence sql, 
+			@NonNull Iterable<?> params) throws SQLException {
+		PreparedStatement pstmt = prepare(
+				ResultSet.TYPE_FORWARD_ONLY, 
+				ResultSet.CONCUR_READ_ONLY, sql, params);
+		pstmt.setFetchSize(Integer.MIN_VALUE);
+		if (logQueries) {
+			System.out.println(pstmt);
+		}
+		return pstmt;
+	}
+	/**
+	 * Prepare a read-only statement with minimum fetch.
+	 * @param sql the query
+	 * @param params the optional parameters. 
+	 * @return the statement
+	 * @throws SQLException on error
+	 */
+	@NonNull 
+	public PreparedStatement prepareReadOnly(
+			@NonNull CharSequence sql, 
+			Object... params) throws SQLException {
+		PreparedStatement pstmt = prepare(
+				ResultSet.TYPE_FORWARD_ONLY, 
+				ResultSet.CONCUR_READ_ONLY, sql, params);
+		pstmt.setFetchSize(Integer.MIN_VALUE);
+		if (logQueries) {
+			System.out.println(pstmt);
+		}
+		return pstmt;
+	}
+	/**
+	 * Execute the action for each resultset row returned by the query.
+	 * @param sql the query
+	 * @param action the action to call
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void query(
+			@NonNull CharSequence sql,
+			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
+			@NonNull Iterable<?> params) throws SQLException {
+		query(sql, action, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Execute the action for each resultset row returned by the query.
+	 * @param sql the query
+	 * @param action the action to call
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void query(
+			@NonNull CharSequence sql,
+			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(false, sql, params)) {
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					action.invoke(rs);
+				}
+			}
+		}
+	}
+	/**
+	 * Execute the indexed action for each resultset row returned by the query.
+	 * @param sql the query
+	 * @param action the action to call
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void query(
+			@NonNull CharSequence sql,
+			@NonNull Action2E<? super ResultSet, ? super Integer, ? extends SQLException> action,
+			@NonNull Iterable<?> params) throws SQLException {
+		query(sql, action, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Execute the indexed action for each resultset row returned by the query.
+	 * @param sql the query
+	 * @param action the action to call
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void query(
+			@NonNull CharSequence sql,
+			@NonNull Action2E<? super ResultSet, ? super Integer, ? extends SQLException> action,
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepare(false, sql, params)) {
+			try (ResultSet rs = pstmt.executeQuery()) {
+				int i = 0;
+				while (rs.next()) {
+					action.invoke(rs, i++);
+				}
+			}
 		}
 	}
 	/**
@@ -709,6 +1274,127 @@ public class DB implements Closeable {
 			}
 		}
 		return result;
+	}
+	/**
+	 * Returns a closeable iterator which returns unmarshalled data on request.
+	 * @param <T> the result element type
+	 * @param unmarshaller the unmarshaller
+	 * @param sql the query to execute
+	 * @param params the parameters to the query
+	 * @return the closeable iterable
+	 */
+	@NonNull
+	public <T> CloseableIterator<T> queryIterator(
+			@NonNull CharSequence sql, 
+			@NonNull final Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller,
+			@NonNull Iterable<?> params) {
+		return queryIterator(sql, unmarshaller, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Returns a closeable iterator which returns unmarshalled data on request.
+	 * @param <T> the result element type
+	 * @param unmarshaller the unmarshaller
+	 * @param sql the query to execute
+	 * @param params the parameters to the query
+	 * @return the closeable iterable
+	 */
+	@NonNull
+	public <T> CloseableIterator<T> queryIterator(
+			@NonNull CharSequence sql, 
+			@NonNull final Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller,
+			Object... params) {
+		try {
+			final PreparedStatement pstmt = prepare(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, sql, params);
+			
+			pstmt.setFetchSize(Integer.MIN_VALUE);
+			final ResultSet rs = pstmt.executeQuery();
+			
+			return new CloseableIterator<T>() {
+				/** The resultset has finished. */
+				boolean done;
+				/** The cursor has been moved. */
+				boolean moved;
+				@Override
+				public void close() throws IOException {
+					try {
+						rs.close();
+					} catch (SQLException ex) {
+					}
+					try {
+						pstmt.close();
+					} catch (SQLException ex) {
+					}
+				}
+				@Override
+				public boolean hasNext() {
+					if (!done) {
+						if (!moved) {
+							try {
+								if (rs.next()) {
+									moved = true;
+								} else {
+									done = true;
+								}
+							} catch (SQLException ex) {
+								throw new SQLRuntimeException(ex);
+							}
+						}
+					}
+					return !done;
+				}
+				@Override
+				public T next() {
+					if (hasNext()) {
+						try {
+							T result = unmarshaller.invoke(rs);
+							moved = false;
+							return result;
+						} catch (SQLException ex) {
+							throw new SQLRuntimeException(ex);
+						}
+					}
+					throw new NoSuchElementException();
+				}
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException();
+				}
+			};
+		} catch (SQLException ex) {
+			throw new SQLRuntimeException(ex);
+		}
+	}
+	/**
+	 * Execute the action for each resultset row returned by the query.
+	 * @param sql the query
+	 * @param action the action to call
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void queryReadOnly(
+			@NonNull CharSequence sql,
+			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
+			@NonNull Iterable<?> params) throws SQLException {
+		queryReadOnly(sql, action, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Execute the action for each resultset row returned by the query.
+	 * @param sql the query
+	 * @param action the action to call
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void queryReadOnly(
+			@NonNull CharSequence sql,
+			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
+			Object... params) throws SQLException {
+		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					action.invoke(rs);
+				}
+			}
+		}
 	}
 	/**
 	 * Query the values from the database.
@@ -800,101 +1486,54 @@ public class DB implements Closeable {
 		return result;
 	}
 	/**
-	 * Execute the action for each resultset row returned by the query.
+	 * Returns a single element from the query or null if the result set is empty.
+	 * @param <T> the result type
 	 * @param sql the query
-	 * @param action the action to call
-	 * @param params the parameters
+	 * @param unmarshaller the record unmarshaller
+	 * @param params the parameter sequence
+	 * @return the unmarshalled value or null if the query result was empty
 	 * @throws SQLException on error
 	 */
-	public void query(
-			@NonNull CharSequence sql,
-			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
+	@Nullable
+	public <T> T querySingle(
+			@NonNull CharSequence sql, 
+			@NonNull Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller, 
+			@NonNull Iterable<?> params) throws SQLException {
+		return querySingle(sql, unmarshaller, Iterables.toArray(params, Object.class));
+	}
+	/**
+	 * Returns a single element from the query or null if the result set is empty.
+	 * @param <T> the result type
+	 * @param sql the query
+	 * @param unmarshaller the record unmarshaller
+	 * @param params the optional parameter sequence
+	 * @return the unmarshalled value or null if the query result was empty
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public <T> T querySingle(
+			@NonNull CharSequence sql, 
+			@NonNull Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller, 
 			Object... params) throws SQLException {
 		try (PreparedStatement pstmt = prepare(false, sql, params)) {
 			try (ResultSet rs = pstmt.executeQuery()) {
-				while (rs.next()) {
-					action.invoke(rs);
+				if (rs.next()) {
+					return unmarshaller.invoke(rs);
 				}
+				return null;
 			}
 		}
 	}
 	/**
-	 * Execute the indexed action for each resultset row returned by the query.
-	 * @param sql the query
-	 * @param action the action to call
-	 * @param params the parameters
-	 * @throws SQLException on error
+	 * Roll back the current transaction.
+	 * Exceptions are suppressed.
 	 */
-	public void query(
-			@NonNull CharSequence sql,
-			@NonNull Action2E<? super ResultSet, ? super Integer, ? extends SQLException> action,
-			@NonNull Iterable<?> params) throws SQLException {
-		query(sql, action, Iterables.toArray(params, Object.class));
-	}
-	/**
-	 * Execute the indexed action for each resultset row returned by the query.
-	 * @param sql the query
-	 * @param action the action to call
-	 * @param params the parameters
-	 * @throws SQLException on error
-	 */
-	public void query(
-			@NonNull CharSequence sql,
-			@NonNull Action2E<? super ResultSet, ? super Integer, ? extends SQLException> action,
-			Object... params) throws SQLException {
-		try (PreparedStatement pstmt = prepare(false, sql, params)) {
-			try (ResultSet rs = pstmt.executeQuery()) {
-				int i = 0;
-				while (rs.next()) {
-					action.invoke(rs, i++);
-				}
-			}
+	public void rollback() {
+		try {
+			conn.rollback();
+		} catch (SQLException ex) {
+			// suppressed
 		}
-	}
-	/**
-	 * Execute the action for each resultset row returned by the query.
-	 * @param sql the query
-	 * @param action the action to call
-	 * @param params the parameters
-	 * @throws SQLException on error
-	 */
-	public void query(
-			@NonNull CharSequence sql,
-			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
-			@NonNull Iterable<?> params) throws SQLException {
-		query(sql, action, Iterables.toArray(params, Object.class));
-	}
-	/**
-	 * Execute the action for each resultset row returned by the query.
-	 * @param sql the query
-	 * @param action the action to call
-	 * @param params the parameters
-	 * @throws SQLException on error
-	 */
-	public void queryReadOnly(
-			@NonNull CharSequence sql,
-			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
-			Object... params) throws SQLException {
-		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
-			try (ResultSet rs = pstmt.executeQuery()) {
-				while (rs.next()) {
-					action.invoke(rs);
-				}
-			}
-		}
-	}
-	/**
-	 * Execute the action for each resultset row returned by the query.
-	 * @param sql the query
-	 * @param action the action to call
-	 * @param params the parameters
-	 * @throws SQLException on error
-	 */
-	public void queryReadOnly(
-			@NonNull CharSequence sql,
-			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
-			@NonNull Iterable<?> params) throws SQLException {
-		queryReadOnly(sql, action, Iterables.toArray(params, Object.class));
 	}
 	/**
 	 * Execute the given SQL with the batch of values marshalled from the sources.
@@ -958,6 +1597,20 @@ public class DB implements Closeable {
 		}
 	}
 	/**
+	 * Sets the query fetch size.
+	 * @param size the size
+	 */
+	public void setFetchSize(int size) {
+		fetchSize = size;
+	}
+	/**
+	 * Enable the logging of queries.
+	 * @param value is enabled?
+	 */
+	public void setLogQueries(boolean value) {
+		this.logQueries = value;
+	}
+	/**
 	 * Execute a single update-like statement.
 	 * @param sql the query
 	 * @param params the query parameters
@@ -987,622 +1640,6 @@ public class DB implements Closeable {
 			}
 		} catch (SQLException ex) {
 			throw ex;
-		}
-	}
-	/**
-	 * Sets the query fetch size.
-	 * @param size the size
-	 */
-	public void setFetchSize(int size) {
-		fetchSize = size;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Byte value) {
-		return value != null ? value : Byte.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Short value) {
-		return value != null ? value : Short.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Integer value) {
-		return value != null ? value : Integer.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Long value) {
-		return value != null ? value : Long.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Float value) {
-		return value != null ? value : Float.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Double value) {
-		return value != null ? value : Double.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Date value) {
-		return value != null ? value : Date.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Time value) {
-		return value != null ? value : Time.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Timestamp value) {
-		return value != null ? value : Timestamp.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(DateTime value) {
-		return value != null ? value : DateTime.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(DateMidnight value) {
-		return value != null ? value : DateMidnight.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(CharSequence value) {
-		return value != null ? value : String.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(Boolean value) {
-		return value != null ? value : Boolean.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(LocalTime value) {
-		return value != null ? value : LocalTime.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(BigDecimal value) {
-		return value != null ? value : BigDecimal.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(byte[] value) {
-		return value != null ? value : byte[].class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(InputStream value) {
-		return value != null ? value : InputStream.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(BigInteger value) {
-		return value != null ? value : BigInteger.class;
-	}
-	/**
-	 * Adds a new database info record to the common DB object.
-	 * @param info the new info to add
-	 */
-	public static void addConnection(@NonNull DBInfo info) {
-		CONNECTION_INFOS.put(info.id, new DBInfo(info));
-	}
-	/**
-	 * Returns a nullable int field from the result set as an Integer object.
-	 * @param rs the result set
-	 * @param index the field index
-	 * @return the integer, may be null
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public static Integer getInt(@Nonnull ResultSet rs, int index) throws SQLException {
-		int value = rs.getInt(index);
-		if (rs.wasNull()) {
-			return null;
-		}
-		return value;
-	}
-	/**
-	 * Returns a nullable long field from the result set as a Long object.
-	 * @param rs the result set
-	 * @param index the field index
-	 * @return the integer, may be null
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public static Long getLong(@NonNull ResultSet rs, int index) throws SQLException {
-		long value = rs.getLong(index);
-		if (rs.wasNull()) {
-			return null;
-		}
-		return value;
-	}
-	/**
-	 * Returns a nullable double field from the result set as a Double object.
-	 * @param rs the result set
-	 * @param index the field index
-	 * @return the integer, may be null
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public static Double getDouble(@NonNull ResultSet rs, int index) throws SQLException {
-		double value = rs.getDouble(index);
-		if (rs.wasNull()) {
-			return null;
-		}
-		return value;
-	}
-	/**
-	 * Returns a nullable float field from the result set as a Double object.
-	 * @param rs the result set
-	 * @param index the field index
-	 * @return the integer, may be null
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public static Float getFloat(@NonNull ResultSet rs, int index) throws SQLException {
-		float value = rs.getFloat(index);
-		if (rs.wasNull()) {
-			return null;
-		}
-		return value;
-	}
-	/**
-	 * Returns a nullable short field from the result set as a Double object.
-	 * @param rs the result set
-	 * @param index the field index
-	 * @return the integer, may be null
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public static Short getShort(@NonNull ResultSet rs, int index) throws SQLException {
-		short value = rs.getShort(index);
-		if (rs.wasNull()) {
-			return null;
-		}
-		return value;
-	}
-	/**
-	 * Returns a nullable short field from the result set as a Double object.
-	 * @param rs the result set
-	 * @param index the field index
-	 * @return the integer, may be null
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public static Byte getByte(@NonNull ResultSet rs, int index) throws SQLException {
-		byte value = rs.getByte(index);
-		if (rs.wasNull()) {
-			return null;
-		}
-		return value;
-	}
-	/**
-	 * Returns a single element from the query or null if the result set is empty.
-	 * @param <T> the result type
-	 * @param sql the query
-	 * @param unmarshaller the record unmarshaller
-	 * @param params the optional parameter sequence
-	 * @return the unmarshalled value or null if the query result was empty
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public <T> T querySingle(
-			@NonNull CharSequence sql, 
-			@NonNull Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller, 
-			Object... params) throws SQLException {
-		try (PreparedStatement pstmt = prepare(false, sql, params)) {
-			try (ResultSet rs = pstmt.executeQuery()) {
-				if (rs.next()) {
-					return unmarshaller.invoke(rs);
-				}
-				return null;
-			}
-		}
-	}
-	/**
-	 * Returns a single element from the query or null if the result set is empty.
-	 * @param <T> the result type
-	 * @param sql the query
-	 * @param unmarshaller the record unmarshaller
-	 * @param params the parameter sequence
-	 * @return the unmarshalled value or null if the query result was empty
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public <T> T querySingle(
-			@NonNull CharSequence sql, 
-			@NonNull Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller, 
-			@NonNull Iterable<?> params) throws SQLException {
-		return querySingle(sql, unmarshaller, Iterables.toArray(params, Object.class));
-	}
-	/**
-	 * Execute a single-valued parametric insert and return a generated long key.
-	 * @param sql the query
-	 * @param params the optional parameter array
-	 * @return the long key
-	 * @throws SQLException on error
-	 */
-	public long insertAuto(
-			@NonNull CharSequence sql, 
-			Object... params) throws SQLException {
-		try (PreparedStatement pstmt = prepare(true, sql, params)) {
-			pstmt.executeUpdate();
-			try (ResultSet rs = pstmt.getGeneratedKeys()) {
-				if (rs.next()) {
-					return rs.getLong(1);
-				}
-			}
-		}
-		return 0L;
-	}
-	/**
-	 * Execute a single-valued parametric insert and return a generated long key.
-	 * @param sql the query
-	 * @param params the optional parameter array
-	 * @return the long key
-	 * @throws SQLException on error
-	 */
-	public long insertAuto(
-			@NonNull CharSequence sql, 
-			@NonNull Iterable<?> params) throws SQLException {
-		try (PreparedStatement pstmt = prepare(true, sql, params)) {
-			pstmt.executeUpdate();
-			try (ResultSet rs = pstmt.getGeneratedKeys()) {
-				if (rs.next()) {
-					return rs.getLong(1);
-				}
-			}
-		}
-		return 0L;
-	}
-	/**
-	 * Execute a single-valued parametric insert and invoke an action for the generated
-	 * key result set.
-	 * @param sql the query
-	 * @param setAutoKey the action to extract the generated keys.
-	 * @param params the optional parameter array
-	 * @throws SQLException on error
-	 */
-	public void insertAuto(
-			@NonNull CharSequence sql, 
-			@NonNull Action1E<? super ResultSet, ? extends SQLException> setAutoKey, 
-			Object... params) throws SQLException {
-		try (PreparedStatement pstmt = prepare(true, sql, params)) {
-			pstmt.executeUpdate();
-			try (ResultSet rs = pstmt.getGeneratedKeys()) {
-				if (rs.next()) {
-					setAutoKey.invoke(rs);
-				}
-			}
-		}
-		
-	}
-	/**
-	 * Execute a single-valued parametric insert and invoke an action for the generated
-	 * key result set.
-	 * @param sql the query
-	 * @param setAutoKey the action to extract the generated keys.
-	 * @param params the parameter sequence
-	 * @throws SQLException on error
-	 */
-	public void insertAuto(
-			@NonNull CharSequence sql,
-			@NonNull Action1E<? super ResultSet, ? extends SQLException> setAutoKey, 
-			@NonNull Iterable<?> params) throws SQLException {
-		insertAuto(sql, setAutoKey, Iterables.toArray(params, Object.class));
-	}
-	/**
-	 * Wraps the resultset into an iterable sequence to be used by a 
-	 * simple for-each loop.
-	 * <p>Throws an SQLRuntimeException if the resultset's next() throws an exception.</p>
-	 * @param rs the result set to wrap
-	 * @return the iterable with the result set
-	 */
-	@NonNull 
-	public static Iterable<ResultSet> iterate(
-			@NonNull final ResultSet rs) {
-		return new Iterable<ResultSet>() {
-			@Override
-			public Iterator<ResultSet> iterator() {
-				return new Iterator<ResultSet>() {
-					/** The resultset has finished. */
-					boolean done;
-					/** The cursor has been moved. */
-					boolean moved;
-					@Override
-					public boolean hasNext() {
-						if (!done) {
-							if (!moved) {
-								try {
-									done = rs.next();
-								} catch (SQLException ex) {
-									throw new SQLRuntimeException(ex);
-								}
-								moved = true;
-							}
-						}
-						return !done;
-					}
-					@Override
-					public ResultSet next() {
-						if (hasNext()) {
-							moved = false;
-							return rs;
-						}
-						throw new NoSuchElementException();
-					}
-					@Override
-					public void remove() {
-						throw new UnsupportedOperationException();
-					}
-				};
-			}
-		};
-	}
-	/**
-	 * Execute an action under the default connection.
-	 * @param action the action to execute
-	 * @throws SQLException the exception raised when connecting or when executing the action
-	 * @see SQLExecute
-	 */
-	public static void execute(
-			@NonNull Action1E<? super DB, ? extends SQLException> action) throws SQLException {
-		try (DB db = DB.connect()) {
-			action.invoke(db);
-		} catch (IOException ex) {
-			throw new SQLException(ex);
-		}
-	}
-	/**
-	 * Execute an action under the given connection id.
-	 * @param id the connection identifier 
-	 * @param action the action to execute
-	 * @throws SQLException the exception raised when connecting or when executing the action
-	 * @see SQLExecute
-	 */
-	public static void execute(
-			@NonNull String id, 
-			@NonNull Action1E<? super DB, ? extends SQLException> action) throws SQLException {
-		try (DB db = DB.connect(id)) {
-			action.invoke(db);
-		} catch (IOException ex) {
-			throw new SQLException(ex);
-		}
-	}
-	/**
-	 * Execute a function under the default connection.
-	 * @param <T> the return type 
-	 * @param func the function to execute
-	 * @return the value
-	 * @throws SQLException the exception raised when connecting or when executing the action
-	 * @see SQLCall
-	 */
-	public static <T> T execute(
-			@NonNull Func1E<? super DB, ? extends T, ? extends SQLException> func) throws SQLException {
-		try (DB db = DB.connect()) {
-			return func.invoke(db);
-		} catch (IOException ex) {
-			throw new SQLException(ex);
-		}
-	}
-	/**
-	 * Execute a function under the given connection id.
-	 * @param <T> the return type
-	 * @param id the connection identifier 
-	 * @param func the function to execute
-	 * @return the value
-	 * @throws SQLException the exception raised when connecting or when executing the action
-	 * @see SQLCall
-	 */
-	public static <T> T execute(
-			@NonNull String id, 
-			@NonNull Func1E<? super DB, ? extends T, ? extends SQLException> func) throws SQLException {
-		try (DB db = DB.connect(id)) {
-			return func.invoke(db);
-		} catch (IOException ex) {
-			throw new SQLException(ex);
-		}
-	}
-	/**
-	 * Prepare a read-only statement with minimum fetch.
-	 * @param sql the query
-	 * @param params the optional parameters. 
-	 * @return the statement
-	 * @throws SQLException on error
-	 */
-	@NonNull 
-	public PreparedStatement prepareReadOnly(
-			@NonNull CharSequence sql, 
-			Object... params) throws SQLException {
-		PreparedStatement pstmt = prepare(
-				ResultSet.TYPE_FORWARD_ONLY, 
-				ResultSet.CONCUR_READ_ONLY, sql, params);
-		pstmt.setFetchSize(Integer.MIN_VALUE);
-		return pstmt;
-	}
-	/**
-	 * Prepare a read-only statement with minimum fetch.
-	 * @param sql the query
-	 * @param params the parameter sequence. 
-	 * @return the statement
-	 * @throws SQLException on error
-	 */
-	@NonNull
-	public PreparedStatement prepareReadOnly(
-			@NonNull CharSequence sql, 
-			@NonNull Iterable<?> params) throws SQLException {
-		PreparedStatement pstmt = prepare(
-				ResultSet.TYPE_FORWARD_ONLY, 
-				ResultSet.CONCUR_READ_ONLY, sql, params);
-		pstmt.setFetchSize(Integer.MIN_VALUE);
-		return pstmt;
-	}
-	/**
-	 * Returns a closeable iterator which returns unmarshalled data on request.
-	 * @param <T> the result element type
-	 * @param unmarshaller the unmarshaller
-	 * @param sql the query to execute
-	 * @param params the parameters to the query
-	 * @return the closeable iterable
-	 */
-	@NonNull
-	public <T> CloseableIterator<T> queryIterator(
-			@NonNull CharSequence sql, 
-			@NonNull final Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller,
-			@NonNull Iterable<?> params) {
-		return queryIterator(sql, unmarshaller, Iterables.toArray(params, Object.class));
-	}
-	/**
-	 * Returns a closeable iterator which returns unmarshalled data on request.
-	 * @param <T> the result element type
-	 * @param unmarshaller the unmarshaller
-	 * @param sql the query to execute
-	 * @param params the parameters to the query
-	 * @return the closeable iterable
-	 */
-	@NonNull
-	public <T> CloseableIterator<T> queryIterator(
-			@NonNull CharSequence sql, 
-			@NonNull final Func1E<? super ResultSet, ? extends T, ? extends SQLException> unmarshaller,
-			Object... params) {
-		try {
-			final PreparedStatement pstmt = prepare(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, sql, params);
-			
-			pstmt.setFetchSize(Integer.MIN_VALUE);
-			final ResultSet rs = pstmt.executeQuery();
-			
-			return new CloseableIterator<T>() {
-				/** The resultset has finished. */
-				boolean done;
-				/** The cursor has been moved. */
-				boolean moved;
-				@Override
-				public boolean hasNext() {
-					if (!done) {
-						if (!moved) {
-							try {
-								if (rs.next()) {
-									moved = true;
-								} else {
-									done = true;
-								}
-							} catch (SQLException ex) {
-								throw new SQLRuntimeException(ex);
-							}
-						}
-					}
-					return !done;
-				}
-				@Override
-				public T next() {
-					if (hasNext()) {
-						try {
-							T result = unmarshaller.invoke(rs);
-							moved = false;
-							return result;
-						} catch (SQLException ex) {
-							throw new SQLRuntimeException(ex);
-						}
-					}
-					throw new NoSuchElementException();
-				}
-				@Override
-				public void remove() {
-					throw new UnsupportedOperationException();
-				}
-				@Override
-				public void close() throws IOException {
-					try {
-						rs.close();
-					} catch (SQLException ex) {
-					}
-					try {
-						pstmt.close();
-					} catch (SQLException ex) {
-					}
-				}
-			};
-		} catch (SQLException ex) {
-			throw new SQLRuntimeException(ex);
 		}
 	}
 }

@@ -387,6 +387,15 @@ public class DB implements Closeable {
 	 * @return the null-token or the same value
 	 */
 	@NonNull 
+	public static Object maybeNull(java.util.Date value) {
+		return value != null ? new Timestamp(value.getTime()) : Timestamp.class;
+	}
+	/**
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
+	 */
+	@NonNull 
 	public static Object maybeNull(DateMidnight value) {
 		return value != null ? value : DateMidnight.class;
 	}
@@ -620,11 +629,21 @@ public class DB implements Closeable {
 	 * @param time the local time
 	 * @return the sql time
 	 */
-	public static Time toSQLTime(LocalTime time) {
+	@NonNull
+	public static Time toSQLTime(@NonNull LocalTime time) {
 		DateTime epochTime = new DateTime(1970, 1, 1, 
 				time.getHourOfDay(), time.getMinuteOfHour(), 
 				time.getSecondOfMinute(), time.getMillisOfSecond());
 		return new Time(epochTime.getMillis());
+	}
+	/**
+	 * Convert an SQL time object into a LocalTime object.
+	 * @param time the SQL time 
+	 * @return the local time
+	 */
+	@NonNull
+	public static LocalTime toLocalTime(@NonNull Time time) {
+		return new LocalTime(time.getTime());
 	}
 	/**
 	 * Sets the parameters on a result set.
@@ -1641,5 +1660,49 @@ public class DB implements Closeable {
 		} catch (SQLException ex) {
 			throw ex;
 		}
+	}
+	/**
+	 * Returns a DateMidnight instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the day as DateMidnight or null.
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static DateMidnight getDay(@NonNull ResultSet rs, int index) throws SQLException {
+		java.sql.Date d = rs.getDate(index);
+		if (d != null) {
+			return new DateMidnight(d);
+		}
+		return null;
+	}
+	/**
+	 * Returns a DateTime instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the day as DateMidnight or null.
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static DateTime getDateTime(@NonNull ResultSet rs, int index) throws SQLException {
+		java.sql.Timestamp ts = rs.getTimestamp(index);
+		if (ts != null) {
+			return new DateTime(ts);
+		}
+		return null;
+	}
+	/**
+	 * Returns a localTime instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the local time or null
+	 * @throws SQLException on error
+	 */
+	public static LocalTime getTime(@NonNull ResultSet rs, int index) throws SQLException {
+		java.sql.Time tm = rs.getTime(index);
+		if (tm != null) {
+			return toLocalTime(tm);
+		}
+		return null;
 	}
 }

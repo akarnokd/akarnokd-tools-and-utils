@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' elementFormDefault="qualified">
+	<xs:element name="databases">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name='database' minOccurs="1" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name='driver-class' type='xs:string'></xs:element>
+							<xs:element name='connection-url' type='xs:string'/>
+							<xs:element name='user' type='xs:string'/>
+							<xs:element name='password'>
+								<xs:complexType>
+									<xs:simpleContent>
+										<xs:extension base="xs:string">
+											<xs:attribute name='encoded' type='xs:boolean' use='optional'/>
+										</xs:extension>
+									</xs:simpleContent>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name='schema' type='xs:string'/>
+							<xs:element name='max-connection' type='xs:nonNegativeInteger'/> 
+						</xs:sequence>
+						<xs:attribute name='id' type='xs:string'></xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

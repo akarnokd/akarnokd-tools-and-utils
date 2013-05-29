@@ -16,6 +16,8 @@
 
 package hu.akarnokd.utils.collection;
 
+import hu.akarnokd.reactive4java.base.Pred1;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -89,5 +91,52 @@ public class TailListTest {
 
 		Object[] a1 = tl1.toArray();
 		Assert.assertArrayEquals(new Object[] { 1, 2, 3 }, a1);
+	}
+	/**
+	 * Test the removeIf method.
+	 */
+	@Test
+	public void testRemoveIf() {
+		TailList<Integer> tl = TailList.from(1, 2, 3, 4);
+		
+		TailList<Integer> tl1 = tl.removeIf(new Pred1<Integer>() {
+			@Override
+			public Boolean invoke(Integer param1) {
+				return param1 % 2 == 0;
+			}
+		});
+		
+		Object[] a1 = tl1.toArray();
+		Assert.assertArrayEquals(new Object[] { 1, 3 }, a1);
+	}
+	/** Test the sublist(startIndex) method. */
+	@Test
+	public void testSubList() {
+		TailList<Integer> hl = TailList.from(1, 2, 3);
+		TailList<Integer> hl1 = hl.subList(1);
+		
+		Object[] a = hl1.toArray();
+		
+		Assert.assertArrayEquals(new Object[] { 2, 3 }, a);
+	}
+	/** Test the sublist(startIndex, endIndex) method. */
+	@Test
+	public void testSubList2() {
+		TailList<Integer> hl = TailList.from(1, 2, 3, 4);
+		TailList<Integer> hl1 = hl.subList(1, 3);
+		
+		Object[] a = hl1.toArray();
+		
+		Assert.assertArrayEquals(new Object[] { 2, 3 }, a);
+	}
+	/** Test toHeadList(). */
+	@Test
+	public void toHeadList() {
+		TailList<Integer> tl = TailList.from(1, 2, 3, 4);
+		HeadList<Integer> hl = tl.toHeadList();
+
+		Object[] a = hl.toArray();
+		
+		Assert.assertArrayEquals(new Object[] { 1, 2, 3, 4 }, a);
 	}
 }

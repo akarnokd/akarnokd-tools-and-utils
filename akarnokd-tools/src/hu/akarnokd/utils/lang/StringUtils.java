@@ -16,6 +16,8 @@
 
 package hu.akarnokd.utils.lang;
 
+import java.io.IOException;
+
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
@@ -103,5 +105,79 @@ public final class StringUtils {
 			return null;
 		}
 		return s.trim();
+	}
+	/**
+	 * Adds the characters to the string builder in a reversed order.
+	 * @param csq the character sequence to add
+	 * @param out the output string builder
+	 * @return the builder
+	 */
+	public static StringBuilder appendReversed(@NonNull CharSequence csq, @NonNull StringBuilder out) {
+		for (int i = csq.length() - 1; i >= 0; i--) {
+			out.append(csq.charAt(i));
+		}
+		return out;
+	}
+	/**
+	 * Adds the characters to the string builder in a reversed order.
+	 * @param csq the character sequence to add
+	 * @param out the output string builder
+	 * @return the builder
+	 */
+	public static StringBuilder appendReversed(@NonNull char[] csq, @NonNull StringBuilder out) {
+		for (int i = csq.length - 1; i >= 0; i--) {
+			out.append(csq[i]);
+		}
+		return out;
+	}
+	/**
+	 * Adds the characters to the string builder in a reversed order.
+	 * @param csq the character sequence to add
+	 * @param out the output string builder
+	 * @return the builder
+	 */
+	public static StringBuffer appendReversed(@NonNull CharSequence csq, @NonNull StringBuffer out) {
+		for (int i = csq.length() - 1; i >= 0; i--) {
+			out.append(csq.charAt(i));
+		}
+		return out;
+	}
+	/**
+	 * Adds the characters to the string builder in a reversed order.
+	 * @param csq the character sequence to add
+	 * @param out the output string builder
+	 * @return the builder
+	 */
+	public static StringBuffer appendReversed(@NonNull char[] csq, @NonNull StringBuffer out) {
+		for (int i = csq.length - 1; i >= 0; i--) {
+			out.append(csq[i]);
+		}
+		return out;
+	}
+	/**
+	 * Adds the characters to the string appendable in a reversed order.
+	 * @param csq the character sequence to add
+	 * @param out the output string builder
+	 * @return the appendable
+	 * @throws IOException if the appendable throws
+	 */
+	public static Appendable appendReversed(@NonNull CharSequence csq, @NonNull Appendable out) throws IOException {
+		for (int i = csq.length() - 1; i >= 0; i--) {
+			out.append(csq.charAt(i));
+		}
+		return out;
+	}
+	/**
+	 * Adds the characters to the string appendable in a reversed order.
+	 * @param csq the character sequence to add
+	 * @param out the output string builder
+	 * @return the appendable
+	 * @throws IOException if the appendable throws
+	 */
+	public static Appendable appendReversed(char[] csq, Appendable out) throws IOException {
+		for (int i = csq.length - 1; i >= 0; i--) {
+			out.append(csq[i]);
+		}
+		return out;
 	}
 }

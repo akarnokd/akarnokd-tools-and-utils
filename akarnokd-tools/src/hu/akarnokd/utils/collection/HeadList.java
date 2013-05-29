@@ -16,6 +16,13 @@
 
 package hu.akarnokd.utils.collection;
 
+import hu.akarnokd.reactive4java.base.Action1;
+import hu.akarnokd.reactive4java.base.Action1E;
+import hu.akarnokd.reactive4java.base.Func1;
+import hu.akarnokd.reactive4java.base.Func1E;
+import hu.akarnokd.reactive4java.base.Pred1;
+import hu.akarnokd.utils.lang.StringUtils;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,28 +32,59 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An immutable collection structure which references
  * another instance as the "head" of the list.
+ * <p>Note that the iterability of this list is reverse by default.</p>
  * @author akarnokd, 2013.05.28.
  * @see TailList
  * @param <T> the element type
  */
-public final class HeadList<T> {
+public final class HeadList<T> implements Iterable<T> {
 	/** The head of the list. */
-	protected final HeadList<T> head;
+	private HeadList<T> head;
 	/** The value. */
-	protected final T value;
+	private final T value;
 	/**
-	 * Constructor with only a value.
-	 * @param value the list value
+	 * Creates a head list from the given sequence of values.
+	 * <p>The sequence should contain at least one item.</p>
+	 * @param src the source sequence
+	 * @return the head list with the elements
+	 * @param <T> the element type
 	 */
-	public HeadList(T value) {
-		this.head = null;
-		this.value = value;
+	public static <T> HeadList<T> from(Iterable<? extends T> src) {
+		Iterator<? extends T> it = src.iterator();
+		if (it.hasNext()) {
+			T t = it.next();
+			HeadList<T> h = new HeadList<>(t);
+			while (it.hasNext()) {
+				h = h.add(it.next());
+			}
+			return h;
+		}
+		throw new IllegalArgumentException("Empty source");
+	}
+	/**
+	 * Creates a head list from the given array of Ts.
+	 * <p>The sequence should contain at least one item.</p>
+	 * @param src the source of Ts
+	 * @return the head list
+	 * @param <T> the element type
+	 */
+	@SafeVarargs
+	public static <T> HeadList<T> from(T... src) {
+		if (src.length > 0) {
+			HeadList<T> h = new HeadList<>(src[0]);
+			for (int i = 1; i < src.length; i++) {
+				h = h.add(src[i]);
+			}
+			return h;
+		}
+		throw new IllegalArgumentException("Empty source");
 	}
 	/**
 	 * Constructor with a head list and value.
@@ -55,6 +93,14 @@ public final class HeadList<T> {
 	 */
 	public HeadList(HeadList<T> head, T value) {
 		this.head = head;
+		this.value = value;
+	}
+	/**
+	 * Constructor with only a value.
+	 * @param value the list value
+	 */
+	public HeadList(T value) {
+		this.head = null;
 		this.value = value;
 	}
 	/**
@@ -67,31 +113,98 @@ public final class HeadList<T> {
 		return new HeadList<>(this, value);
 	}
 	/**
-	 * Returns the head list, which can be null.
-	 * @return the head list
+	 * Creates a new head list which has
+	 * this list as the head and all the
+	 * elements from the sequence.
+	 * @param src the source sequence
+	 * @return the new head list
 	 */
-	public HeadList<T> head() {
-		return head;
+	public HeadList<T> addAll(Iterable<? extends T> src) {
+		HeadList<T> h = this;
+		for (T t : src) {
+			h = h.add(t);
+		}
+		return h;
 	}
 	/**
-	 * Returns the last value of this list.
-	 * @return the last value
+	 * Creates a new head list which has
+	 * this list as the head and all the
+	 * elements from the array.
+	 * @param src the source sequence
+	 * @return the new head list
 	 */
-	public T value() {
-		return value;
+	public HeadList<T> addAll(@SuppressWarnings("unchecked") T... src) {
+		HeadList<T> h = this;
+		for (T t : src) {
+			h = h.add(t);
+		}
+		return h;
 	}
 	/**
-	 * Returns the number of elements in this list.
-	 * @return the number of elements
+	 * Creates a new head list which starts with the given value.
+	 * @param value the value to add as first
+	 * @return the new head list
 	 */
-	public int size() {
-		HeadList<T> h = head;
-		int i = 1;
+	public HeadList<T> addFirst(T value) {
+		HeadList<T> hl0 = this.head;
+		HeadList<T> r = new HeadList<>(this.value);
+		HeadList<T> h = r;
+		
+		while (hl0 != null) {
+			h.head = new HeadList<>(hl0.value);
+			h = h.head;
+			hl0 = hl0.head;
+		}
+		h.head = new HeadList<>(value);
+		
+		return r;
+	}
+	/**
+	 * Adds the elements to the collection in reverse order.
+	 * @param coll the output collection
+	 */
+	public void addTo(Collection<? super T> coll) {
+		HeadList<T> h = this;
 		while (h != null) {
-			i++;
+			coll.add(h.value);
 			h = h.head;
 		}
-		return i;
+	}
+	/**
+	 * Adds the contents of this list to the given output list, keeping
+	 * the order.
+	 * @param list the target list to add to
+	 */
+	public void addTo(List<? super T> list) {
+		int idx = list.size();
+		HeadList<T> h = this;
+		while (h != null) {
+			list.add(h.value);
+			h = h.head;
+		}
+		Collections.reverse(list.subList(idx, list.size()));
+	}
+	/**
+	 * Check if the object is in this list.
+	 * @param value the value to look for
+	 * @return true if in this list
+	 */
+	public boolean contains(Object value) {
+		return find(value) != null;
+	}
+	/**
+	 * Check if all elements in the source sequence
+	 * is present in this list.
+	 * @param src the source sequence
+	 * @return true if all elements are in this list
+	 */
+	public boolean containsAll(Iterable<?> src) {
+		for (Object o : src) {
+			if (!contains(o)) {
+				return false;
+			}
+		}
+		return true;
 	}
 	@Override
 	public boolean equals(Object obj) {
@@ -112,86 +225,21 @@ public final class HeadList<T> {
 		}
 		return hl == hl0;
 	}
-	@Override
-	public int hashCode() {
-		int hash = 17;
+	/**
+	 * Returns the head list element where the given
+	 * value equals the item value.
+	 * @param value the value to find
+	 * @return the head list element or null if not found
+	 */
+	public HeadList<T> find(Object value) {
 		HeadList<T> h = this;
 		while (h != null) {
-			hash = hash * 31 + (value != null ? value.hashCode() : 0);
-			h = h.head;
-		}
-		
-		return hash;
-	}
-	/**
-	 * Returns an array of all elements of this list.
-	 * @return the array
-	 */
-	@NonNull
-	public Object[] toArray() {
-		Object[] r = new Object[size()];
-		int i = r.length - 1;
-		HeadList<T> h = this;
-		while (h != null) {
-			r[i--] = h.value;
-			h = h.head;
-		}
-		return r;
-	}
-	/**
-	 * Fills in the target array with the values
-	 * from this list if it has enough capacity,
-	 * or a completely new array is created and returned.
-	 * @param array the array to fill in or use as template
-	 * @return the input array or a new array holding all values
-	 */
-	@NonNull
-	@SuppressWarnings("unchecked")
-	public T[] toArray(@NonNull T[] array) {
-		int s = size();
-		if (s > array.length) {
-			array = (T[])Array.newInstance(array.getClass().getComponentType(), s);
-		}
-		
-		int i = s - 1;
-		HeadList<T> h = this;
-		while (h != null) {
-			array[i--] = h.value;
-			h = h.head;
-		}
-		return array;
-	}
-	/**
-	 * Returns an iterable which traverses this list in reverse direction.
-	 * @return the iterable
-	 */
-	public Iterable<T> reverseIterable() {
-		return new Iterable<T>() {
-			@Override
-			public Iterator<T> iterator() {
-				return new Iterator<T>() {
-					/** The current item. */
-					HeadList<T> current = HeadList.this;
-					@Override
-					public boolean hasNext() {
-						return current != null;
-					}
-					@Override
-					public T next() {
-						if (hasNext()) {
-							T v = current.value;
-							current = current.head;
-							return v;
-						}
-						throw new NoSuchElementException();
-					}
-					@Override
-					public void remove() {
-						throw new UnsupportedOperationException();
-					}
-				};
+			if (Objects.equals(h.value, value)) {
+				return h;
 			}
-		};
+			h = h.head;
+		}
+		return null;
 	}
 	/**
 	 * Returns an iterator which traverses the list from the start
@@ -235,102 +283,98 @@ public final class HeadList<T> {
 			}
 		};
 	}
-	/**
-	 * Check if the object is in this list.
-	 * @param value the value to look for
-	 * @return true if in this list
-	 */
-	public boolean contains(Object value) {
-		return find(value) != null;
-	}
-	/**
-	 * Returns the head list element where the given
-	 * value equals the item value.
-	 * @param value the value to find
-	 * @return the head list element or null if not found
-	 */
-	public HeadList<T> find(Object value) {
+	@Override
+	public int hashCode() {
+		int hash = 17;
 		HeadList<T> h = this;
 		while (h != null) {
-			if (Objects.equals(h.value, value)) {
-				return h;
-			}
+			hash = hash * 31 + (value != null ? value.hashCode() : 0);
 			h = h.head;
 		}
-		return null;
+		
+		return hash;
 	}
 	/**
-	 * Creates a new head list which has
-	 * this list as the head and all the
-	 * elements from the sequence.
-	 * @param src the source sequence
-	 * @return the new head list
+	 * Returns the head list, which can be null.
+	 * @return the head list
 	 */
-	public HeadList<T> addAll(Iterable<? extends T> src) {
-		HeadList<T> h = this;
-		for (T t : src) {
-			h = h.add(t);
-		}
-		return h;
+	public HeadList<T> head() {
+		return head;
 	}
-	/**
-	 * Creates a head list from the given sequence of values.
-	 * <p>The source sequence should contain at least
-	 * one item or this method throws a <code>NoSuchElementException</code>.
-	 * @param src the source sequence
-	 * @return the head list with the elements
-	 * @param <T> the element type
-	 */
-	public static <T> HeadList<T> from(Iterable<? extends T> src) {
-		Iterator<? extends T> it = src.iterator();
-		if (it.hasNext()) {
-			T t = it.next();
-			HeadList<T> h = new HeadList<>(t);
-			while (it.hasNext()) {
-				h = h.add(it.next());
+	@Override
+	public Iterator<T> iterator() {
+		return new Iterator<T>() {
+			/** The current item. */
+			HeadList<T> current = HeadList.this;
+			@Override
+			public boolean hasNext() {
+				return current != null;
 			}
-			return h;
-		}
-		throw new NoSuchElementException();
-	}
-	/**
-	 * Check if all elements in the source sequence
-	 * is present in this list.
-	 * @param src the source sequence
-	 * @return true if all elements are in this list
-	 */
-	public boolean containsAll(Iterable<?> src) {
-		for (Object o : src) {
-			if (!contains(o)) {
-				return false;
+			@Override
+			public T next() {
+				if (hasNext()) {
+					T v = current.value;
+					current = current.head;
+					return v;
+				}
+				throw new NoSuchElementException();
 			}
-		}
-		return true;
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
 	}
 	/**
-	 * Adds the contents of this list to the given output list, keeping
-	 * the order.
-	 * @param list the target list to add to
+	 * Returns the number of elements in this list.
+	 * @return the number of elements
 	 */
-	public void addTo(List<? super T> list) {
-		int idx = list.size();
+	public int size() {
+		HeadList<T> h = head;
+		int i = 1;
+		while (h != null) {
+			i++;
+			h = h.head;
+		}
+		return i;
+	}
+	/**
+	 * Returns an array of all elements of this list.
+	 * @return the array
+	 */
+	@NonNull
+	public Object[] toArray() {
+		Object[] r = new Object[size()];
+		int i = r.length - 1;
 		HeadList<T> h = this;
 		while (h != null) {
-			list.add(h.value);
+			r[i--] = h.value;
 			h = h.head;
 		}
-		Collections.reverse(list.subList(idx, list.size()));
+		return r;
 	}
 	/**
-	 * Adds the elements to the collection in reverse order.
-	 * @param coll the output collection
+	 * Fills in the target array with the values
+	 * from this list if it has enough capacity,
+	 * or a completely new array is created and returned.
+	 * @param array the array to fill in or use as template
+	 * @return the input array or a new array holding all values
 	 */
-	public void addTo(Collection<? super T> coll) {
+	@NonNull
+	@SuppressWarnings("unchecked")
+	public T[] toArray(@NonNull T[] array) {
+		int s = size();
+		if (s > array.length) {
+			array = (T[])Array.newInstance(array.getClass().getComponentType(), s);
+		}
+		
+		int i = s - 1;
 		HeadList<T> h = this;
 		while (h != null) {
-			coll.add(h.value);
+			array[i--] = h.value;
 			h = h.head;
 		}
+		return array;
 	}
 	/**
 	 * Returns the contents as a regular list.
@@ -370,5 +414,258 @@ public final class HeadList<T> {
 			h = h.head;
 		}
 		return tl;
+	}
+	/**
+	 * Returns the last value of this list.
+	 * @return the last value
+	 */
+	public T value() {
+		return value;
+	}
+	/**
+	 * Returns a new list which doesn't contain the elements
+	 * where the predicate returned true.
+	 * @param predicate the predicate
+	 * @return the new list
+	 */
+	public HeadList<T> removeIf(Func1<? super T, Boolean> predicate) {
+		HeadList<T> r = null;
+		HeadList<T> t = null;
+		
+		HeadList<T> hl = this;
+		while (hl != null) {
+			if (!predicate.invoke(hl.value)) {
+				if (t == null) {
+					t = new HeadList<>(hl.value);
+					r = t;
+				} else {
+					t.head = new HeadList<>(hl.value);
+					t = t.head;
+				}
+			}
+			hl = hl.head;
+		}
+		
+		return r;
+	}
+	@Override
+	public String toString() {
+		StringBuilder r = new StringBuilder();
+		r.append(']');
+		HeadList<T> hl = this;
+		while (hl != null) {
+			if (hl != this) {
+				r.append(' ').append(',');
+			}
+			StringUtils.appendReversed(hl.value != null ? hl.value.toString() : "null", r);
+			hl = hl.head;
+		}
+		r.append('[');
+		return r.reverse().toString();
+	}
+	/**
+	 * Invokes an action for each element of this list.
+	 * @param action the action to invoke
+	 */
+	public void forEach(@NonNull Action1<? super T> action) {
+		HeadList<T> tl = this;
+		while (tl != null) {
+			action.invoke(tl.value);
+			tl = tl.head;
+		}
+	}
+	/**
+	 * Invokes an action for each element of this list.
+	 * @param action the action to invoke
+	 * @param <E> the exception 
+	 * @throws E if the action throws
+	 */
+	public <E extends Exception> void forEach(
+			@NonNull Action1E<? super T, E> action) throws E {
+		HeadList<T> tl = this;
+		while (tl != null) {
+			action.invoke(tl.value);
+			tl = tl.head;
+		}
+	}
+	/**
+	 * Invokes a function for each element.
+	 * The function should return true to continue.
+	 * @param func the function to invoke, returns true to continue
+	 */
+	public void forEach(@NonNull Func1<? super T, Boolean> func) {
+		HeadList<T> tl = this;
+		while (tl != null) {
+			if (!func.invoke(tl.value)) {
+				return;
+			}
+			tl = tl.head;
+		}
+	}
+	/**
+	 * Invokes a function for each element.
+	 * The function should return true to continue.
+	 * @param func the function to invoke, returns true to continue
+	 * @param <E> the exception 
+	 * @throws E if the action throws
+	 */
+	public <E extends Exception> void forEach(
+			@NonNull Func1E<? super T, Boolean, E> func) throws E {
+		HeadList<T> tl = this;
+		while (tl != null) {
+			if (!func.invoke(tl.value)) {
+				return;
+			}
+			tl = tl.head;
+		}
+	}
+	/**
+	 * Returns a list without the elements
+	 * found in src.
+	 * @param src the sequence to remove
+	 * @return the new list
+	 */
+	public HeadList<T> removeAll(final Iterable<?> src) {
+		if (src instanceof Set<?>) {
+			final Set<?> set = (Set<?>)src;
+			return removeIf(new Pred1<T>() {
+				@Override
+				public Boolean invoke(T v) {
+					return set.contains(v);
+				}
+			});
+		}
+		return removeIf(new Pred1<T>() {
+			@Override
+			public Boolean invoke(T v) {
+				for (Object o : src) {
+					if (Objects.equals(v, o)) {
+						return true;
+					}
+				}
+				return false;
+			}
+		});
+	}
+	/**
+	 * Returns a list without the elements
+	 * found in src.
+	 * @param src the sequence to remove
+	 * @return the new list
+	 */
+	public HeadList<T> retainAll(final Iterable<?> src) {
+		if (src instanceof Set<?>) {
+			final Set<?> set = (Set<?>)src;
+			return removeIf(new Pred1<T>() {
+				@Override
+				public Boolean invoke(T v) {
+					return !set.contains(v);
+				}
+			});
+		}
+		return removeIf(new Pred1<T>() {
+			@Override
+			public Boolean invoke(T v) {
+				for (Object o : src) {
+					if (Objects.equals(v, o)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		});
+	}
+	/**
+	 * Remove the first instance from the list.
+	 * @param o the object to remove
+	 * @return the new list without the object
+	 */
+	public HeadList<T> remove(final Object o) {
+		return removeIf(new Pred1<T>() {
+			/** Remove one element only. */
+			boolean once = true;
+			@Override
+			public Boolean invoke(T param1) {
+				if (once && Objects.equals(param1, o)) {
+					once = false;
+					return true;
+				}
+				return false;
+			}
+		});
+	}
+	/**
+	 * Returns a new sublist starting from the given index.
+	 * @param startIndex the start index
+	 * @return the sublist or null if the start index is beyond the list size
+	 */
+	public HeadList<T> subList(int startIndex) {
+		if (startIndex < 0) {
+			throw new IllegalArgumentException("startIndex < 0");
+		}
+		int s = size();
+		HeadList<T> hl = this;
+		HeadList<T> h = null;
+		HeadList<T> r = null;
+		while (s > startIndex) {
+			if (h == null) {
+				h = new HeadList<>(hl.value);
+				r = h;
+			} else {
+				h.head = new HeadList<>(hl.value);
+				h = h.head;
+			}
+			
+			hl = hl.head;
+			s--;
+		}
+		
+		return r;
+	}
+	/**
+	 * Returns a new sublist of this list from between
+	 * the given indexes.
+	 * <p>If the endIndex points beyond the size, only up
+	 * to the size is used.</p>
+	 * @param startIndex the start index, inclusive
+	 * @param endIndex the end index exclusive
+	 * @return the new head list or null if the range was empty
+	 */
+	public HeadList<T> subList(int startIndex, int endIndex) {
+		if (startIndex < 0) {
+			throw new IllegalArgumentException("startIndex < 0");
+		}
+		if (endIndex < 0) {
+			throw new IllegalArgumentException("endIndex < 0");
+		}
+		if (startIndex > endIndex) {
+			throw new IllegalArgumentException("endIndex < startIndex");
+		}
+		int s = size();
+		if (startIndex == 0 && endIndex == s) {
+			return this;
+		}
+		endIndex = Math.min(endIndex, s);
+		HeadList<T> hl = this;
+		while (s > endIndex) {
+			hl = hl.head;
+			s--;
+		}
+		HeadList<T> h = null;
+		HeadList<T> r = null;
+		while (endIndex > startIndex) {
+			if (h == null) {
+				h = new HeadList<>(hl.value);
+				r = h;
+			} else {
+				h.head = new HeadList<>(hl.value);
+				h = h.head;
+			}
+			
+			hl = hl.head;
+			endIndex--;
+		}
+		
+		return r;
 	}
 }

@@ -69,22 +69,22 @@ public class DB implements Closeable {
 	 * @author karnokd, 2012.09.10.
 	 */
 	public static class DBInfo {
-		/** The database identifier. */
-		public String id;
-		/** The driver class. */
-		public String driverClass;
 		/** The connection URL. */
 		public String connectionURL;
-		/** The user. */
-		public String user;
-		/** The password. */
-		public String password;
+		/** The driver class. */
+		public String driverClass;
 		/** The password was encoded? */
 		public boolean encodePassword;
-		/** The schema. */
-		public String schema;
+		/** The database identifier. */
+		public String id;
 		/** Maximum number of connections. */
 		public int maxConnection;
+		/** The password. */
+		public String password;
+		/** The schema. */
+		public String schema;
+		/** The user. */
+		public String user;
 		/** Default constructor. */
 		public DBInfo() {
 			
@@ -104,10 +104,204 @@ public class DB implements Closeable {
 			this.maxConnection = other.maxConnection;
 		}
 	}
-	/** The available connection infos. */
-	protected static final Map<String, DBInfo> CONNECTION_INFOS = Maps.newConcurrentMap();
 	/** The connection data file. */
 	protected static final String CONNECTION_DATA = "/db.xml";
+	/** The available connection infos. */
+	protected static final Map<String, DBInfo> CONNECTION_INFOS = Maps.newConcurrentMap();
+	/** The name of the default connection. */
+	protected static final String DEFAULT = "default";
+	/**
+	 * Sets a single parameter to the long value, used for delete auto-keyed items.
+	 */
+	public static final SQLAction<Long> DELETE_LONG = new SQLAction<Long>() {
+		@Override
+		public void invoke(PreparedStatement t, Long u)
+				throws SQLException {
+			t.setLong(1, u);
+		}
+	};
+	/** Returns a single boolean value. */
+	public static final SQLResult<Boolean> SELECT_BOOLEAN = new SQLResult<Boolean>() {
+		@Override
+		public Boolean invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getBoolean(1);
+		}
+	};
+	/** Returns a single boolean value. */
+	public static final SQLResult<Boolean> SELECT_BOOLEAN_OPTION = new SQLResult<Boolean>() {
+		@Override
+		public Boolean invoke(ResultSet param1)
+				throws SQLException {
+			return getBoolean(param1, 1);
+		}
+	};
+	/** Returns a single datemidnight value. */
+	public static final SQLResult<DateMidnight> SELECT_DATEMIDNIGHT = new SQLResult<DateMidnight>() {
+		@Override
+		public DateMidnight invoke(ResultSet param1)
+				throws SQLException {
+			Timestamp timestamp = param1.getTimestamp(1);
+			if (timestamp != null) {
+				return new DateMidnight(timestamp.getTime());
+			}
+			return null;
+		}
+	};
+	/** Returns a single datetime value. */
+	public static final SQLResult<DateTime> SELECT_DATETIME = new SQLResult<DateTime>() {
+		@Override
+		public DateTime invoke(ResultSet param1)
+				throws SQLException {
+			Timestamp timestamp = param1.getTimestamp(1);
+			if (timestamp != null) {
+				return new DateTime(timestamp.getTime());
+			}
+			return null;
+		}
+	};
+	/** Returns a single byte value. */
+	public static final SQLResult<Byte> SELECT_BYTE = new SQLResult<Byte>() {
+		@Override
+		public Byte invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getByte(1);
+		}
+	};
+	/** Returns a single byte value or null. */
+	public static final SQLResult<Byte> SELECT_BYTE_OPTION = new SQLResult<Byte>() {
+		@Override
+		public Byte invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getByte(param1, 1);
+		}
+	};
+	/** Returns a single short value. */
+	public static final SQLResult<Short> SELECT_SHORT = new SQLResult<Short>() {
+		@Override
+		public Short invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getShort(1);
+		}
+	};
+	/** Returns a single short value or null. */
+	public static final SQLResult<Short> SELECT_SHORT_OPTION = new SQLResult<Short>() {
+		@Override
+		public Short invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getShort(param1, 1);
+		}
+	};
+	/** Returns a single long value. */
+	public static final SQLResult<Integer> SELECT_INT = new SQLResult<Integer>() {
+		@Override
+		public Integer invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getInt(1);
+		}
+	};
+	/** Returns a single long value or null. */
+	public static final SQLResult<Integer> SELECT_INT_OPTION = new SQLResult<Integer>() {
+		@Override
+		public Integer invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getInt(param1, 1);
+		}
+	};
+	/** Returns a single long value. */
+	public static final SQLResult<Long> SELECT_LONG = new SQLResult<Long>() {
+		@Override
+		public Long invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getLong(1);
+		}
+	};
+	/** Returns a single long value or null. */
+	public static final SQLResult<Long> SELECT_LONG_OPTION = new SQLResult<Long>() {
+		@Override
+		public Long invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getLong(param1, 1);
+		}
+	};
+	/** Returns a single float value. */
+	public static final SQLResult<Float> SELECT_FLOAT = new SQLResult<Float>() {
+		@Override
+		public Float invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getFloat(1);
+		}
+	};
+	/** Returns a single float value or null. */
+	public static final SQLResult<Float> SELECT_FLOAT_OPTION = new SQLResult<Float>() {
+		@Override
+		public Float invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getFloat(param1, 1);
+		}
+	};
+	/** Returns a single double value. */
+	public static final SQLResult<Double> SELECT_DOUBLE = new SQLResult<Double>() {
+		@Override
+		public Double invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getDouble(1);
+		}
+	};
+	/** Returns a single double value or null. */
+	public static final SQLResult<Double> SELECT_DOUBLE_OPTION = new SQLResult<Double>() {
+		@Override
+		public Double invoke(ResultSet param1)
+				throws SQLException {
+			return DB.getDouble(param1, 1);
+		}
+	};
+	/** Returns a single long value. */
+	public static final SQLResult<String> SELECT_STRING = new SQLResult<String>() {
+		@Override
+		public String invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getString(1);
+		}
+	};
+	/** Returns a single timestamp value. */
+	public static final SQLResult<Timestamp> SELECT_TIMESTAMP = new SQLResult<Timestamp>() {
+		@Override
+		public Timestamp invoke(ResultSet param1)
+				throws SQLException {
+			return param1.getTimestamp(1);
+		}
+	};
+	static {
+		URL res = DB.class.getResource(CONNECTION_DATA);
+		if (res != null) {
+			try {
+				XElement xdbs = XElement.parseXML(res);
+				for (XElement xdb : xdbs.childrenWithName("database")) {
+					DBInfo dbi = new DBInfo();
+					
+					dbi.id = xdb.get("id");
+					dbi.driverClass = xdb.childValue("driver-class");
+					dbi.connectionURL = xdb.childValue("connection-url");
+					dbi.user = xdb.childValue("user");
+					dbi.password = xdb.childValue("password");
+					dbi.encodePassword = xdb.childElement("password").getBoolean("encoded", false);
+					dbi.schema = xdb.childValue("schema");
+					dbi.maxConnection = Integer.parseInt(xdb.childValue("max-connection"));
+					
+					if (dbi.password != null && !dbi.password.isEmpty() && dbi.encodePassword) {
+						dbi.password = new String(Base64.decode(dbi.password), "UTF-8");
+					}
+					
+					CONNECTION_INFOS.put(dbi.id, dbi);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (XMLStreamException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	/**
 	 * Adds a new database info record to the common DB object.
 	 * @param info the new info to add
@@ -115,6 +309,70 @@ public class DB implements Closeable {
 	public static void addConnection(@NonNull DBInfo info) {
 		CONNECTION_INFOS.put(info.id, new DBInfo(info));
 	}
+	/**
+	 * Connect to the default database.
+	 * @return the connection or the error
+	 */
+	@NonNull
+	public static DB connect() {
+		return connect(DEFAULT);
+	}
+	/**
+	 * Wraps the given connection into a DB instance.
+	 * @param conn the connection object
+	 * @return the new DB instance
+	 */
+	@NonNull 
+	public static DB connect(@NonNull Connection conn) {
+		DB result = new DB();
+		result.conn = conn;
+		
+		return result;
+	}
+	/**
+	 * Establish a connection to the given database.
+	 * @param dbi the the database info 
+	 * @return the database instance
+	 */
+	@NonNull
+	public static DB connect(@NonNull DBInfo dbi) {
+		if (dbi == null) {
+			throw new IllegalArgumentException("dbi is null");
+		}
+		
+		try {
+			Class.forName(dbi.driverClass);
+		} catch (ClassNotFoundException ex) {
+			throw new IllegalArgumentException("Driver error: " + dbi.driverClass, ex);
+		}
+		
+		DB result = new DB();
+		try {
+			result.conn = DriverManager.getConnection(dbi.connectionURL, dbi.user, dbi.password);
+		} catch (SQLException ex) {
+			Closeables.closeSilently(result);
+			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
+		}
+		try {
+			result.conn.setAutoCommit(false);
+		} catch (SQLException ex) {
+			Closeables.closeSilently(result);
+			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
+		}
+		
+		return result;
+	}
+	/**
+	 * Connect to the specified database.
+	 * @param databaseId the database identifier
+	 * @return the connection object or the exception
+	 */
+	@NonNull
+	public static DB connect(@NonNull String databaseId) {
+		DBInfo dbi = CONNECTION_INFOS.get(databaseId);
+		return connect(dbi);
+	}
+	
 	/**
 	 * Execute an action under the default connection.
 	 * @param action the action to execute
@@ -180,7 +438,7 @@ public class DB implements Closeable {
 		}
 	}
 	/**
-	 * Returns a nullable short field from the result set as a Double object.
+	 * Returns a nullable short field from the result set as a Byte object.
 	 * @param rs the result set
 	 * @param index the field index
 	 * @return the integer, may be null
@@ -193,6 +451,36 @@ public class DB implements Closeable {
 			return null;
 		}
 		return value;
+	}
+	/**
+	 * Returns a DateTime instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the day as DateMidnight or null.
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static DateTime getDateTime(@NonNull ResultSet rs, int index) throws SQLException {
+		java.sql.Timestamp ts = rs.getTimestamp(index);
+		if (ts != null) {
+			return new DateTime(ts);
+		}
+		return null;
+	}
+	/**
+	 * Returns a DateMidnight instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the day as DateMidnight or null.
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static DateMidnight getDay(@NonNull ResultSet rs, int index) throws SQLException {
+		java.sql.Date d = rs.getDate(index);
+		if (d != null) {
+			return new DateMidnight(d);
+		}
+		return null;
 	}
 	/**
 	 * Returns a nullable double field from the result set as a Double object.
@@ -210,7 +498,7 @@ public class DB implements Closeable {
 		return value;
 	}
 	/**
-	 * Returns a nullable float field from the result set as a Double object.
+	 * Returns a nullable float field from the result set as a Float object.
 	 * @param rs the result set
 	 * @param index the field index
 	 * @return the integer, may be null
@@ -255,7 +543,7 @@ public class DB implements Closeable {
 		return value;
 	}
 	/**
-	 * Returns a nullable short field from the result set as a Double object.
+	 * Returns a nullable short field from the result set as a Short object.
 	 * @param rs the result set
 	 * @param index the field index
 	 * @return the integer, may be null
@@ -268,6 +556,154 @@ public class DB implements Closeable {
 			return null;
 		}
 		return value;
+	}
+	/**
+	 * Returns a localTime instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param index the field index
+	 * @return the local time or null
+	 * @throws SQLException on error
+	 */
+	public static LocalTime getTime(@NonNull ResultSet rs, int index) throws SQLException {
+		java.sql.Time tm = rs.getTime(index);
+		if (tm != null) {
+			return toLocalTime(tm);
+		}
+		return null;
+	}
+	/**
+	 * Returns a nullable short field from the result set as a Byte object.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Byte getByte(@NonNull ResultSet rs, String columnName) throws SQLException {
+		byte value = rs.getByte(columnName);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a DateTime instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the day as DateMidnight or null.
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static DateTime getDateTime(@NonNull ResultSet rs, String columnName) throws SQLException {
+		java.sql.Timestamp ts = rs.getTimestamp(columnName);
+		if (ts != null) {
+			return new DateTime(ts);
+		}
+		return null;
+	}
+	/**
+	 * Returns a DateMidnight instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the day as DateMidnight or null.
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static DateMidnight getDay(@NonNull ResultSet rs, String columnName) throws SQLException {
+		java.sql.Date d = rs.getDate(columnName);
+		if (d != null) {
+			return new DateMidnight(d);
+		}
+		return null;
+	}
+	/**
+	 * Returns a nullable double field from the result set as a Double object.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Double getDouble(@NonNull ResultSet rs, String columnName) throws SQLException {
+		double value = rs.getDouble(columnName);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a nullable float field from the result set as a Float object.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Float getFloat(@NonNull ResultSet rs, String columnName) throws SQLException {
+		float value = rs.getFloat(columnName);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a nullable int field from the result set as an Integer object.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Integer getInt(@Nonnull ResultSet rs, String columnName) throws SQLException {
+		int value = rs.getInt(columnName);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a nullable long field from the result set as a Long object.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Long getLong(@NonNull ResultSet rs, String columnName) throws SQLException {
+		long value = rs.getLong(columnName);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a nullable short field from the result set as a Short object.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the integer, may be null
+	 * @throws SQLException on error
+	 */
+	@Nullable
+	public static Short getShort(@NonNull ResultSet rs, String columnName) throws SQLException {
+		short value = rs.getShort(columnName);
+		if (rs.wasNull()) {
+			return null;
+		}
+		return value;
+	}
+	/**
+	 * Returns a localTime instance or null if the result field is null.
+	 * @param rs the result set
+	 * @param columnName the colum name
+	 * @return the local time or null
+	 * @throws SQLException on error
+	 */
+	public static LocalTime getTime(@NonNull ResultSet rs, String columnName) throws SQLException {
+		java.sql.Time tm = rs.getTime(columnName);
+		if (tm != null) {
+			return toLocalTime(tm);
+		}
+		return null;
 	}
 	/**
 	 * Wraps the resultset into an iterable sequence to be used by a 
@@ -362,7 +798,6 @@ public class DB implements Closeable {
 	public static Object maybeNull(byte[] value) {
 		return value != null ? value : byte[].class;
 	}
-	
 	/**
 	 * Returns a token if the parameter is null.
 	 * @param value the value
@@ -380,15 +815,6 @@ public class DB implements Closeable {
 	@NonNull 
 	public static Object maybeNull(Date value) {
 		return value != null ? value : Date.class;
-	}
-	/**
-	 * Returns a token if the parameter is null.
-	 * @param value the value
-	 * @return the null-token or the same value
-	 */
-	@NonNull 
-	public static Object maybeNull(java.util.Date value) {
-		return value != null ? new Timestamp(value.getTime()) : Timestamp.class;
 	}
 	/**
 	 * Returns a token if the parameter is null.
@@ -443,6 +869,15 @@ public class DB implements Closeable {
 	@NonNull 
 	public static Object maybeNull(Integer value) {
 		return value != null ? value : Integer.class;
+	}
+	/**
+	 * Returns a token if the parameter is null.
+	 * @param value the value
+	 * @return the null-token or the same value
+	 */
+	@NonNull 
+	public static Object maybeNull(java.util.Date value) {
+		return value != null ? new Timestamp(value.getTime()) : Timestamp.class;
 	}
 	/**
 	 * Returns a token if the parameter is null.
@@ -538,7 +973,7 @@ public class DB implements Closeable {
 				if (o == BigInteger.class) {
 					pstmt.setNull(i, Types.NUMERIC);
 				} else
-				if (o == Timestamp.class || o == DateTime.class) {
+				if (o == Timestamp.class || o == DateTime.class || o == java.util.Date.class) {
 					pstmt.setNull(i, Types.TIMESTAMP);
 				} else
 				if (o == Time.class || o == LocalTime.class) {
@@ -581,6 +1016,9 @@ public class DB implements Closeable {
 			if (o instanceof Timestamp) {
 				pstmt.setTimestamp(i, (Timestamp)o);
 			} else
+			if (o instanceof java.util.Date) {
+				pstmt.setTimestamp(i, new Timestamp(((java.util.Date)o).getTime()));
+			} else
 			if (o instanceof Double) {
 				pstmt.setDouble(i, (Double)o);
 			} else
@@ -622,28 +1060,6 @@ public class DB implements Closeable {
 			}
 			i++;
 		}
-	}
-	/**
-	 * Convert the local time to SQL time object, considering
-	 * the timezone and DST offsets.
-	 * @param time the local time
-	 * @return the sql time
-	 */
-	@NonNull
-	public static Time toSQLTime(@NonNull LocalTime time) {
-		DateTime epochTime = new DateTime(1970, 1, 1, 
-				time.getHourOfDay(), time.getMinuteOfHour(), 
-				time.getSecondOfMinute(), time.getMillisOfSecond());
-		return new Time(epochTime.getMillis());
-	}
-	/**
-	 * Convert an SQL time object into a LocalTime object.
-	 * @param time the SQL time 
-	 * @return the local time
-	 */
-	@NonNull
-	public static LocalTime toLocalTime(@NonNull Time time) {
-		return new LocalTime(time.getTime());
 	}
 	/**
 	 * Sets the parameters on a result set.
@@ -695,6 +1111,9 @@ public class DB implements Closeable {
 			if (o instanceof Timestamp) {
 				rs.updateTimestamp(i, (Timestamp)o);
 			} else
+			if (o instanceof java.util.Date) {
+				rs.updateTimestamp(i, new Timestamp(((java.util.Date)o).getTime()));
+			} else
 			if (o instanceof Double) {
 				rs.updateDouble(i, (Double)o);
 			} else
@@ -736,189 +1155,34 @@ public class DB implements Closeable {
 			i++;
 		}
 	}
+	/**
+	 * Convert an SQL time object into a LocalTime object.
+	 * @param time the SQL time 
+	 * @return the local time
+	 */
+	@NonNull
+	public static LocalTime toLocalTime(@NonNull Time time) {
+		return new LocalTime(time.getTime());
+	}
+	/**
+	 * Convert the local time to SQL time object, considering
+	 * the timezone and DST offsets.
+	 * @param time the local time
+	 * @return the sql time
+	 */
+	@NonNull
+	public static Time toSQLTime(@NonNull LocalTime time) {
+		DateTime epochTime = new DateTime(1970, 1, 1, 
+				time.getHourOfDay(), time.getMinuteOfHour(), 
+				time.getSecondOfMinute(), time.getMillisOfSecond());
+		return new Time(epochTime.getMillis());
+	}
 	/** The underlying connection. */
 	protected Connection conn;
 	/** The defualt query fetch size. */
 	protected int fetchSize = -1;
-	/** The name of the default connection. */
-	protected static final String DEFAULT = "default";
 	/** Log the queries? */
 	protected boolean logQueries;
-	/**
-	 * Sets a single parameter to the long value, used for delete auto-keyed items.
-	 */
-	public static final SQLAction<Long> DELETE_LONG = new SQLAction<Long>() {
-		@Override
-		public void invoke(PreparedStatement t, Long u)
-				throws SQLException {
-			t.setLong(1, u);
-		}
-	};
-	/** Returns a single long value. */
-	public static final SQLResult<Long> SELECT_LONG = new SQLResult<Long>() {
-		@Override
-		public Long invoke(ResultSet param1)
-				throws SQLException {
-			return param1.getLong(1);
-		}
-	};
-	/** Returns a single long value. */
-	public static final SQLResult<Integer> SELECT_INT = new SQLResult<Integer>() {
-		@Override
-		public Integer invoke(ResultSet param1)
-				throws SQLException {
-			return param1.getInt(1);
-		}
-	};
-	/** Returns a single long value or null. */
-	public static final SQLResult<Long> SELECT_LONG_OPTION = new SQLResult<Long>() {
-		@Override
-		public Long invoke(ResultSet param1)
-				throws SQLException {
-			return DB.getLong(param1, 1);
-		}
-	};
-	/** Returns a single long value or null. */
-	public static final SQLResult<Integer> SELECT_INT_OPTION = new SQLResult<Integer>() {
-		@Override
-		public Integer invoke(ResultSet param1)
-				throws SQLException {
-			return DB.getInt(param1, 1);
-		}
-	};
-	/** Returns a single long value. */
-	public static final SQLResult<String> SELECT_STRING = new SQLResult<String>() {
-		@Override
-		public String invoke(ResultSet param1)
-				throws SQLException {
-			return param1.getString(1);
-		}
-	};
-	/** Returns a single timestamp value. */
-	public static final SQLResult<Timestamp> SELECT_TIMESTAMP = new SQLResult<Timestamp>() {
-		@Override
-		public Timestamp invoke(ResultSet param1)
-				throws SQLException {
-			return param1.getTimestamp(1);
-		}
-	};
-	/** Returns a single datetime value. */
-	public static final SQLResult<DateTime> SELECT_DATETIME = new SQLResult<DateTime>() {
-		@Override
-		public DateTime invoke(ResultSet param1)
-				throws SQLException {
-			Timestamp timestamp = param1.getTimestamp(1);
-			if (timestamp != null) {
-				return new DateTime(timestamp.getTime());
-			}
-			return null;
-		}
-	};
-	/** Returns a single datemidnight value. */
-	public static final SQLResult<DateMidnight> SELECT_DATEMIDNIGHT = new SQLResult<DateMidnight>() {
-		@Override
-		public DateMidnight invoke(ResultSet param1)
-				throws SQLException {
-			Timestamp timestamp = param1.getTimestamp(1);
-			if (timestamp != null) {
-				return new DateMidnight(timestamp.getTime());
-			}
-			return null;
-		}
-	};
-	static {
-		URL res = DB.class.getResource(CONNECTION_DATA);
-		if (res != null) {
-			try {
-				XElement xdbs = XElement.parseXML(res);
-				for (XElement xdb : xdbs.childrenWithName("database")) {
-					DBInfo dbi = new DBInfo();
-					
-					dbi.id = xdb.get("id");
-					dbi.driverClass = xdb.childValue("driver-class");
-					dbi.connectionURL = xdb.childValue("connection-url");
-					dbi.user = xdb.childValue("user");
-					dbi.password = xdb.childValue("password");
-					dbi.encodePassword = xdb.childElement("password").getBoolean("encoded", false);
-					dbi.schema = xdb.childValue("schema");
-					dbi.maxConnection = Integer.parseInt(xdb.childValue("max-connection"));
-					
-					if (dbi.password != null && !dbi.password.isEmpty() && dbi.encodePassword) {
-						dbi.password = new String(Base64.decode(dbi.password), "UTF-8");
-					}
-					
-					CONNECTION_INFOS.put(dbi.id, dbi);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (XMLStreamException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	/**
-	 * Connect to the default database.
-	 * @return the connection or the error
-	 */
-	@NonNull
-	public static DB connect() {
-		return connect(DEFAULT);
-	}
-	/**
-	 * Wraps the given connection into a DB instance.
-	 * @param conn the connection object
-	 * @return the new DB instance
-	 */
-	@NonNull 
-	public static DB connect(@NonNull Connection conn) {
-		DB result = new DB();
-		result.conn = conn;
-		
-		return result;
-	}
-	/**
-	 * Establish a connection to the given database.
-	 * @param dbi the the database info 
-	 * @return the database instance
-	 */
-	@NonNull
-	public static DB connect(@NonNull DBInfo dbi) {
-		if (dbi == null) {
-			throw new IllegalArgumentException("dbi is null");
-		}
-		
-		try {
-			Class.forName(dbi.driverClass);
-		} catch (ClassNotFoundException ex) {
-			throw new IllegalArgumentException("Driver error: " + dbi.driverClass, ex);
-		}
-		
-		DB result = new DB();
-		try {
-			result.conn = DriverManager.getConnection(dbi.connectionURL, dbi.user, dbi.password);
-		} catch (SQLException ex) {
-			Closeables.closeSilently(result);
-			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
-		}
-		try {
-			result.conn.setAutoCommit(false);
-		} catch (SQLException ex) {
-			Closeables.closeSilently(result);
-			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
-		}
-		
-		return result;
-	}
-	/**
-	 * Connect to the specified database.
-	 * @param databaseId the database identifier
-	 * @return the connection object or the exception
-	 */
-	@NonNull
-	public static DB connect(@NonNull String databaseId) {
-		DBInfo dbi = CONNECTION_INFOS.get(databaseId);
-		return connect(dbi);
-	}
 	@Override
 	public void close() throws IOException {
 		Connection c = conn;
@@ -1662,47 +1926,17 @@ public class DB implements Closeable {
 		}
 	}
 	/**
-	 * Returns a DateMidnight instance or null if the result field is null.
+	 * Returns a boolean field which can be null.
 	 * @param rs the result set
-	 * @param index the field index
-	 * @return the day as DateMidnight or null.
+	 * @param index the column index
+	 * @return the boolean value
 	 * @throws SQLException on error
 	 */
-	@Nullable
-	public static DateMidnight getDay(@NonNull ResultSet rs, int index) throws SQLException {
-		java.sql.Date d = rs.getDate(index);
-		if (d != null) {
-			return new DateMidnight(d);
+	public static Boolean getBoolean(ResultSet rs, int index) throws SQLException {
+		boolean b = rs.getBoolean(index);
+		if (rs.wasNull()) {
+			return null;
 		}
-		return null;
-	}
-	/**
-	 * Returns a DateTime instance or null if the result field is null.
-	 * @param rs the result set
-	 * @param index the field index
-	 * @return the day as DateMidnight or null.
-	 * @throws SQLException on error
-	 */
-	@Nullable
-	public static DateTime getDateTime(@NonNull ResultSet rs, int index) throws SQLException {
-		java.sql.Timestamp ts = rs.getTimestamp(index);
-		if (ts != null) {
-			return new DateTime(ts);
-		}
-		return null;
-	}
-	/**
-	 * Returns a localTime instance or null if the result field is null.
-	 * @param rs the result set
-	 * @param index the field index
-	 * @return the local time or null
-	 * @throws SQLException on error
-	 */
-	public static LocalTime getTime(@NonNull ResultSet rs, int index) throws SQLException {
-		java.sql.Time tm = rs.getTime(index);
-		if (tm != null) {
-			return toLocalTime(tm);
-		}
-		return null;
+		return b;
 	}
 }

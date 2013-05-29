@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
@@ -33,7 +34,7 @@ public final class TailList<T> {
 	/** The contained value. */
 	protected final T value;
 	/** Tail of the list. */
-	protected final TailList<T> tail;
+	protected TailList<T> tail;
 	/**
 	 * Constructor with just a value.
 	 * @param value the value
@@ -102,7 +103,7 @@ public final class TailList<T> {
 		int h = 17;
 		TailList<T> tl = this;
 		while (tl != null) {
-			h = h * 31 + (tl.value != null ? tl.hashCode() : 0);
+			h = h * 31 + (tl.value != null ? tl.value.hashCode() : 0);
 			tl = tl.tail;
 		}
 		return h;
@@ -130,14 +131,38 @@ public final class TailList<T> {
 	 * @return the new list
 	 */
 	public TailList<T> add(T value) {
-		LinkedList<T> elements = toLinkedList();
-		
-		TailList<T> tl = new TailList<>(value);
-		Iterator<T> e = elements.descendingIterator();
-		while (e.hasNext()) {
-			tl = new TailList<>(e.next(), tl);
+		TailList<T> tl = new TailList<>(this.value);
+		TailList<T> r = tl;
+		TailList<T> tl0 = tail;
+		while (tl0 != null) {
+			tl.tail = new TailList<>(tl0.value);
+			tl = tl.tail;
+			tl0 = tl0.tail;
 		}
-		return tl;
+		tl.tail = new TailList<>(value);
+		
+		return r;
+	}
+	/**
+	 * Add all elements from the source sequence.
+	 * @param src the source sequence.
+	 * @return the new tail list chain
+	 */
+	public TailList<T> addAll(Iterable<? extends T> src) {
+		TailList<T> tl = new TailList<>(this.value);
+		TailList<T> r = tl;
+		TailList<T> tl0 = tail;
+		while (tl0 != null) {
+			tl.tail = new TailList<>(tl0.value);
+			tl = tl.tail;
+			tl0 = tl0.tail;
+		}
+		for (T t : src) {
+			tl.tail = new TailList<>(t);
+			tl = tl.tail;
+		}
+
+		return r;
 	}
 	/**
 	 * Adds a first element to the list
@@ -215,5 +240,28 @@ public final class TailList<T> {
 			tl = tl.tail;
 		}
 	}
-	
+	/**
+	 * Builds a tail list from the source sequence.
+	 * <p>Throws NoSuchElementException if the source is empty.
+	 * @param src the source sequence
+	 * @return the tail list
+	 * @param <T> the element type
+	 */
+	public static <T> TailList<T> from(Iterable<? extends T> src) {
+		Iterator<? extends T> it = src.iterator();
+		if (it.hasNext()) {
+			T t = it.next();
+			TailList<T> tl = new TailList<>(t);
+			TailList<T> r = tl;
+			
+			while (it.hasNext()) {
+				t = it.next();
+				tl.tail = new TailList<>(t);
+				tl = tl.tail;
+			}
+			
+			return r;
+		}
+		throw new NoSuchElementException();
+	}
 }

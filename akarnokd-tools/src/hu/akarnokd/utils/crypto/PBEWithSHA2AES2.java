@@ -32,12 +32,13 @@ import javax.crypto.spec.PBEParameterSpec;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Very simple and weak password based encryptor and decryptor using
- * MD5 hash and DES key generator.
+ * Very simple password based encryptor and decryptor using
+ * SHA-256 hash and AES-256 key generator.
+ * Requires the unlimited juristiction libraries from Oracle.
  * @author akarnokd, 2013.05.30.
  *
  */
-public class PBEWithMD5DES extends AbstractPBE {
+public class PBEWithSHA2AES2 extends AbstractPBE {
 	/** The parameter specification. */
 	private PBEParameterSpec pbeParamSpec;
 	/** The secret key. */
@@ -46,10 +47,10 @@ public class PBEWithMD5DES extends AbstractPBE {
 	@Override
 	protected Cipher cipher(boolean encrypt) {
 		try {
-			String algorithm = "PBEWithMD5AndDES";
+			String algorithm = "PBEWithSHA256And256BITAES-CBC-BC";
 			if (pbeParamSpec == null) {
 				pbeParamSpec = new PBEParameterSpec(salt, iteration);
-				PBEKeySpec pbeKeySpec = new PBEKeySpec(password);
+				PBEKeySpec pbeKeySpec = new PBEKeySpec(password, salt, iteration, 256);
 				SecretKeyFactory keyFac = null;
 				if (provider != null) {
 					keyFac = SecretKeyFactory.getInstance(algorithm, provider);

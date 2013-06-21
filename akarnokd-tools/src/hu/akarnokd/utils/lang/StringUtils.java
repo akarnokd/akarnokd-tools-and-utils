@@ -180,4 +180,88 @@ public final class StringUtils {
 		}
 		return out;
 	}
+	/**
+	 * Replaces all occurrences of {@code what} with {@code with} in {@code src}
+	 * (non regexp).
+	 * @param src the source string
+	 * @param what the thing to replace
+	 * @param with the replacement
+	 * @return the string with replaced parts
+	 */
+	public static String replaceAll(String src, String what, String with) {
+		StringBuilder b = new StringBuilder();
+		int idx0 = 0;
+		int idx = src.indexOf(what, idx0);
+		while (idx >= 0) {
+			b.append(src, idx0, idx);
+			b.append(with);
+			idx0 = idx + what.length();
+			idx = src.indexOf(what, idx0);
+		}
+		b.append(src, idx0, src.length());
+		return b.toString();
+	}
+	/** The hexadecimal characters. */
+	private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
+	/**
+	 * Convert an array of bytes to hexadecimal representation.
+	 * @param data the data to convert
+	 * @return the hexadecimal string
+	 */
+	public static String toHex(byte[] data) {
+		StringBuilder b = new StringBuilder();
+		
+		for (byte d : data) {
+			b.append(HEX_CHARS[(d & 0xF0) >> 4]);
+			b.append(HEX_CHARS[(d & 0xF)]);
+		}
+
+		return b.toString();
+	}
+	/**
+	 * Converts an array of bytes to hexadecimal representation and
+	 * stores it in the given appendable.
+	 * @param data the data to convert
+	 * @param out the output appendable
+	 * @throws IOException if the appendable throws
+	 */
+	public static void toHex(byte[] data, Appendable out) throws IOException {
+		for (byte d : data) {
+			out.append(HEX_CHARS[(d & 0xF0) >> 4]);
+			out.append(HEX_CHARS[(d & 0xF)]);
+		}
+	}
+	/**
+	 * Converts a character sequence of hexadecimal characters
+	 * to byte array.
+	 * @param cs the char sequence, the length must be even
+	 * @return the byte array output
+	 */
+	public static byte[] fromHex(CharSequence cs) {
+		if (cs.length() % 2 != 0) {
+			throw new IllegalArgumentException("Odd length: " + cs.length());
+		}
+		byte[] r = new byte[cs.length() / 2];
+		for (int i = 0; i < r.length; i++) {
+			r[i] = (byte)((fromHex(cs.charAt(i * 2)) << 4) | fromHex(cs.charAt(i * 2 + 1)));
+		}
+		return r;
+	}
+	/**
+	 * Convert a hexadecimal character into a number.
+	 * @param c the character, 0-9a-fA-F
+	 * @return the decimal value
+	 */
+	private static int fromHex(char c) {
+		if (c >= '0' && c <= '9') {
+			return c - '0';
+		}
+		if (c >= 'a' && c <= 'f') {
+			return c - 'a' + 10;
+		}
+		if (c >= 'A' && c <= 'F') {
+			return c - 'A' + 10;
+		}
+		throw new IllegalArgumentException("Not a hex char: " + c);
+	}
 }

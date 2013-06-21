@@ -102,7 +102,6 @@ public abstract class AbstractPBE implements Closeable {
 	public byte[] encrypt(byte[] data) {
 		try {
 			Cipher cipher = cipher(true);
-	
 			return cipher.doFinal(data);
 		} catch (BadPaddingException
 				| IllegalBlockSizeException ex) {
@@ -158,5 +157,12 @@ public abstract class AbstractPBE implements Closeable {
 	@Override
 	public void close() {
 		Arrays.fill(password, '\0');
+	}
+	/**
+	 * Returns the iteration count.
+	 * @return the iteration count
+	 */
+	public int getIteration() {
+		return iteration;
 	}
 }

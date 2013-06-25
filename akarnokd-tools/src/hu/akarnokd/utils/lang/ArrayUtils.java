@@ -585,4 +585,166 @@ public final class ArrayUtils {
 		}
 		return out.toString();
 	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(boolean[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(byte[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(short[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(char[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(int[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(long[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(float[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(double[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the element formatter
+	 * @return the joint string
+	 */
+	public static String join(Object[] array, CharSequence separator, String format) {
+		StringBuilder out = new StringBuilder();
+		try {
+			join(array, separator, format, out);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+		return out.toString();
+	}
 }

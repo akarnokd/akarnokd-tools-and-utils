@@ -21,7 +21,7 @@ import hu.akarnokd.utils.collection.CollectionUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 

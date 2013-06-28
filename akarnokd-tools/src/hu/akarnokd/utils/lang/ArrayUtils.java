@@ -17,6 +17,7 @@
 package hu.akarnokd.utils.lang;
 
 import java.io.IOException;
+import java.util.Comparator;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -746,5 +747,789 @@ public final class ArrayUtils {
 			throw new IllegalStateException(ex);
 		}
 		return out.toString();
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(byte[] array, byte value) {
+		return findFirst(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(byte[] array, int fromIndex, int toIndex, byte value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			byte midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(byte[] array, byte value) {
+		return findLast(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(byte[] array, int fromIndex, int toIndex, byte value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			byte midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(short[] array, short value) {
+		return findFirst(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(short[] array, int fromIndex, int toIndex, short value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			short midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(short[] array, short value) {
+		return findLast(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(short[] array, int fromIndex, int toIndex, short value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			short midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(char[] array, char value) {
+		return findFirst(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(char[] array, int fromIndex, int toIndex, char value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			char midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(char[] array, char value) {
+		return findLast(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(char[] array, int fromIndex, int toIndex, char value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			char midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(int[] array, int value) {
+		return findFirst(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(int[] array, int fromIndex, int toIndex, int value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			int midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(int[] array, int value) {
+		return findLast(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(int[] array, int fromIndex, int toIndex, int value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			int midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(float[] array, float value) {
+		return findFirst(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(float[] array, int fromIndex, int toIndex, float value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			float midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(float[] array, float value) {
+		return findLast(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(float[] array, int fromIndex, int toIndex, float value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			float midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(double[] array, double value) {
+		return findFirst(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(double[] array, int fromIndex, int toIndex, double value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			double midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(double[] array, double value) {
+		return findLast(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(double[] array, int fromIndex, int toIndex, double value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			double midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param <T> the element type
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @param comparator the comparator
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static <T> int findFirst(T[] array, T value, Comparator<? super T> comparator) {
+		return findFirst(array, 0, array.length, value, comparator);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param <T> the element type
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @param comparator the comparator
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static <T> int findFirst(T[] array, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			T midVal = array[mid];
+			int c = comparator.compare(midVal, value);
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (comparator.compare(array[mid - 1], value) != 0) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param <T> the element type
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @param comparator the comparator
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static <T> int findLast(T[] array, T value, Comparator<? super T> comparator) {
+		return findLast(array, 0, array.length, value, comparator);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param <T> the element type
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @param comparator the comparator
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static <T> int findLast(T[] array, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			T midVal = array[mid];
+			int c = comparator.compare(midVal, value);
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (comparator.compare(array[mid + 1], value) != 0) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param <T> the element type, self comparable
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static <T extends Comparable<? super T>> int findFirst(T[] array, T value) {
+		return findFirst(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param <T> the element type, self comparable
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static <T extends Comparable<? super T>> int findFirst(T[] array, int fromIndex, int toIndex, T value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			T midVal = array[mid];
+			int c = midVal.compareTo(value);
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1].compareTo(value) != 0) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param <T> the element type, self comparable
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static <T extends Comparable<? super T>> int findLast(T[] array, T value) {
+		return findLast(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param <T> the element type, self comparable
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static <T extends Comparable<? super T>> int findLast(T[] array, int fromIndex, int toIndex, T value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			T midVal = array[mid];
+			int c = midVal.compareTo(value);
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1].compareTo(value) != 0) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
 	}
 }

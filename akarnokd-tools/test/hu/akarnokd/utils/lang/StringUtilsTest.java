@@ -14,29 +14,28 @@
  * limitations under the License.
  */
 
-package hu.akarnokd.utils.database;
-
-import java.sql.Time;
+package hu.akarnokd.utils.lang;
 
 import org.junit.Assert;
-
-import org.joda.time.LocalTime;
 import org.junit.Test;
 
 /**
- * Test the DB methods.
- * @author akarnokd, 2013.05.28.
+ * @author akarnokd, 2013.06.21.
+ *
  */
-public class DBTest {
+public class StringUtilsTest {
+
 	/**
-	 * Test SQL and LocalTime conversions.
+	 * Test method for {@link hu.akarnokd.utils.lang.StringUtils#replaceAll(java.lang.String, java.lang.String, java.lang.String)}.
 	 */
 	@Test
-	public void testSQLAndLocalTime() {
-		LocalTime t1 = new LocalTime(10, 0, 0, 0);
-		Time time = DB.toSQLTime(t1);
-		LocalTime t2 = DB.toLocalTime(time);
-		Assert.assertEquals(t1, t2);
+	public void testReplaceAll() {
+		String s = StringUtils.replaceAll("ABCDEF", "A", "G");
+		Assert.assertEquals(s, "GBCDEF");
+		s = StringUtils.replaceAll("ABCDEF", "F", "G");
+		Assert.assertEquals(s, "ABCDEG");
+		s = StringUtils.replaceAll("ABABAB", "AB", "C");
+		Assert.assertEquals(s, "CCC");
 	}
 
 }

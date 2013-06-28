@@ -16,27 +16,34 @@
 
 package hu.akarnokd.utils.lang;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 
 /**
- * @author akarnokd, 2013.06.21.
- *
+ * Test ArrayUtils.
+ * @author akarnokd, 2013.06.28.
  */
-public class StringUtilsTest {
+public class ArrayUtilsTest {
 
 	/**
-	 * Test method for {@link hu.akarnokd.utils.lang.StringUtils#replaceAll(java.lang.String, java.lang.String, java.lang.String)}.
+	 * Test method for {@link hu.akarnokd.utils.lang.ArrayUtils#findFirst(byte[], int, int, byte)}.
 	 */
 	@Test
-	public void testReplaceAll() {
-		String s = StringUtils.replaceAll("ABCDEF", "A", "G");
-		Assert.assertEquals(s, "GBCDEF");
-		s = StringUtils.replaceAll("ABCDEF", "F", "G");
-		Assert.assertEquals(s, "ABCDEG");
-		s = StringUtils.replaceAll("ABABAB", "AB", "C");
-		Assert.assertEquals(s, "CCC");
+	public void testFindFirstByteArrayIntIntByte() {
+		byte[] test = { 0, 1, 1, 2, 2, 2, 3, 3, 5, 5 };
+		int idx = ArrayUtils.findFirst(test, 0, test.length, (byte)2);
+		Assert.assertEquals(3, idx);
+		
+		idx = ArrayUtils.findFirst(test, 0, test.length, (byte)4);
+		Assert.assertEquals(-9, idx);
+		
+		idx = ArrayUtils.findLast(test, 0, test.length, (byte)2);
+		Assert.assertEquals(5, idx);
+		
+		idx = ArrayUtils.findLast(test, 0, test.length, (byte)4);
+		Assert.assertEquals(-9, idx);
+		
 	}
 
 }

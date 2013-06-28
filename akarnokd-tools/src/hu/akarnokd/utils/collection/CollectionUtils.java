@@ -226,21 +226,21 @@ public final class CollectionUtils {
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param value the value to search
 	 * @param comparator the comparator
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T> int findFirst(List<? extends T> array, T value, Comparator<? super T> comparator) {
-		return findFirst(array, 0, array.size(), value, comparator);
+	public static <T> int findFirst(List<? extends T> list, T value, Comparator<? super T> comparator) {
+		return findFirst(list, 0, list.size(), value, comparator);
 	}
 	/**
 	 * Finds the first index where the value is located or
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param fromIndex the starting index, inclusive
 	 * @param toIndex the end index, exclusive
 	 * @param value the value to search
@@ -248,15 +248,15 @@ public final class CollectionUtils {
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T> int findFirst(List<? extends T> array, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
-		if (!(array instanceof RandomAccess || array.size() < BINARY_SEARCH_INDEX_THRESHOLD)) {
-			return findFirstIterator(array, fromIndex, toIndex, value, comparator);
+	public static <T> int findFirst(List<? extends T> list, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
+		if (!(list instanceof RandomAccess || list.size() < BINARY_SEARCH_INDEX_THRESHOLD)) {
+			return findFirstIterator(list, fromIndex, toIndex, value, comparator);
 		}
 		int a = fromIndex;
 		int b = toIndex;
 		while (a <= b) {
 			int mid = a + (b - a) / 2;
-			T midVal = array.get(mid);
+			T midVal = list.get(mid);
 			int c = comparator.compare(midVal, value);
 			if (c < 0) {
 				a = mid + 1;
@@ -265,7 +265,7 @@ public final class CollectionUtils {
 				b = mid - 1;
 			} else {
 				if (mid > 0) {
-					if (comparator.compare(array.get(mid - 1), value) != 0) {
+					if (comparator.compare(list.get(mid - 1), value) != 0) {
 						return mid;
 					} else {
 						b = mid - 1;
@@ -282,7 +282,7 @@ public final class CollectionUtils {
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param fromIndex the starting index, inclusive
 	 * @param toIndex the end index, exclusive
 	 * @param value the value to search
@@ -290,10 +290,10 @@ public final class CollectionUtils {
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T> int findFirstIterator(List<? extends T> array, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
+	public static <T> int findFirstIterator(List<? extends T> list, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
 		int a = fromIndex;
 		int b = toIndex;
-		ListIterator<? extends T> it = array.listIterator();
+		ListIterator<? extends T> it = list.listIterator();
 		while (a <= b) {
 			int mid = a + (b - a) / 2;
 			T midVal = get(it, mid);
@@ -322,21 +322,21 @@ public final class CollectionUtils {
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param value the value to search
 	 * @param comparator the comparator
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T> int findLast(List<? extends T> array, T value, Comparator<? super T> comparator) {
-		return findLast(array, 0, array.size(), value, comparator);
+	public static <T> int findLast(List<? extends T> list, T value, Comparator<? super T> comparator) {
+		return findLast(list, 0, list.size(), value, comparator);
 	}
 	/**
 	 * Finds the last index where the value is located or
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param fromIndex the starting index, inclusive
 	 * @param toIndex the end index, exclusive
 	 * @param value the value to search
@@ -344,15 +344,15 @@ public final class CollectionUtils {
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T> int findLast(List<? extends T> array, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
-		if (!(array instanceof RandomAccess || array.size() < BINARY_SEARCH_INDEX_THRESHOLD)) {
-			return findLastIterator(array, fromIndex, toIndex, value, comparator);
+	public static <T> int findLast(List<? extends T> list, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
+		if (!(list instanceof RandomAccess || list.size() < BINARY_SEARCH_INDEX_THRESHOLD)) {
+			return findLastIterator(list, fromIndex, toIndex, value, comparator);
 		}
 		int a = fromIndex;
 		int b = toIndex;
 		while (a <= b) {
 			int mid = a + (b - a) / 2;
-			T midVal = array.get(mid);
+			T midVal = list.get(mid);
 			int c = comparator.compare(midVal, value);
 			if (c < 0) {
 				a = mid + 1;
@@ -361,7 +361,7 @@ public final class CollectionUtils {
 				b = mid - 1;
 			} else {
 				if (mid < toIndex - 1) {
-					if (comparator.compare(array.get(mid + 1), value) != 0) {
+					if (comparator.compare(list.get(mid + 1), value) != 0) {
 						return mid;
 					} else {
 						a = mid + 1;
@@ -378,7 +378,7 @@ public final class CollectionUtils {
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param fromIndex the starting index, inclusive
 	 * @param toIndex the end index, exclusive
 	 * @param value the value to search
@@ -386,10 +386,10 @@ public final class CollectionUtils {
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T> int findLastIterator(List<? extends T> array, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
+	public static <T> int findLastIterator(List<? extends T> list, int fromIndex, int toIndex, T value, Comparator<? super T> comparator) {
 		int a = fromIndex;
 		int b = toIndex;
-		ListIterator<? extends T> it = array.listIterator();
+		ListIterator<? extends T> it = list.listIterator();
 		while (a <= b) {
 			int mid = a + (b - a) / 2;
 			T midVal = get(it, mid);
@@ -418,35 +418,35 @@ public final class CollectionUtils {
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type, self comparable
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param value the value to search
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T extends Comparable<? super T>> int findFirst(List<T> array, T value) {
-		return findFirst(array, 0, array.size(), value);
+	public static <T extends Comparable<? super T>> int findFirst(List<T> list, T value) {
+		return findFirst(list, 0, list.size(), value);
 	}
 	/**
 	 * Finds the first index where the value is located or
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type, self comparable
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param fromIndex the starting index, inclusive
 	 * @param toIndex the end index, exclusive
 	 * @param value the value to search
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T extends Comparable<? super T>> int findFirst(List<T> array, int fromIndex, int toIndex, T value) {
-		if (!(array instanceof RandomAccess || array.size() < BINARY_SEARCH_INDEX_THRESHOLD)) {
-			return findFirstIterator(array, fromIndex, toIndex, value);
+	public static <T extends Comparable<? super T>> int findFirst(List<T> list, int fromIndex, int toIndex, T value) {
+		if (!(list instanceof RandomAccess || list.size() < BINARY_SEARCH_INDEX_THRESHOLD)) {
+			return findFirstIterator(list, fromIndex, toIndex, value);
 		}
 		int a = fromIndex;
 		int b = toIndex;
 		while (a <= b) {
 			int mid = a + (b - a) / 2;
-			T midVal = array.get(mid);
+			T midVal = list.get(mid);
 			int c = midVal.compareTo(value);
 			if (c < 0) {
 				a = mid + 1;
@@ -455,7 +455,7 @@ public final class CollectionUtils {
 				b = mid - 1;
 			} else {
 				if (mid > 0) {
-					if (array.get(mid - 1).compareTo(value) != 0) {
+					if (list.get(mid - 1).compareTo(value) != 0) {
 						return mid;
 					} else {
 						b = mid - 1;
@@ -472,17 +472,17 @@ public final class CollectionUtils {
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type, self comparable
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param fromIndex the starting index, inclusive
 	 * @param toIndex the end index, exclusive
 	 * @param value the value to search
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	private static <T extends Comparable<? super T>> int findFirstIterator(List<T> array, int fromIndex, int toIndex, T value) {
+	private static <T extends Comparable<? super T>> int findFirstIterator(List<T> list, int fromIndex, int toIndex, T value) {
 		int a = fromIndex;
 		int b = toIndex;
-		ListIterator<T> it = array.listIterator();
+		ListIterator<T> it = list.listIterator();
 		while (a <= b) {
 			int mid = a + (b - a) / 2;
 			T midVal = get(it, mid);
@@ -532,35 +532,35 @@ public final class CollectionUtils {
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type, self comparable
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param value the value to search
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T extends Comparable<? super T>> int findLast(List<T> array, T value) {
-		return findLast(array, 0, array.size(), value);
+	public static <T extends Comparable<? super T>> int findLast(List<T> list, T value) {
+		return findLast(list, 0, list.size(), value);
 	}
 	/**
 	 * Finds the last index where the value is located or
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type, self comparable
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param fromIndex the starting index, inclusive
 	 * @param toIndex the end index, exclusive
 	 * @param value the value to search
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	public static <T extends Comparable<? super T>> int findLast(List<T> array, int fromIndex, int toIndex, T value) {
-		if (!(array instanceof RandomAccess || array.size() < BINARY_SEARCH_INDEX_THRESHOLD)) {
-			return findLastIterator(array, fromIndex, toIndex, value);
+	public static <T extends Comparable<? super T>> int findLast(List<T> list, int fromIndex, int toIndex, T value) {
+		if (!(list instanceof RandomAccess || list.size() < BINARY_SEARCH_INDEX_THRESHOLD)) {
+			return findLastIterator(list, fromIndex, toIndex, value);
 		}
 		int a = fromIndex;
 		int b = toIndex;
 		while (a <= b) {
 			int mid = a + (b - a) / 2;
-			T midVal = array.get(mid);
+			T midVal = list.get(mid);
 			int c = midVal.compareTo(value);
 			if (c < 0) {
 				a = mid + 1;
@@ -569,7 +569,7 @@ public final class CollectionUtils {
 				b = mid - 1;
 			} else {
 				if (mid < toIndex - 1) {
-					if (array.get(mid + 1).compareTo(value) != 0) {
+					if (list.get(mid + 1).compareTo(value) != 0) {
 						return mid;
 					} else {
 						a = mid + 1;
@@ -586,17 +586,17 @@ public final class CollectionUtils {
 	 * the index where it could be inserted, similar to the regular
 	 * binarySearch() methods, but it works with duplicate elements.
 	 * @param <T> the element type, self comparable
-	 * @param array the array to search
+	 * @param list the list to search
 	 * @param fromIndex the starting index, inclusive
 	 * @param toIndex the end index, exclusive
 	 * @param value the value to search
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
-	private static <T extends Comparable<? super T>> int findLastIterator(List<T> array, int fromIndex, int toIndex, T value) {
+	private static <T extends Comparable<? super T>> int findLastIterator(List<T> list, int fromIndex, int toIndex, T value) {
 		int a = fromIndex;
 		int b = toIndex;
-		ListIterator<T> it = array.listIterator();
+		ListIterator<T> it = list.listIterator();
 		while (a <= b) {
 			int mid = a + (b - a) / 2;
 			T midVal = get(it, mid);

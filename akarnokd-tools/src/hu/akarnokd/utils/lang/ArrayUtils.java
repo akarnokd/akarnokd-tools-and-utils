@@ -19,6 +19,9 @@ package hu.akarnokd.utils.lang;
 import java.io.IOException;
 import java.util.Comparator;
 
+import com.google.common.primitives.UnsignedInts;
+import com.google.common.primitives.UnsignedLongs;
+
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -1141,6 +1144,102 @@ public final class ArrayUtils {
 	 * @return if positive, the exact index where the value is first
 	 * encountered, or -(insertion point - 1) if not in the array.
 	 */
+	public static int findFirst(long[] array, long value) {
+		return findFirst(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirst(long[] array, int fromIndex, int toIndex, long value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			long midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(long[] array, long value) {
+		return findLast(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLast(long[] array, int fromIndex, int toIndex, long value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			long midVal = array[mid];
+			if (midVal < value) {
+				a = mid + 1;
+			} else
+			if (midVal > value) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
 	public static int findFirst(float[] array, float value) {
 		return findFirst(array, 0, array.length, value);
 	}
@@ -1521,6 +1620,417 @@ public final class ArrayUtils {
 			} else {
 				if (mid < toIndex - 1) {
 					if (array[mid + 1].compareTo(value) != 0) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirstUnsigned(byte[] array, byte value) {
+		return findFirstUnsigned(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirstUnsigned(byte[] array, int fromIndex, int toIndex, byte value) {
+		int a = fromIndex;
+		int b = toIndex;
+		int vi = value & 0xFF;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			byte midVal = array[mid];
+			int c = (midVal & 0xFF) - vi;
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLastUnsigned(byte[] array, byte value) {
+		return findLastUnsigned(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLastUnsigned(byte[] array, int fromIndex, int toIndex, byte value) {
+		int a = fromIndex;
+		int b = toIndex;
+		int vi = value & 0xFF;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			byte midVal = array[mid];
+			int c = (midVal & 0xFF) - vi;
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirstUnsigned(short[] array, short value) {
+		return findFirstUnsigned(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirstUnsigned(short[] array, int fromIndex, int toIndex, short value) {
+		int a = fromIndex;
+		int b = toIndex;
+		int vi = value & 0xFFFF;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			short midVal = array[mid];
+			int c = (midVal & 0xFFFF) - vi;
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLastUnsigned(short[] array, short value) {
+		return findLastUnsigned(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLastUnsigned(short[] array, int fromIndex, int toIndex, short value) {
+		int a = fromIndex;
+		int b = toIndex;
+		int vi = (value & 0xFFFF);
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			short midVal = array[mid];
+			int c = (midVal & 0xFFFF) - vi;
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirstUnsigned(int[] array, int value) {
+		return findFirstUnsigned(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirstUnsigned(int[] array, int fromIndex, int toIndex, int value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			int midVal = array[mid];
+			int c = UnsignedInts.compare(midVal, value);
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLastUnsigned(int[] array, int value) {
+		return findLastUnsigned(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLastUnsigned(int[] array, int fromIndex, int toIndex, int value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			int midVal = array[mid];
+			int c = UnsignedInts.compare(midVal, value);
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
+						return mid;
+					} else {
+						a = mid + 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirstUnsigned(long[] array, long value) {
+		return findFirstUnsigned(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the first index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findFirstUnsigned(long[] array, int fromIndex, int toIndex, long value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			long midVal = array[mid];
+			int c = UnsignedLongs.compare(midVal, value);
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid > 0) {
+					if (array[mid - 1] != value) {
+						return mid;
+					} else {
+						b = mid - 1;
+					}
+				} else {
+					return 0;
+				}
+			}
+		}
+		return -(a + 1);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLastUnsigned(long[] array, long value) {
+		return findLastUnsigned(array, 0, array.length, value);
+	}
+	/**
+	 * Finds the last index where the value is located or
+	 * the index where it could be inserted, similar to the regular
+	 * binarySearch() methods, but it works with duplicate elements and
+	 * uses unsigned comparison.
+	 * @param array the array to search
+	 * @param fromIndex the starting index, inclusive
+	 * @param toIndex the end index, exclusive
+	 * @param value the value to search
+	 * @return if positive, the exact index where the value is first
+	 * encountered, or -(insertion point - 1) if not in the array.
+	 */
+	public static int findLastUnsigned(long[] array, int fromIndex, int toIndex, long value) {
+		int a = fromIndex;
+		int b = toIndex;
+		while (a <= b) {
+			int mid = a + (b - a) / 2;
+			long midVal = array[mid];
+			int c = UnsignedLongs.compare(midVal, value);
+			if (c < 0) {
+				a = mid + 1;
+			} else
+			if (c > 0) {
+				b = mid - 1;
+			} else {
+				if (mid < toIndex - 1) {
+					if (array[mid + 1] != value) {
 						return mid;
 					} else {
 						a = mid + 1;

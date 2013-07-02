@@ -17,7 +17,9 @@
 package hu.akarnokd.utils.sequence;
 
 import hu.akarnokd.reactive4java.base.Action1E;
+import hu.akarnokd.reactive4java.base.Func1;
 import hu.akarnokd.reactive4java.base.Func1E;
+import hu.akarnokd.reactive4java.query.IterableBuilder;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -164,4 +166,18 @@ public final class SequenceUtils {
 			}
 		};
 	}
+    /**
+     * Wrap the sequence into a trimmed sequence.
+     * @param sequence the source sequence
+     * @return the output sequence
+     */
+    @NonNull
+    public static Iterable<String> trim(@NonNull Iterable<String> sequence) {
+    	return IterableBuilder.from(sequence).select(new Func1<String, String>() {
+    		@Override
+    		public String invoke(String param1) {
+    			return param1.trim();
+    		}
+    	});
+    }
 }

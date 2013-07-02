@@ -45,5 +45,29 @@ public class ArrayUtilsTest {
 		Assert.assertEquals(-9, idx);
 		
 	}
+	/** Test the array indexOf with array. */
+	@Test
+	public void testArrayIndexOfArray() {
+		boolean[] b = { false, false, true, true };
+		boolean[] t = { false, true };
+		boolean[] f = { true, false };
+		boolean[] c = { false, false, true };
+		boolean[] d = { true };
+		
+		Assert.assertEquals(1, ArrayUtils.indexOf(b, t));
+		Assert.assertEquals(-1, ArrayUtils.indexOf(b, f));
+
+		Assert.assertEquals(1, ArrayUtils.lastIndexOf(b, t));
+		Assert.assertEquals(-1, ArrayUtils.lastIndexOf(b, f));
+		
+		Assert.assertEquals(2, ArrayUtils.indexOf(c, d));
+		Assert.assertEquals(2, ArrayUtils.lastIndexOf(c, d));
+
+		Assert.assertEquals(2, ArrayUtils.indexOf(b, 0, 3, t, 1, 2));
+		Assert.assertEquals(2, ArrayUtils.indexOf(b, 2, 3, t, 1, 2));
+		
+		Assert.assertEquals(2, ArrayUtils.lastIndexOf(b, 0, 3, t, 1, 2));
+		Assert.assertEquals(2, ArrayUtils.lastIndexOf(b, 2, 3, t, 1, 2));
+	}
 
 }

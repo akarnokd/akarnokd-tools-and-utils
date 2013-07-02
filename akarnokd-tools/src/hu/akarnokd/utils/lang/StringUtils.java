@@ -17,6 +17,9 @@
 package hu.akarnokd.utils.lang;
 
 import java.io.IOException;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -264,4 +267,30 @@ public final class StringUtils {
 		}
 		throw new IllegalArgumentException("Not a hex char: " + c);
 	}
+    /**
+     * Split a string along the specified separator. Empty elements are kept.
+     * @param s the string to split, null values are treated as empty
+     * @param separator the separator
+     * @return the split list
+     */
+    @NonNull
+    public static List<String> split(@Nullable String s, @NonNull String separator) {
+    	List<String> result = Lists.newArrayList();
+
+    	if (s != null && !s.isEmpty()) {
+	    	int idx = 0;
+	    	while (true) {
+	    		int idx2 = s.indexOf(separator, idx);
+	    		if (idx2 < 0) {
+	    			result.add(s.substring(idx, s.length()));
+	    			break;
+	    		} else {
+	    			result.add(s.substring(idx, idx2));
+	    		}
+	    		idx = idx2 + separator.length();
+	    	}
+    	}
+    	
+    	return result;
+    }
 }

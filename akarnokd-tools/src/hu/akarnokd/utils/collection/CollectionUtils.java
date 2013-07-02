@@ -620,5 +620,16 @@ public final class CollectionUtils {
 		}
 		return -(a + 1);
 	}
-
+    /**
+     * In-place trim the list.
+     * @param list the source list
+     * @return the source list
+     */
+    @NonNull
+    public static List<String> trim(@NonNull List<String> list) {
+    	for (int i = 0; i < list.size(); i++) {
+    		list.set(i, list.get(i).trim());
+    	}
+    	return list;
+    }
 }

@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -1938,5 +1939,38 @@ public class DB implements Closeable {
 			return null;
 		}
 		return b;
+	}
+	/**
+	 * Check the validity of the underlying connection.
+	 * @param n the timeout in seconds
+	 * @return true if the connection is valid
+	 * @throws SQLException on error
+	 */
+	public boolean isValid(int n) throws SQLException {
+		return conn.isValid(n);
+	}
+	/**
+	 * Check if the underlying connection is closed.
+	 * @return true if closed
+	 * @throws SQLException on error
+	 */
+	public boolean isClosed() throws SQLException {
+		return conn.isClosed();
+	}
+	/**
+	 * Check if the underlying connection is read-only.
+	 * @return true if read only
+	 * @throws SQLException on error
+	 */
+	public boolean isReadOnly() throws SQLException {
+		return conn.isReadOnly();
+	}
+	/**
+	 * Returns the database metadata object.
+	 * @return the database metadata
+	 * @throws SQLException on error
+	 */
+	public DatabaseMetaData getMetaData()  throws SQLException {
+		return conn.getMetaData();
 	}
 }

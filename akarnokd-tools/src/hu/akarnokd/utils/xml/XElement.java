@@ -35,6 +35,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1204,6 +1206,42 @@ public class XElement implements ParameterMap {
 			}
 		}
 		return defaultValue;
+	}
+	/**
+	 * Reads the contents of a named column as an XML.
+	 * @param rs the result set to read from
+	 * @param column the column name
+	 * @return the parsed XNElement or null if the column contained null
+	 * @throws SQLException on SQL error
+	 * @throws IOException on IO error
+	 * @throws XMLStreamException on parsing error
+	 */
+	public static XElement parseXML(ResultSet rs, String column) 
+			throws SQLException, IOException, XMLStreamException {
+		try (InputStream is = rs.getBinaryStream(column)) {
+			if (is != null) {
+				return parseXML(is);
+			}
+			return null;
+		}
+	}
+	/**
+	 * Reads the contents of a indexed column as an XML.
+	 * @param rs the result set to read from
+	 * @param index the column index
+	 * @return the parsed XNElement or null if the column contained null
+	 * @throws SQLException on SQL error
+	 * @throws IOException on IO error
+	 * @throws XMLStreamException on parsing error
+	 */
+	public static XElement parseXML(ResultSet rs, int index) 
+			throws SQLException, IOException, XMLStreamException {
+		try (InputStream is = rs.getBinaryStream(index)) {
+			if (is != null) {
+				return parseXML(is);
+			}
+			return null;
+		}
 	}
 	
 }

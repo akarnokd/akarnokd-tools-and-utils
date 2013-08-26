@@ -23,6 +23,7 @@ import hu.akarnokd.reactive4java.interactive.Interactive;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,17 +37,15 @@ import java.io.Writer;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Deque;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
+import java.util.zip.GZIPInputStream;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -64,21 +63,17 @@ import edu.umd.cs.findbugs.annotations.Nullable;
  * A simplified XML element model with namespace support.
  * @author akarnokd
  */
-public class XNElement {
-	/** The XSD namespace. */
-	public static final String XSD = "http://www.w3.org/2001/XMLSchema";
-	/** The XSD instance URI. */
-	public static final String XSI = "http://www.w3.org/2001/XMLSchema-instance";
+public class XNElement extends XElementBase {
 	/** The namespace:name record. */
 	public static class XAttributeName {
+		/** The hash. */
+		private int hash;
 		/** The name. */
 		public final String name;
 		/** The namespace. */
 		public final String namespace;
 		/** The namespace prefix. */
 		public final String prefix;
-		/** The hash. */
-		private int hash;
 		/**
 		 * Construct an XName entity.
 		 * @param name the name
@@ -110,160 +105,69 @@ public class XNElement {
 			return "{" + namespace + "}" + name;
 		}
 	}
-	/** The element name. */
-	public final String name;
-	/** The optional associated namespace uri. */
-	public String namespace;
-	/** The prefix used by this element. */
-	public String prefix;
-	/** The content of a simple node. */
-	public String content;
-	/** The parent element. */
-	public XNElement parent;
-	/** The attribute map. */
-	protected final Map<XAttributeName, String> attributes = new LinkedHashMap<XAttributeName, String>();
-	/** The child elements. */
-	protected final List<XNElement> children = new ArrayList<XNElement>();
-	/** The user object to tag along. */
-	protected Object userObject;
 	/**
-	 * Constructor. Sets the name.
-	 * @param name the element name
+	 * The representation record.
+	 * @author akarnokd, 2011.10.21.
 	 */
-	public XNElement(String name) {
-		this.name = name;
-	}
-	/**
-	 * Constructor. Sets the name and namespace.
-	 * @param name the element name
-	 * @param namespace the element namespace
-	 */
-	public XNElement(String name, String namespace) {
-		this.name = name;
-		this.namespace = namespace;
-	}
-	/**
-	 * Retrieve the first attribute which has the given local attribute name.
-	 * @param attributeName the attribute name
-	 * @return the attribute value or null if no such attribute
-	 */
-	@Nullable
-	public String get(String attributeName) {
-		// check first for a namespace-less attribute
-		String attr = attributes.get(new XAttributeName(attributeName, null, null));
-		if (attr == null) {
-			// find any attribute ignoring namespace
-			for (XAttributeName n : attributes.keySet()) {
-				if (Objects.equal(n.name, attributeName)) {
-					return attributes.get(n);
-				}
-			}
+	public static class XRepresentationRecord {
+		/** The offset. */
+		public final int charOffset;
+		/** The current element. */
+		public final XNElement element;
+		/** The state. */
+		public final XRepresentationState state;
+		/**
+		 * Create the record.
+		 * @param state the state
+		 * @param element the element
+		 * @param charOffset the offset
+		 */
+		public XRepresentationRecord(XRepresentationState state,
+				XNElement element, int charOffset) {
+			super();
+			this.state = state;
+			this.element = element;
+			this.charOffset = charOffset;
 		}
-		return attr;
+		
 	}
 	/**
-	 * Retrieve the specific attribute.
-	 * @param attributeName the attribute name
-	 * @param attributeNamespace the attribute namespace URI
-	 * @return the attribute value or null if not present
+	 * The representation state.
+	 * @author akarnokd, 2011.10.21.
 	 */
-	@Nullable
-	public String get(String attributeName, String attributeNamespace) {
-		return attributes.get(new XAttributeName(attributeName, attributeNamespace, null));
+	public enum XRepresentationState {
+		/** Element end. */
+		END_ELEMENT,
+		/** Text end. */
+		END_TEXT,
+		/** Element start. */
+		START_ELEMENT,
+		/** Text start. */
+		START_TEXT
 	}
 	/**
-	 * Retrieve the attribute names.
-	 * @return the list of attribute names
+	 * Parse an XML from the binary data.
+	 * @param data the XML data
+	 * @return the parsed xml
+	 * @throws XMLStreamException on error
 	 */
-	public List<XAttributeName> getAttributeNames() {
-		return new ArrayList<XAttributeName>(attributes.keySet());
-	}
-	/*
-	@Override
-	public Iterator<XElement> iterator() {
-		return children.iterator();
-	}
-	*/
-	/**
-	 * Returns an iterator which enumerates all children with the given name.
-	 * @param name the name of the children to select
-	 * @return the iterator
-	 */
-	public Iterable<XNElement> childrenWithName(final String name) {
-		return Interactive.where(children, new Func1<XNElement, Boolean>() {
-			@Override
-			public Boolean invoke(XNElement param1) {
-				return Objects.equal(param1.name, name);
-			}
-		});
+	public static XNElement parseXML(byte[] data) throws XMLStreamException {
+		return parseXML(new ByteArrayInputStream(data));
 	}
 	/**
-	 * Returns an iterator which enumerates all children with the given name.
-	 * @param name the name of the children to select
-	 * @param namespace the namespace URI
-	 * @return the iterator
+	 * Parse an XML from the given file.
+	 * @param file the file
+	 * @return the parsed XElement tree
+	 * @throws XMLStreamException if an error occurs
+	 * @throws IOException if the file could not be found or other I/O error occurs
 	 */
-	public Iterable<XNElement> childrenWithName(final String name, final String namespace) {
-		return Interactive.where(children, new Func1<XNElement, Boolean>() {
-			@Override
-			public Boolean invoke(XNElement param1) {
-				return Objects.equal(param1.name, name) && Objects.equal(param1.namespace, namespace);
-			}
-		});
-	}
-	/**
-	 * Returns the content of the first child which has the given name.
-	 * @param name the child name
-	 * @return the content or null if no such child
-	 */
-	public String childValue(String name) {
-		for (XNElement e : children) {
-			if (e.name.equals(name)) {
-				return e.content;
-			}
+	public static XNElement parseXML(File file) throws IOException, XMLStreamException {
+		InputStream in = new FileInputStream(file);
+		try {
+			return parseXML(in);
+		} finally {
+			in.close();
 		}
-		return null;
-	}
-	/**
-	 * Returns the content of the first child which has the given name.
-	 * @param name the child name
-	 * @param namespace the namespace URI
-	 * @return the content or null if no such child
-	 */
-	public String childValue(String name, String namespace) {
-		for (XNElement e : children) {
-			if (Objects.equal(e.name, name) && Objects.equal(e.namespace, namespace)) {
-				return e.content;
-			}
-		}
-		return null;
-	}
-	/**
-	 * Returns the first child element with the given name.
-	 * @param name the child name
-	 * @return the XElement or null if not present
-	 */
-	public XNElement childElement(String name) {
-		for (XNElement e : children) {
-			if (e.name.equals(name)) {
-				return e;
-			}
-		}
-		return null;
-	}
-	/**
-	 * Returns the first child element with the given name.
-	 * @param name the child name
-	 * @param namespace the namespace
-	 * @return the XElement or null if not present
-	 */
-	public XNElement childElement(String name, String namespace) {
-		for (XNElement e : children) {
-			if (Objects.equal(e.name, name) && Objects.equal(e.namespace, namespace)) {
-				return e;
-			}
-		}
-		return null;
 	}
 	/**
 	 * Parse XML from the input stream. Does not close the stream.
@@ -275,6 +179,83 @@ public class XNElement {
 		XMLInputFactory inf = XMLInputFactory.newInstance();
 		XMLStreamReader ir = inf.createXMLStreamReader(in);
 		return parseXML(ir);
+	}
+	/**
+	 * Parse an XML from the given Reader.
+	 * @param in the Reader
+	 * @return the parsed XElement tree
+	 * @throws XMLStreamException if an error occurs
+	 */
+	public static XNElement parseXML(Reader in) throws XMLStreamException {
+		XMLInputFactory inf = XMLInputFactory.newInstance();
+		XMLStreamReader ir = inf.createXMLStreamReader(in);
+		return parseXML(ir);
+	}
+	/**
+	 * Reads the contents of a indexed column as an XML.
+	 * @param rs the result set to read from
+	 * @param index the column index
+	 * @return the parsed XNElement or null if the column contained null
+	 * @throws SQLException on SQL error
+	 * @throws IOException on IO error
+	 * @throws XMLStreamException on parsing error
+	 */
+	public static XNElement parseXML(ResultSet rs, int index) 
+			throws SQLException, IOException, XMLStreamException {
+		try (InputStream is = rs.getBinaryStream(index)) {
+			if (is != null) {
+				return parseXML(is);
+			}
+			return null;
+		}
+	}
+	/**
+	 * Reads the contents of a named column as an XML.
+	 * @param rs the result set to read from
+	 * @param column the column name
+	 * @return the parsed XNElement or null if the column contained null
+	 * @throws SQLException on SQL error
+	 * @throws IOException on IO error
+	 * @throws XMLStreamException on parsing error
+	 */
+	public static XNElement parseXML(ResultSet rs, String column) 
+			throws SQLException, IOException, XMLStreamException {
+		try (InputStream is = rs.getBinaryStream(column)) {
+			if (is != null) {
+				return parseXML(is);
+			}
+			return null;
+		}
+	}
+	/**
+	 * Parse an XML from the given file.
+	 * @param fileName the file name
+	 * @return the parsed XElement tree
+	 * @throws XMLStreamException if an error occurs
+	 * @throws IOException if the file could not be found or other I/O error occurs
+	 */
+	public static XNElement parseXML(String fileName) throws IOException, XMLStreamException {
+		InputStream in = new FileInputStream(fileName);
+		try {
+			return parseXML(in);
+		} finally {
+			in.close();
+		}
+	}
+	/**
+	 * Parse an XML from the supplied URL.
+	 * @param url the target URL
+	 * @return the parsed XML
+	 * @throws IOException if an I/O error occurs
+	 * @throws XMLStreamException if a parser error occurs
+	 */
+	public static XNElement parseXML(URL url) throws IOException, XMLStreamException {
+		InputStream in = new BufferedInputStream(url.openStream());
+		try {
+			return parseXML(in);
+		} finally {
+			in.close();
+		}
 	}
 	/**
 	 * Parse an XML from the given XML Stream reader.
@@ -353,7 +334,7 @@ public class XNElement {
 				if (node != null) {
 					node = node.parent;
 				}
-				// return to the parent's builded
+				// return to the parent's builder
 				b = stack.pop();
 				// if the parent had no text so far
 				if (b == emptyBuilder) {
@@ -370,96 +351,231 @@ public class XNElement {
 		return root;
 	}
 	/**
-	 * Parse an XML from the given Reader.
-	 * @param in the Reader
-	 * @return the parsed XElement tree
-	 * @throws XMLStreamException if an error occurs
-	 */
-	public static XNElement parseXML(Reader in) throws XMLStreamException {
-		XMLInputFactory inf = XMLInputFactory.newInstance();
-		XMLStreamReader ir = inf.createXMLStreamReader(in);
-		return parseXML(ir);
-	}
-	/**
-	 * Parse an XML from the given file.
-	 * @param fileName the file name
-	 * @return the parsed XElement tree
-	 * @throws XMLStreamException if an error occurs
-	 * @throws IOException if the file could not be found or other I/O error occurs
-	 */
-	public static XNElement parseXML(String fileName) throws IOException, XMLStreamException {
-		InputStream in = new FileInputStream(fileName);
-		try {
-			return parseXML(in);
-		} finally {
-			in.close();
-		}
-	}
-	/**
-	 * Parse an XML from the given file.
+	 * Parse an XML file compressed by GZIP.
 	 * @param file the file
-	 * @return the parsed XElement tree
-	 * @throws XMLStreamException if an error occurs
-	 * @throws IOException if the file could not be found or other I/O error occurs
+	 * @return the parsed XML
+	 * @throws XMLStreamException on error
 	 */
-	public static XNElement parseXML(File file) throws IOException, XMLStreamException {
-		InputStream in = new FileInputStream(file);
+	public static XNElement parseXMLGZ(File file) throws XMLStreamException {
 		try {
-			return parseXML(in);
-		} finally {
-			in.close();
+			GZIPInputStream gin = new GZIPInputStream(new BufferedInputStream(new FileInputStream(file), 64 * 1024));
+			try {
+				return parseXML(gin);
+			} finally {
+				gin.close();
+			}
+		} catch (IOException ex) {
+			throw new XMLStreamException(ex);
 		}
 	}
+	/**
+	 * Parse an XML file compressed by GZIP.
+	 * @param fileName the filename
+	 * @return the parsed XML
+	 * @throws XMLStreamException on error
+	 */
+	public static XNElement parseXMLGZ(String fileName) throws XMLStreamException {
+		return parseXMLGZ(new File(fileName));
+	}
+	/** The attribute map. */
+	protected final Map<XAttributeName, String> attributes = new LinkedHashMap<XAttributeName, String>();
+	/** The child elements. */
+	protected final List<XNElement> children = new ArrayList<XNElement>();
+	/** The optional associated namespace uri. */
+	public String namespace;
+	/** The parent element. */
+	public XNElement parent;
+	/** The prefix used by this element. */
+	public String prefix;
+	/**
+	 * Constructor. Sets the name.
+	 * @param name the element name
+	 */
+	public XNElement(String name) {
+		super(name);
+	}
+	/**
+	 * Creates a new XElement and sets its content according to the supplied value.
+	 * @param name the element name
+	 * @param value the content value
+	 */
+	public XNElement(String name, Object value) {
+		this(name);
+		setValue(value);
+	}
+	/**
+	 * Constructor. Sets the name and namespace.
+	 * @param name the element name
+	 * @param namespace the element namespace
+	 */
+	public XNElement(String name, String namespace) {
+		super(name);
+		this.namespace = namespace;
+	}
+	/**
+	 * Creates a new XElement and sets its content according to the supplied value.
+	 * @param name the element name
+	 * @param namespace the namespace
+	 * @param value the content value
+	 */
+	public XNElement(String name, String namespace, Object value) {
+		this(name, namespace);
+		setValue(value);
+	}
+	/**
+	 * Add a new XElement with the given local name and no namespace.
+	 * @param name the name of the new element
+	 * @return the created XElement child
+	 */
+	public XNElement add(@NonNull String name) {
+		XNElement e = new XNElement(name);
+		e.parent = this;
+		children.add(e);
+		return e;
+	}
+	/**
+	 * Add a new XElement with the given local name and namespace.
+	 * @param name the name of the new element
+	 * @param namespace the namespace of the new element
+	 * @return the created XElement child
+	 */
+	public XNElement add(@NonNull String name, @NonNull String namespace) {
+		XNElement e = new XNElement(name);
+		e.namespace = namespace;
+		e.parent = this;
+		children.add(e);
+		return e;
+	}
+	/**
+	 * Add the given existing child to this element.
+	 * @param child the child element
+	 * @return the child element
+	 */
+	public XNElement add(@NonNull XNElement child) {
+		child.parent = this;
+		children.add(child);
+		return child;
+	}
+	/**
+	 * @return the attribute map
+	 */
+	public Map<XAttributeName, String> attributes() {
+		return attributes;
+	}
+	/**
+	 * Returns the first child element with the given name.
+	 * @param name the child name
+	 * @return the XElement or null if not present
+	 */
+	public XNElement childElement(String name) {
+		for (XNElement e : children) {
+			if (e.name.equals(name)) {
+				return e;
+			}
+		}
+		return null;
+	}
+	/**
+	 * Returns the first child element with the given name.
+	 * @param name the child name
+	 * @param namespace the namespace
+	 * @return the XElement or null if not present
+	 */
+	public XNElement childElement(String name, String namespace) {
+		for (XNElement e : children) {
+			if (Objects.equal(e.name, name) && Objects.equal(e.namespace, namespace)) {
+				return e;
+			}
+		}
+		return null;
+	}
+	/** @return the iterable for all children. */
+	@NonNull 
+	public List<XNElement> children() {
+		return children;
+	}
+	/*
 	@Override
-	public String toString() {
-		StringBuilder b = new StringBuilder();
-		toStringRep("", new HashMap<String, String>(), b, new Action1<Object>() {
+	public Iterator<XElement> iterator() {
+		return children.iterator();
+	}
+	*/
+	/**
+	 * Returns an iterator which enumerates all children with the given name.
+	 * @param name the name of the children to select
+	 * @return the iterator
+	 */
+	public Iterable<XNElement> childrenWithName(final String name) {
+		return Interactive.where(children, new Func1<XNElement, Boolean>() {
 			@Override
-			public void invoke(Object value) {
-				
+			public Boolean invoke(XNElement param1) {
+				return Objects.equal(param1.name, name);
 			}
 		});
-		return b.toString();
 	}
 	/**
-	 * The representation state.
-	 * @author akarnokd, 2011.10.21.
+	 * Returns an iterator which enumerates all children with the given name.
+	 * @param name the name of the children to select
+	 * @param namespace the namespace URI
+	 * @return the iterator
 	 */
-	public enum XRepresentationState {
-		/** Element start. */
-		START_ELEMENT,
-		/** Text start. */
-		START_TEXT,
-		/** Element end. */
-		END_ELEMENT,
-		/** Text end. */
-		END_TEXT
+	public Iterable<XNElement> childrenWithName(final String name, final String namespace) {
+		return Interactive.where(children, new Func1<XNElement, Boolean>() {
+			@Override
+			public Boolean invoke(XNElement param1) {
+				return Objects.equal(param1.name, name) && Objects.equal(param1.namespace, namespace);
+			}
+		});
 	}
-	/**
-	 * The representation record.
-	 * @author akarnokd, 2011.10.21.
-	 */
-	public static class XRepresentationRecord {
-		/** The state. */
-		public final XRepresentationState state;
-		/** The current element. */
-		public final XNElement element;
-		/** The offset. */
-		public final int charOffset;
-		/**
-		 * Create the record.
-		 * @param state the state
-		 * @param element the element
-		 * @param charOffset the offset
-		 */
-		public XRepresentationRecord(XRepresentationState state,
-				XNElement element, int charOffset) {
-			super();
-			this.state = state;
-			this.element = element;
-			this.charOffset = charOffset;
+	@Override
+	public String childValue(String name) {
+		for (XNElement e : children) {
+			if (e.name.equals(name)) {
+				return e.content;
+			}
 		}
+		return null;
+	}
+	/**
+	 * Returns the content of the first child which has the given name.
+	 * @param name the child name
+	 * @param namespace the namespace URI
+	 * @return the content or null if no such child
+	 */
+	public String childValue(String name, String namespace) {
+		for (XNElement e : children) {
+			if (Objects.equal(e.name, name) && Objects.equal(e.namespace, namespace)) {
+				return e.content;
+			}
+		}
+		return null;
+	}
+	@Override
+	public XNElement copy() {
+		XNElement e = new XNElement(name);
+		e.namespace = namespace;
+		e.prefix = prefix;
+
+		e.copyFrom(this);
 		
+		return e;
+	}
+	/**
+	 * Copy the attributes and child elements from the other element.
+	 * @param other the other element
+	 */
+	public void copyFrom(XNElement other) {
+		content = other.content;
+		userObject = other.userObject;
+		for (Map.Entry<XAttributeName, String> me : other.attributes.entrySet()) {
+			XAttributeName an = new XAttributeName(me.getKey().name, me.getKey().namespace, me.getKey().prefix);
+			attributes.put(an, me.getValue());
+		}
+		for (XNElement c : children) {
+			XNElement c0 = c.copy();
+			c0.parent = this;
+			children.add(c0);
+		}
 	}
 	/**
 	 * Generate a new prefix if the current is empty or already exists but with a different URI.
@@ -505,273 +621,207 @@ public class XNElement {
 		
 		return Pair.of(pf, xmlns.toString());
 	}
-	/**
-	 * Convert the element into a pretty printed string representation.
-	 * @param indent the current line indentation
-	 * @param nss the namespace cache
-	 * @param out the output
-	 * @param callback the callback for each element and text position.
-	 */
-	public void toStringRep(String indent, Map<String, String> nss, 
-			StringBuilder out, Action1<? super XRepresentationRecord> callback) {
-		
-		Map<String, String> nss0 = Maps.newHashMap(nss);
-		
-		out.append(indent);
-		callback.invoke(new XRepresentationRecord(XRepresentationState.START_ELEMENT, this, out.length()));
-		out.append("<");
-		
-		Pair<String, String> pf = createPrefix(nss0, namespace, prefix);
-		
-		String prefix = pf.first;
-		if (prefix != null && prefix.length() > 0) {
-			out.append(prefix).append(":");
+	/** Breaks the link with its parent XElement if any. */
+	public void detach() {
+		if (parent != null) {
+			parent.children.remove(this);
+			parent = null;
 		}
-		out.append(name);
-
-		if (pf.second != null) {
-			out.append(pf.second);
-		}
-		
-		if (attributes.size() > 0) {
-			for (XAttributeName an : attributes.keySet()) {
-				Pair<String, String> pfa = createPrefix(nss0, an.namespace, an.prefix);
-				out.append(" ");
-				if (pfa.first != null && pfa.first.length() > 0) {
-					out.append(pfa.first).append(":");
-				}
-				out.append(an.name).append("='").append(sanitize(attributes.get(an))).append("'");
-				
-				if (pfa.second != null) {
-					out.append(pfa.second);
-				}
-				
-			}
-		}
-		
-		if (children.size() == 0) {
-			if (content == null || content.isEmpty()) {
-				out.append("/>");
-			} else {
-				out.append(">");
-				callback.invoke(new XRepresentationRecord(XRepresentationState.START_TEXT, this, out.length()));
-				String s = sanitize(content);
-				out.append(s);
-				callback.invoke(new XRepresentationRecord(XRepresentationState.END_TEXT, this, out.length()));
-				if (s.endsWith("\n")) {
-					out.append(indent);
-				}
-				out.append("</");
-				if (prefix != null && prefix.length() > 0) {
-					out.append(prefix).append(":");
-				}
-				out.append(name);
-				out.append(">");
-			}
-		} else {
-			if (content == null || content.isEmpty()) {
-				out.append(String.format(">%n"));
-			} else {
-				out.append(">");
-				callback.invoke(new XRepresentationRecord(XRepresentationState.START_TEXT, this, out.length()));
-				out.append(sanitize(content));
-				callback.invoke(new XRepresentationRecord(XRepresentationState.END_TEXT, this, out.length()));
-
-				out.append(String.format("%n"));
-			}
-			for (XNElement e : children) {
-				e.toStringRep(indent + "  ", nss0, out, callback);
-			}
-			out.append(indent).append("</");
-			if (prefix != null && prefix.length() > 0) {
-				out.append(prefix).append(":");
-			}
-			out.append(name);
-			out.append(">");
-		}
-		callback.invoke(new XRepresentationRecord(XRepresentationState.END_ELEMENT, this, out.length()));
-		out.append(String.format("%n"));
 	}
 	/**
-	 * Converts all sensitive characters to its HTML entity equivalent.
-	 * @param s the string to convert, can be null
-	 * @return the converted string, or an empty string
+	 * Returns a double value of the supplied child or throws an exception if missing.
+	 * @param name the child element name
+	 * @param namespace the element namespace
+	 * @return the value
 	 */
-	public static String sanitize(String s) {
+	public double doubleValue(String name, String namespace) {
+		String s = childValue(name, namespace);
 		if (s != null) {
-			StringBuilder b = new StringBuilder(s.length());
-			for (int i = 0, count = s.length(); i < count; i++) {
-				char c = s.charAt(i);
-				switch (c) {
-				case '<':
-					b.append("&lt;");
-					break;
-				case '>':
-					b.append("&gt;");
-					break;
-				case '\'':
-					b.append("&#39;");
-					break;
-				case '"':
-					b.append("&quot;");
-					break;
-				case '&':
-					b.append("&amp;");
-					break;
-				default:
-					if (c < 32 && c != '\r' && c != '\n' && c != '\t') {
-						b.append("&#").append((int)c).append(";");
-					}
-					b.append(c);
+			return Double.parseDouble(s);
+		}
+		throw new IllegalArgumentException(this + ": content: " + name);
+	}
+	/**
+	 * Returns a double value or the default value if the element is missing or empty.
+	 * @param name the element name
+	 * @param namespace the element namespace
+	 * @param defaultValue the default value
+	 * @return the value
+	 */
+	public double doubleValue(String name, String namespace, double defaultValue) {
+		String s = childValue(name, namespace);
+		if (s != null) {
+			return Double.parseDouble(s);
+		}
+		return defaultValue;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof XNElement)) {
+			return false;
+		}
+		XNElement other = (XNElement)obj;
+		if (!Objects.equal(this.content, other.content)) {
+			return false;
+		}
+		if (!this.attributes.equals(other.attributes)) {
+			return false;
+		}
+		if (!this.children.equals(other.children)) {
+			return false;
+		}
+		return true;
+	}
+	/**
+	 * Retrieve the currently associated user object.
+	 * @param <T> the expected object type
+	 * @return the user object
+	 */
+	@SuppressWarnings("unchecked")
+	@Nullable
+	public <T> T get() {
+		return (T)userObject;
+	}
+	/**
+	 * Retrieve the first attribute which has the given local attribute name.
+	 * @param attributeName the attribute name
+	 * @return the attribute value or null if no such attribute
+	 */
+	@Nullable
+	public String get(String attributeName) {
+		// check first for a namespace-less attribute
+		String attr = attributes.get(new XAttributeName(attributeName, null, null));
+		if (attr == null) {
+			// find any attribute ignoring namespace
+			for (XAttributeName n : attributes.keySet()) {
+				if (Objects.equal(n.name, attributeName)) {
+					return attributes.get(n);
 				}
 			}
-			return b.toString();
 		}
-		return "";
+		return attr;
 	}
 	/**
-	 * @return Creates a deep copy of this element.
+	 * Retrieve the specific attribute.
+	 * @param attributeName the attribute name
+	 * @param attributeNamespace the attribute namespace URI
+	 * @return the attribute value or null if not present
 	 */
-	public XNElement copy() {
-		XNElement e = new XNElement(name);
-		e.namespace = namespace;
-		e.content = content;
-		e.prefix = prefix;
-
-		e.copyFrom(this);
-		
-		return e;
+	@Nullable
+	public String get(String attributeName, String attributeNamespace) {
+		return attributes.get(new XAttributeName(attributeName, attributeNamespace, null));
 	}
 	/**
-	 * Copy the attributes and child elements from the other element.
-	 * @param other the other element
+	 * Retrieve the attribute names.
+	 * @return the list of attribute names
 	 */
-	public void copyFrom(XNElement other) {
-		userObject = other.userObject;
-		for (Map.Entry<XAttributeName, String> me : other.attributes.entrySet()) {
-			XAttributeName an = new XAttributeName(me.getKey().name, me.getKey().namespace, me.getKey().prefix);
-			attributes.put(an, me.getValue());
+	public List<XAttributeName> getAttributeNames() {
+		return new ArrayList<XAttributeName>(attributes.keySet());
+	}
+	/**
+	 * Retrieve a value of a boolean attribute.
+	 * Throws IllegalArgumentException if the attribute is missing or not of type boolean.
+	 * @param attribute the attribute name
+	 * @return the value
+	 */
+	public boolean getBoolean(String attribute) {
+		String s = get(attribute);
+		if ("true".equals(s) || "1".equals(s)) {
+			return true;
+		} else
+		if ("false".equals(s) || "0".equals(s)) {
+			return false;
 		}
-		for (XNElement c : children) {
-			XNElement c0 = c.copy();
-			c0.parent = this;
-			children.add(c0);
+		throw new IllegalArgumentException("Attribute " + attribute + " is non-boolean");
+	}
+	/**
+	 * Retrieve a value of a boolean attribute.
+	 * @param attribute the attribute name
+	 * @param defaultValue the value to return if no such attribute
+	 * @return the value
+	 */
+	public boolean getBoolean(String attribute, boolean defaultValue) {
+		String s = get(attribute);
+		if ("true".equals(s) || "1".equals(s)) {
+			return true;
+		} else
+		if ("false".equals(s) || "0".equals(s)) {
+			return false;
 		}
-	}
-	/** @return the iterable for all children. */
-	@NonNull 
-	public List<XNElement> children() {
-		return children;
-	}
-	/** @return if this node has children or not. */
-	public boolean hasChildren() {
-		return !children.isEmpty();
-	}
-	/** @return if this node has attributes or not. */
-	public boolean hasAttributes() {
-		return !attributes.isEmpty();
+		return defaultValue;
 	}
 	/**
-	 * Add a new XElement with the given local name and no namespace.
-	 * @param name the name of the new element
-	 * @return the created XElement child
+	 * Retrieve a value of a boolean attribute.
+	 * Throws IllegalArgumentException if the attribute is missing or not of type boolean.
+	 * @param attribute the attribute name
+	 * @param namespace the attribute namespace
+	 * @return the value
 	 */
-	public XNElement add(@NonNull String name) {
-		XNElement e = new XNElement(name);
-		e.parent = this;
-		children.add(e);
-		return e;
+	public boolean getBoolean(String attribute, String namespace) {
+		String s = get(attribute, namespace);
+		if ("true".equals(s) || "1".equals(s)) {
+			return true;
+		} else
+		if ("false".equals(s) || "0".equals(s)) {
+			return false;
+		}
+		throw new IllegalArgumentException("Attribute " + attribute + " is non-boolean");
 	}
 	/**
-	 * Add the given existing child to this element.
-	 * @param child the child element
-	 * @return the child element
+	 * Retrieve a value of a boolean attribute.
+	 * Throws IllegalArgumentException if the attribute is missing or not of type boolean.
+	 * @param attribute the attribute name
+	 * @param namespace the attribute namespace
+	 * @param defaultValue the value to return if no such attribute
+	 * @return the value
 	 */
-	public XNElement add(@NonNull XNElement child) {
-		child.parent = this;
-		children.add(child);
-		return child;
+	public boolean getBoolean(String attribute, String namespace, boolean defaultValue) {
+		String s = get(attribute, namespace);
+		if ("true".equals(s) || "1".equals(s)) {
+			return true;
+		} else
+		if ("false".equals(s) || "0".equals(s)) {
+			return false;
+		}
+		return defaultValue;
 	}
 	/**
-	 * Add a new XElement with the given local name and namespace.
-	 * @param name the name of the new element
-	 * @param namespace the namespace of the new element
-	 * @return the created XElement child
-	 */
-	public XNElement add(@NonNull String name, @NonNull String namespace) {
-		XNElement e = new XNElement(name);
-		e.namespace = namespace;
-		e.parent = this;
-		children.add(e);
-		return e;
-	}
-	/**
-	 * Set an attribute value identified by a local name and no namespace.
+	 * Returns the attribute as a double value.
 	 * @param name the attribute name
-	 * @param value the value, if null, the attribute will be removed
+	 * @return the value
 	 */
-	public void set(@NonNull String name, Object value) {
-		set(name, null, value);
+	public double getDouble(String name) {
+		return Double.parseDouble(get(name));
 	}
 	/**
-	 * Set an attribute value identified by a local name and namespace.
+	 * Returns the attribute as a double value or the default.
+	 * @param name the attribute name
+	 * @param defaultValue the default if the attribute is missing
+	 * @return the value
+	 */
+	public double getDouble(String name, double defaultValue) {
+		String v = get(name);
+		return v != null ? Double.parseDouble(v) : defaultValue;
+	}
+	/**
+	 * Returns the attribute as a double value.
 	 * @param name the attribute name
 	 * @param namespace the attribute namespace
-	 * @param value the value, if null, the attribute will be removed
+	 * @return the value
 	 */
-	public void set(@NonNull String name, String namespace, Object value) {
-		if (value != null) {
-			if (value instanceof Date) {
-				attributes.put(new XAttributeName(name, namespace, null), formatDateTime((Date)value));
-			} else {
-				attributes.put(new XAttributeName(name, namespace, null), value.toString());
-			}
-		} else {
-			attributes.remove(new XAttributeName(name, namespace, null));
-		}
+	public double getDouble(String name, String namespace) {
+		return Double.parseDouble(get(name, namespace));
 	}
 	/**
-	 * @return Construct the XPath expression to locate this element. 
+	 * Returns the attribute as a double value or the default.
+	 * @param name the attribute name
+	 * @param namespace the attribute namespace
+	 * @param defaultValue the default if the attribute is missing
+	 * @return the value
 	 */
-	public String getXPath() {
-		StringBuilder r = new StringBuilder();
-		if (parent != null) {
-			XNElement q = this;
-			XNElement p = parent;
-			while (p != null) {
-				if (p.children.size() > 1) {
-					int count = 0;
-					int idx = 0;
-					for (XNElement c : p.children) {
-						if (q.name.equals(c.name) && Objects.equal(q.namespace, c.namespace)) {
-							if (c == q) {
-								idx = count;
-								break;
-							}
-							count++;
-						}
-					}
-					if (idx > 0) {
-						r.insert(0, ']');
-						r.insert(0, idx);
-						r.insert(0, '[');
-						r.insert(0, p.name);
-						r.insert(0, '/');
-					} else {
-						r.insert(0, p.name);
-						r.insert(0, '/');
-					}
-				} else {
-					r.insert(0, p.name);
-					r.insert(0, '/');
-				}
-				
-				q = p;
-				p = p.parent;
-			}
-		}
-		r.append('/').append(name);
-		return r.toString();
+	public double getDouble(String name, String namespace, double defaultValue) {
+		String v = get(name, namespace);
+		return v != null ? Double.parseDouble(v) : defaultValue;
 	}
 	/**
 	 * Retrieve an integer attribute. Throws exception if the attribute is missing.
@@ -862,12 +912,147 @@ public class XNElement {
 		return Long.parseLong(value);
 	}
 	/**
-	 * Save this XML into the given file.
-	 * @param fileName the file name
-	 * @throws IOException on error
+	 * @return Construct the XPath expression to locate this element. 
 	 */
-	public void save(String fileName) throws IOException {
-		save(new File(fileName));
+	public String getXPath() {
+		StringBuilder r = new StringBuilder();
+		if (parent != null) {
+			XNElement q = this;
+			XNElement p = parent;
+			while (p != null) {
+				if (p.children.size() > 1) {
+					int count = 0;
+					int idx = 0;
+					for (XNElement c : p.children) {
+						if (q.name.equals(c.name) && Objects.equal(q.namespace, c.namespace)) {
+							if (c == q) {
+								idx = count;
+								break;
+							}
+							count++;
+						}
+					}
+					if (idx > 0) {
+						r.insert(0, ']');
+						r.insert(0, idx);
+						r.insert(0, '[');
+						r.insert(0, p.name);
+						r.insert(0, '/');
+					} else {
+						r.insert(0, p.name);
+						r.insert(0, '/');
+					}
+				} else {
+					r.insert(0, p.name);
+					r.insert(0, '/');
+				}
+				
+				q = p;
+				p = p.parent;
+			}
+		}
+		r.append('/').append(name);
+		return r.toString();
+	}
+	/**
+	 * Check if the simply-named attribute exists.
+	 * @param name the name of the attribute
+	 * @return true if the attribute exists
+	 */
+	public boolean hasAttribute(@NonNull String name) {
+		return get(name) != null;
+	}
+	/**
+	 * Check if the attribute exists.
+	 * @param name the attribute name
+	 * @param namespace the attribute namespace
+	 * @return true if the attribute exists
+	 */
+	public boolean hasAttribute(@NonNull String name, @Nullable String namespace) {
+		return get(name, namespace) != null;
+	}
+	/** @return if this node has attributes or not. */
+	public boolean hasAttributes() {
+		return !attributes.isEmpty();
+	}
+	/** @return if this node has children or not. */
+	public boolean hasChildren() {
+		return !children.isEmpty();
+	}
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(attributes, content, children);
+	}
+	/**
+	 * Test if this XElement has the given name.
+	 * @param name the name to test against
+	 * @return true if the names equal
+	 */
+	public boolean hasName(@NonNull String name) {
+		return Objects.equal(this.name, name);
+	}
+	/**
+	 * Test if this XElement has the given name and namespace.
+	 * @param name the name to test against
+	 * @param namespace the namespace to test against
+	 * @return true if the names and namespaces equal
+	 */
+	public boolean hasName(@NonNull String name, @Nullable String namespace) {
+		return hasName(name) && Objects.equal(this.namespace, namespace);
+	}
+	/**
+	 * Returns an integer value of the supplied child or throws an exception if missing.
+	 * @param name the child element name
+	 * @param namespace the element namespace
+	 * @return the value
+	 */
+	public int intValue(String name, String namespace) {
+		String s = childValue(name, namespace);
+		if (s != null) {
+			return Integer.parseInt(s);
+		}
+		throw new IllegalArgumentException(this + ": content: " + name);
+	}
+	/**
+	 * Returns an integer value or the default value if the element is missing or empty.
+	 * @param name the element name
+	 * @param namespace the element namespace
+	 * @param defaultValue the default value
+	 * @return the value
+	 */
+	public int intValue(String name, String namespace, int defaultValue) {
+		String s = childValue(name, namespace);
+		if (s != null) {
+			return Integer.parseInt(s);
+		}
+		return defaultValue;
+	}
+	/**
+	 * Returns a long value of the supplied child or throws an exception if missing.
+	 * @param name the child element name
+	 * @param namespace the element namespace
+	 * @return the value
+	 */
+	public long longValue(String name, String namespace) {
+		String s = childValue(name, namespace);
+		if (s != null) {
+			return Long.parseLong(s);
+		}
+		throw new IllegalArgumentException(this + ": content: " + name);
+	}
+	/**
+	 * Returns a long value or the default value if the element is missing or empty.
+	 * @param name the element name
+	 * @param namespace the element namespace
+	 * @param defaultValue the default value
+	 * @return the value
+	 */
+	public long longValue(String name, String namespace, long defaultValue) {
+		String s = childValue(name, namespace);
+		if (s != null) {
+			return Long.parseLong(s);
+		}
+		return defaultValue;
 	}
 	/**
 	 * Save this XML into the given file.
@@ -875,12 +1060,8 @@ public class XNElement {
 	 * @throws IOException on error
 	 */
 	public void save(File file) throws IOException {
-		PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8")));
-		try {
-			out.println("<?xml version='1.0' encoding='UTF-8'?>");
-			out.print(toString());
-		} finally {
-			out.close();
+		try (FileOutputStream fout = new FileOutputStream(file)) {
+			save(fout);
 		}
 	}
 	/**
@@ -890,13 +1071,15 @@ public class XNElement {
 	 * @throws IOException on error
 	 */
 	public void save(OutputStream stream) throws IOException {
-		PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(stream, "UTF-8")));
-		try {
-			out.println("<?xml version='1.0' encoding='UTF-8'?>");
-			out.print(toString());
-		} finally {
-			out.flush();
-		}
+		save(new OutputStreamWriter(stream, "UTF-8"));
+	}
+	/**
+	 * Save this XML into the given file.
+	 * @param fileName the file name
+	 * @throws IOException on error
+	 */
+	public void save(String fileName) throws IOException {
+		save(new File(fileName));
 	}
 	/**
 	 * Save this XML into the given writer.
@@ -905,10 +1088,20 @@ public class XNElement {
 	 * @throws IOException on error
 	 */
 	public void save(Writer stream) throws IOException {
-		PrintWriter out = new PrintWriter(new BufferedWriter(stream));
+		final PrintWriter out = new PrintWriter(new BufferedWriter(stream));
 		try {
 			out.println("<?xml version='1.0' encoding='UTF-8'?>");
-			out.print(toString());
+			toStringRep("", new HashMap<String, String>(), new XNAppender() {
+				@Override
+				public XNAppender append(Object o) {
+					out.print(o);
+					return this;
+				}
+				@Override
+				public int length() {
+					return 0; // Not used here
+				}
+			}, null);
 		} finally {
 			out.flush();
 		}
@@ -955,253 +1148,6 @@ public class XNElement {
 		stream.writeEndElement();
 	}
 	/**
-	 * Retrieve a value of a boolean attribute.
-	 * Throws IllegalArgumentException if the attribute is missing or not of type boolean.
-	 * @param attribute the attribute name
-	 * @return the value
-	 */
-	public boolean getBoolean(String attribute) {
-		String s = get(attribute);
-		if ("true".equals(s) || "1".equals(s)) {
-			return true;
-		} else
-		if ("false".equals(s) || "0".equals(s)) {
-			return false;
-		}
-		throw new IllegalArgumentException("Attribute " + attribute + " is non-boolean");
-	}
-	/**
-	 * Retrieve a value of a boolean attribute.
-	 * Throws IllegalArgumentException if the attribute is missing or not of type boolean.
-	 * @param attribute the attribute name
-	 * @param namespace the attribute namespace
-	 * @return the value
-	 */
-	public boolean getBoolean(String attribute, String namespace) {
-		String s = get(attribute, namespace);
-		if ("true".equals(s) || "1".equals(s)) {
-			return true;
-		} else
-		if ("false".equals(s) || "0".equals(s)) {
-			return false;
-		}
-		throw new IllegalArgumentException("Attribute " + attribute + " is non-boolean");
-	}
-	/**
-	 * Retrieve a value of a boolean attribute.
-	 * @param attribute the attribute name
-	 * @param defaultValue the value to return if no such attribute
-	 * @return the value
-	 */
-	public boolean getBoolean(String attribute, boolean defaultValue) {
-		String s = get(attribute);
-		if ("true".equals(s) || "1".equals(s)) {
-			return true;
-		} else
-		if ("false".equals(s) || "0".equals(s)) {
-			return false;
-		}
-		return defaultValue;
-	}
-	/**
-	 * Retrieve a value of a boolean attribute.
-	 * Throws IllegalArgumentException if the attribute is missing or not of type boolean.
-	 * @param attribute the attribute name
-	 * @param namespace the attribute namespace
-	 * @param defaultValue the value to return if no such attribute
-	 * @return the value
-	 */
-	public boolean getBoolean(String attribute, String namespace, boolean defaultValue) {
-		String s = get(attribute, namespace);
-		if ("true".equals(s) || "1".equals(s)) {
-			return true;
-		} else
-		if ("false".equals(s) || "0".equals(s)) {
-			return false;
-		}
-		return defaultValue;
-	}
-	/**
-	 * @return the attribute map
-	 */
-	public Map<XAttributeName, String> attributes() {
-		return attributes;
-	}
-	/**
-	 * Gregorian calendar for XSD dateTime.
-	 */
-	private static final ThreadLocal<GregorianCalendar> XSD_CALENDAR = new ThreadLocal<GregorianCalendar>() {
-		@Override
-		protected GregorianCalendar initialValue() {
-			return new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-		}
-	};
-	/**
-	 * Convert the given date to string.
-	 * Always contains the milliseconds and timezone.
-	 * @param date the date, not null
-	 * @return the formatted date
-	 */
-	public static String formatDateTime(Date date) {
-		StringBuilder b = new StringBuilder(24);
-		
-		GregorianCalendar cal = XSD_CALENDAR.get();
-		cal.setTime(date);
-		
-		int value = 0;
-		
-		// Year-Month-Day
-		value = cal.get(GregorianCalendar.YEAR);
-		b.append(value);
-		b.append('-');
-		value = cal.get(GregorianCalendar.MONTH) + 1;
-		if (value < 10) {
-			b.append('0');
-		}
-		b.append(value);
-		b.append('-');
-		value = cal.get(GregorianCalendar.DATE);
-		if (value < 10) {
-			b.append('0');
-		}
-		b.append(value);
-		
-		b.append('T');
-		// hour:minute:second:milliseconds
-		value = cal.get(GregorianCalendar.HOUR_OF_DAY);
-		if (value < 10) {
-			b.append('0');
-		}
-		b.append(value);
-		b.append(':');
-		value = cal.get(GregorianCalendar.MINUTE);
-		if (value < 10) {
-			b.append('0');
-		}
-		b.append(value);
-		b.append(':');
-		value = cal.get(GregorianCalendar.SECOND);
-		if (value < 10) {
-			b.append('0');
-		}
-		b.append(value);
-		b.append('.');
-		
-		value = cal.get(GregorianCalendar.MILLISECOND);
-		// add leading zeros if needed
-		if (value < 100) {
-			b.append('0');
-		}
-		if (value < 10) {
-			b.append('0');
-		}
-		b.append(value);
-		
-		value = cal.get(GregorianCalendar.DST_OFFSET) + cal.get(GregorianCalendar.ZONE_OFFSET);
-		
-		if (value == 0) {
-			b.append('Z');
-		} else {
-			if (value < 0) {
-				b.append('-');
-				value = -value;
-			} else {
-				b.append('+');
-			}
-			int hour = value / 3600000;
-			int minute = value / 60000 % 60;
-			if (hour < 10) {
-				b.append('0');
-			}
-			b.append(hour);
-			b.append(':');
-			if (minute < 10) {
-				b.append('0');
-			}
-			b.append(minute);
-		}
-		
-		
-		return b.toString();
-	}
-	/**
-	 * Parse an XSD dateTime.
-	 * @param date the date string
-	 * @return the date
-	 * @throws ParseException format exception
-	 */
-	public static Date parseDateTime(String date) throws ParseException {
-		GregorianCalendar cal = XSD_CALENDAR.get();
-		cal.set(GregorianCalendar.MILLISECOND, 0);
-		// format yyyy-MM-dd'T'HH:mm:ss[.sss][zzzzz] no milliseconds no timezone
-		int offset = 0;
-		try {
-			offset = 0;
-			cal.set(GregorianCalendar.YEAR, Integer.parseInt(date.substring(offset, offset + 4)));
-			offset = 5;
-			cal.set(GregorianCalendar.MONTH, Integer.parseInt(date.substring(offset, offset + 2)) - 1);
-			offset = 8;
-			cal.set(GregorianCalendar.DATE, Integer.parseInt(date.substring(offset, offset + 2)));
-			offset = 11;
-			cal.set(GregorianCalendar.HOUR_OF_DAY, Integer.parseInt(date.substring(offset, offset + 2)));
-			offset = 14;
-			cal.set(GregorianCalendar.MINUTE, Integer.parseInt(date.substring(offset, offset + 2)));
-			offset = 17;
-			cal.set(GregorianCalendar.SECOND, Integer.parseInt(date.substring(offset, offset + 2)));
-			
-			if (date.length() > 19) {
-				offset = 19;
-				char c = date.charAt(offset);
-				// check milliseconds
-				if (c == '.') {
-					offset++;
-					int endOffset = offset;
-					// can be multiple
-					while (endOffset < date.length() && Character.isDigit(date.charAt(endOffset))) {
-						endOffset++;
-					}
-					int millisec = Integer.parseInt(date.substring(offset, endOffset));
-					int len = endOffset - offset - 1;
-					if (len >= 3) {
-						while (len-- >= 3) {
-							millisec /= 10;
-						}
-					} else {
-						while (++len < 3) {
-							millisec *= 10;
-						}
-					}
-					cal.set(GregorianCalendar.MILLISECOND, millisec);
-					if (date.length() > endOffset) {
-						offset = endOffset;
-						c = date.charAt(offset);
-					} else {
-						c = '\0';
-					}
-				}
-				if (c == 'Z') {
-					cal.set(GregorianCalendar.ZONE_OFFSET, 0);
-				} else
-				if (c == '-' || c == '+') {
-					int sign = c == '-' ? -1 : 1;
-					offset++;
-					int tzHour = Integer.parseInt(date.substring(offset, offset + 2));
-					offset += 3;
-					int tzMinute = Integer.parseInt(date.substring(offset, offset + 2));
-					cal.set(GregorianCalendar.ZONE_OFFSET, sign * (tzHour * 3600000 + tzMinute * 60000));
-				} else
-				if (c != '\0') {
-					throw new ParseException("Unknown milliseconds or timezone", offset);
-				}
-			}
-		} catch (NumberFormatException ex) {
-			throw new ParseException(ex.toString(), offset);
-		} catch (IndexOutOfBoundsException ex) {
-			throw new ParseException(ex.toString(), offset);
-		}
-		return cal.getTime();
-	}
-	/**
 	 * Set a multitude of attribute names and values.
 	 * @param nameValues the attribute name and attribute value pairs.
 	 */
@@ -1213,72 +1159,30 @@ public class XNElement {
 			set((String)nameValues[i], nameValues[i + 1]);
 		}
 	}
-	/** Breaks the link with its parent XElement if any. */
-	public void detach() {
-		if (parent != null) {
-			parent.children.remove(this);
-			parent = null;
-		}
+	/**
+	 * Set an attribute value identified by a local name and no namespace.
+	 * @param name the attribute name
+	 * @param value the value, if null, the attribute will be removed
+	 */
+	public void set(@NonNull String name, Object value) {
+		set(name, null, value);
 	}
 	/**
-	 * Creates a new XElement and sets its content according to the supplied value.
-	 * @param name the element name
-	 * @param value the content value
+	 * Set an attribute value identified by a local name and namespace.
+	 * @param name the attribute name
+	 * @param namespace the attribute namespace
+	 * @param value the value, if null, the attribute will be removed
 	 */
-	public XNElement(String name, Object value) {
-		this(name);
-		if (value instanceof Date) {
-			content = formatDateTime((Date)value);
-		} else
+	public void set(@NonNull String name, String namespace, Object value) {
 		if (value != null) {
-			content = value.toString();
+			if (value instanceof Date) {
+				attributes.put(new XAttributeName(name, namespace, null), formatDateTime((Date)value));
+			} else {
+				attributes.put(new XAttributeName(name, namespace, null), value.toString());
+			}
+		} else {
+			attributes.remove(new XAttributeName(name, namespace, null));
 		}
-	}
-	/**
-	 * Creates a new XElement and sets its content according to the supplied value.
-	 * @param name the element name
-	 * @param namespace the namespace
-	 * @param value the content value
-	 */
-	public XNElement(String name, String namespace, Object value) {
-		this(name, namespace);
-		if (value instanceof Date) {
-			content = formatDateTime((Date)value);
-		} else
-		if (value != null) {
-			content = value.toString();
-		}
-	}
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof XNElement)) {
-			return false;
-		}
-		XNElement other = (XNElement)obj;
-		if (!Objects.equal(this.content, other.content)) {
-			return false;
-		}
-		if (!this.attributes.equals(other.attributes)) {
-			return false;
-		}
-		if (!this.children.equals(other.children)) {
-			return false;
-		}
-		return true;
-	}
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(attributes, content, children);
-	}
-	/**
-	 * Retrieve the currently associated user object.
-	 * @param <T> the expected object type
-	 * @return the user object
-	 */
-	@SuppressWarnings("unchecked")
-	@Nullable
-	public <T> T get() {
-		return (T)userObject;
 	}
 	/**
 	 * Replace the associated user object with a new object.
@@ -1293,127 +1197,121 @@ public class XNElement {
 		userObject = newUserObject;
 		return result;
 	}
-	/**
-	 * Check if the simply-named attribute exists.
-	 * @param name the name of the attribute
-	 * @return true if the attribute exists
-	 */
-	public boolean hasAttribute(@NonNull String name) {
-		return get(name) != null;
-	}
-	/**
-	 * Check if the attribute exists.
-	 * @param name the attribute name
-	 * @param namespace the attribute namespace
-	 * @return true if the attribute exists
-	 */
-	public boolean hasAttribute(@NonNull String name, @Nullable String namespace) {
-		return get(name, namespace) != null;
-	}
-	/**
-	 * Test if this XElement has the given name.
-	 * @param name the name to test against
-	 * @return true if the names equal
-	 */
-	public boolean hasName(@NonNull String name) {
-		return Objects.equal(this.name, name);
-	}
-	/**
-	 * Test if this XElement has the given name and namespace.
-	 * @param name the name to test against
-	 * @param namespace the namespace to test against
-	 * @return true if the names and namespaces equal
-	 */
-	public boolean hasName(@NonNull String name, @Nullable String namespace) {
-		return hasName(name) && Objects.equal(this.namespace, namespace);
-	}
-	/**
-	 * Parse an XML from the supplied URL.
-	 * @param url the target URL
-	 * @return the parsed XML
-	 * @throws IOException if an I/O error occurs
-	 * @throws XMLStreamException if a parser error occurs
-	 */
-	public static XNElement parseXML(URL url) throws IOException, XMLStreamException {
-		InputStream in = new BufferedInputStream(url.openStream());
-		try {
-			return parseXML(in);
-		} finally {
-			in.close();
-		}
-	}
-	/**
-	 * Returns the attribute as a double value.
-	 * @param name the attribute name
-	 * @return the value
-	 */
-	public double getDouble(String name) {
-		return Double.parseDouble(get(name));
-	}
-	/**
-	 * Returns the attribute as a double value or the default.
-	 * @param name the attribute name
-	 * @param defaultValue the default if the attribute is missing
-	 * @return the value
-	 */
-	public double getDouble(String name, double defaultValue) {
-		String v = get(name);
-		return v != null ? Double.parseDouble(v) : defaultValue;
-	}
-	/**
-	 * Returns the attribute as a double value.
-	 * @param name the attribute name
-	 * @param namespace the attribute namespace
-	 * @return the value
-	 */
-	public double getDouble(String name, String namespace) {
-		return Double.parseDouble(get(name));
-	}
-	/**
-	 * Returns the attribute as a double value or the default.
-	 * @param name the attribute name
-	 * @param namespace the attribute namespace
-	 * @param defaultValue the default if the attribute is missing
-	 * @return the value
-	 */
-	public double getDouble(String name, String namespace, double defaultValue) {
-		String v = get(name, namespace);
-		return v != null ? Double.parseDouble(v) : defaultValue;
-	}
-	/**
-	 * Reads the contents of a named column as an XML.
-	 * @param rs the result set to read from
-	 * @param column the column name
-	 * @return the parsed XNElement or null if the column contained null
-	 * @throws SQLException on SQL error
-	 * @throws IOException on IO error
-	 * @throws XMLStreamException on parsing error
-	 */
-	public static XNElement parseXML(ResultSet rs, String column) 
-			throws SQLException, IOException, XMLStreamException {
-		try (InputStream is = rs.getBinaryStream(column)) {
-			if (is != null) {
-				return parseXML(is);
+	@Override
+	public String toString() {
+		final StringBuilder b = new StringBuilder();
+		toStringRep("", new HashMap<String, String>(), new XNAppender() {
+			@Override
+			public XNAppender append(Object o) {
+				b.append(o);
+				return this;
 			}
-			return null;
-		}
+			@Override
+			public int length() {
+				return b.length();
+			}
+		}, null);
+		return b.toString();
 	}
 	/**
-	 * Reads the contents of a indexed column as an XML.
-	 * @param rs the result set to read from
-	 * @param index the column index
-	 * @return the parsed XNElement or null if the column contained null
-	 * @throws SQLException on SQL error
-	 * @throws IOException on IO error
-	 * @throws XMLStreamException on parsing error
+	 * Convert the element into a pretty printed string representation.
+	 * @param indent the current line indentation
+	 * @param nss the namespace cache
+	 * @param out the output
+	 * @param callback the callback for each element and text position.
 	 */
-	public static XNElement parseXML(ResultSet rs, int index) 
-			throws SQLException, IOException, XMLStreamException {
-		try (InputStream is = rs.getBinaryStream(index)) {
-			if (is != null) {
-				return parseXML(is);
-			}
-			return null;
+	public void toStringRep(String indent, Map<String, String> nss, 
+			XNAppender out, @Nullable Action1<? super XRepresentationRecord> callback) {
+		
+		Map<String, String> nss0 = Maps.newHashMap(nss);
+		
+		out.append(indent);
+		
+		if (callback != null) {
+			callback.invoke(new XRepresentationRecord(XRepresentationState.START_ELEMENT, this, 
+					out.length()));
 		}
+		out.append("<");
+		
+		Pair<String, String> pf = createPrefix(nss0, namespace, prefix);
+		
+		String prefix = pf.first;
+		if (prefix != null && prefix.length() > 0) {
+			out.append(prefix).append(":");
+		}
+		out.append(name);
+
+		if (pf.second != null) {
+			out.append(pf.second);
+		}
+		
+		if (attributes.size() > 0) {
+			for (XAttributeName an : attributes.keySet()) {
+				Pair<String, String> pfa = createPrefix(nss0, an.namespace, an.prefix);
+				out.append(" ");
+				if (pfa.first != null && pfa.first.length() > 0) {
+					out.append(pfa.first).append(":");
+				}
+				out.append(an.name).append("='").append(sanitize(attributes.get(an))).append("'");
+				
+				if (pfa.second != null) {
+					out.append(pfa.second);
+				}
+				
+			}
+		}
+		
+		if (children.size() == 0) {
+			if (content == null || content.isEmpty()) {
+				out.append("/>");
+			} else {
+				out.append(">");
+				if (callback != null) {
+					callback.invoke(new XRepresentationRecord(XRepresentationState.START_TEXT, this, out.length()));
+				}
+				String s = sanitize(content);
+				out.append(s);
+				if (callback != null) {
+					callback.invoke(new XRepresentationRecord(XRepresentationState.END_TEXT, this, out.length()));
+				}
+				if (s.endsWith("\n")) {
+					out.append(indent);
+				}
+				out.append("</");
+				if (prefix != null && prefix.length() > 0) {
+					out.append(prefix).append(":");
+				}
+				out.append(name);
+				out.append(">");
+			}
+		} else {
+			if (content == null || content.isEmpty()) {
+				out.append(String.format(">%n"));
+			} else {
+				out.append(">");
+				if (callback != null) {
+					callback.invoke(new XRepresentationRecord(XRepresentationState.START_TEXT, this, out.length()));
+				}
+				out.append(sanitize(content));
+				if (callback != null) {
+					callback.invoke(new XRepresentationRecord(XRepresentationState.END_TEXT, this, out.length()));
+				}
+
+				out.append(String.format("%n"));
+			}
+			for (XNElement e : children) {
+				e.toStringRep(indent + "  ", nss0, out, callback);
+			}
+			out.append(indent).append("</");
+			if (prefix != null && prefix.length() > 0) {
+				out.append(prefix).append(":");
+			}
+			out.append(name);
+			out.append(">");
+		}
+		if (callback != null) {
+			callback.invoke(new XRepresentationRecord(XRepresentationState.END_ELEMENT, this, out.length()));
+		}
+		out.append(String.format("%n"));
 	}
 }

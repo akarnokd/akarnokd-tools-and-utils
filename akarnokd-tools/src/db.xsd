@@ -25,6 +25,10 @@
 					</xs:complexType>
 				</xs:element>
 			</xs:sequence>
+			<xs:attribute name='default' type='xs:string' default="default" use='optional'>
+				<xs:annotation><xs:documentation>Selects the default connection for
+				the parameterless DB.connect() method.</xs:documentation></xs:annotation>
+			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
 </xs:schema>

@@ -110,7 +110,7 @@ public class DB implements Closeable {
 	/** The available connection infos. */
 	protected static final Map<String, DBInfo> CONNECTION_INFOS = Maps.newConcurrentMap();
 	/** The name of the default connection. */
-	protected static final String DEFAULT = "default";
+	protected static String defaultId;
 	/**
 	 * Sets a single parameter to the long value, used for delete auto-keyed items.
 	 */
@@ -278,6 +278,7 @@ public class DB implements Closeable {
 		if (res != null) {
 			try {
 				XElement xdbs = XElement.parseXML(res);
+				defaultId = xdbs.get("default", "default");
 				for (XElement xdb : xdbs.childrenWithName("database")) {
 					DBInfo dbi = new DBInfo();
 					
@@ -316,7 +317,7 @@ public class DB implements Closeable {
 	 */
 	@NonNull
 	public static DB connect() {
-		return connect(DEFAULT);
+		return connect(defaultId);
 	}
 	/**
 	 * Wraps the given connection into a DB instance.

@@ -65,6 +65,22 @@ public final class SequenceUtils {
 		}
 	}
 	/**
+	 * Joins a sequence of values with the given separator between elements.
+	 * @param sequence the sequence to join
+	 * @param separator the separator between elements
+	 * @param append the output appender
+	 */
+	public static void join(@NonNull Iterator<?> sequence, CharSequence separator, @NonNull StringBuilder append) {
+		boolean first = true;
+		while (sequence.hasNext()) {
+			if (!first) {
+				append.append(separator);
+			}
+			append.append(String.valueOf(sequence.next()));
+			first = false;
+		}
+	}
+	/**
 	 * Joins a sequence of values with the given separator between elements
 	 * and uses the supplied format string.
 	 * @param sequence the sequence to join
@@ -96,6 +112,24 @@ public final class SequenceUtils {
 		}
 	}
 	/**
+	 * Joins a sequence of values with the given separator between elements
+	 * and uses the supplied format string.
+	 * @param sequence the sequence to join
+	 * @param separator the separator between elements
+	 * @param format the format string
+	 * @param append the output appender
+	 */
+	public static void join(@NonNull Iterator<?> sequence, CharSequence separator, @NonNull String format, @NonNull StringBuilder append) {
+		boolean first = true;
+		while (sequence.hasNext()) {
+			if (!first) {
+				append.append(separator);
+			}
+			append.append(String.format(format, sequence.next()));
+			first = false;
+		}
+	}
+	/**
 	 * Joins a sequence of values with the given separator between elements.
 	 * @param sequence the sequence to join
 	 * @param separator the separator between elements
@@ -112,11 +146,7 @@ public final class SequenceUtils {
 	 */
 	public static String join(@NonNull Iterator<?> sequence, CharSequence separator) {
 		StringBuilder result = new StringBuilder();
-		try {
-			join(sequence, separator, result);
-		} catch (IOException ex) {
-			// should not happen
-		}
+		join(sequence, separator, result);
 		return result.toString();
 	}
 	/**
@@ -140,11 +170,7 @@ public final class SequenceUtils {
 	 */
 	public static String join(@NonNull Iterator<?> sequence, CharSequence separator, @NonNull String format) {
 		StringBuilder result = new StringBuilder();
-		try {
-			join(sequence, separator, format, result);
-		} catch (IOException ex) {
-			// should not happen
-		}
+		join(sequence, separator, format, result);
 		return result.toString();
 	}
 	/**

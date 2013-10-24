@@ -1899,27 +1899,29 @@ public class DB implements Closeable {
 	 * Execute a single update-like statement.
 	 * @param sql the query
 	 * @param params the query parameters
+	 * @return the update count
 	 * @throws SQLException on error
 	 */
-	public void update(
+	public int update(
 			@NonNull CharSequence sql, 
 			@NonNull Iterable<?> params)
 	throws SQLException {
-		update(sql, Iterables.toArray(params, Object.class));
+		return update(sql, Iterables.toArray(params, Object.class));
 	}
 	/**
 	 * Execute a single update-like statement.
 	 * @param sql the query
 	 * @param params the query parameters
+	 * @return the update count
 	 * @throws SQLException on error
 	 */
-	public void update(
+	public int update(
 			@NonNull CharSequence sql, 
 			Object... params) throws SQLException {
 		try {
 			PreparedStatement pstmt = prepare(false, sql, params);
 			try {
-				pstmt.executeUpdate();
+				return pstmt.executeUpdate();
 			} finally {
 				pstmt.close();
 			}

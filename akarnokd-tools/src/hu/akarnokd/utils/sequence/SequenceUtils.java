@@ -52,6 +52,15 @@ public final class SequenceUtils {
 	 * @param sequence the sequence to join
 	 * @param separator the separator between elements
 	 * @param append the output appender
+	 */
+	public static void join(@NonNull Iterable<?> sequence, CharSequence separator, @NonNull StringBuilder append) {
+		join(sequence.iterator(), separator, append);
+	}
+	/**
+	 * Joins a sequence of values with the given separator between elements.
+	 * @param sequence the sequence to join
+	 * @param separator the separator between elements
+	 * @param append the output appender
 	 * @throws IOException if the append methods throw
 	 */
 	public static void join(@NonNull Iterator<?> sequence, CharSequence separator, @NonNull Appendable append) throws IOException {
@@ -90,6 +99,17 @@ public final class SequenceUtils {
 	 * @throws IOException if the append methods throw
 	 */
 	public static void join(@NonNull Iterable<?> sequence, CharSequence separator, @NonNull String format, @NonNull Appendable append) throws IOException {
+		join(sequence.iterator(), separator, format, append);
+	}
+	/**
+	 * Joins a sequence of values with the given separator between elements
+	 * and uses the supplied format string.
+	 * @param sequence the sequence to join
+	 * @param separator the separator between elements
+	 * @param format the format string
+	 * @param append the output appender
+	 */
+	public static void join(@NonNull Iterable<?> sequence, CharSequence separator, @NonNull String format, @NonNull StringBuilder append) {
 		join(sequence.iterator(), separator, format, append);
 	}
 	/**

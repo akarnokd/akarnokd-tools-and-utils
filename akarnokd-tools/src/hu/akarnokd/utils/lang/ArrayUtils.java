@@ -443,15 +443,326 @@ public final class ArrayUtils {
 	 * The element conversion is done via <code>String.valueOf()</code>.
 	 * @param array the array 
 	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull boolean[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull byte[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull short[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull char[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull int[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull long[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull float[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull double[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull Object[] array, CharSequence separator, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.valueOf(array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.valueOf(array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
+	 * @param format the value formatter
+	 * @param out the output
+	 */
+	public static void join(@NonNull boolean[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param format the value formatter
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull byte[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param format the value formatter
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull short[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param format the value formatter
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull char[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param format the value formatter
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull int[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param format the value formatter
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull long[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param format the value formatter
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull float[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param format the value formatter
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull double[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator and using the formatter.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.format()</code>.
+	 * @param array the array 
+	 * @param format the value formatter
+	 * @param separator the separator between elements
+	 * @param out the output
+	 */
+	public static void join(@NonNull Object[] array, CharSequence separator, String format, @NonNull StringBuilder out) {
+		if (array != null && array.length > 0) {
+			out.append(String.format(format, array[0]));
+			for (int i = 1; i < array.length; i++) {
+				out.append(separator);
+				out.append(String.format(format, array[i]));
+			}
+		}
+	}
+	/**
+	 * Joins the elements of the array with the given separator.
+	 * If the array is null or empty, the out is not modified.
+	 * The element conversion is done via <code>String.valueOf()</code>.
+	 * @param array the array 
+	 * @param separator the separator between elements
 	 * @return the joint string
 	 */
 	public static String join(@NonNull boolean[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -464,11 +775,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull byte[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -481,11 +788,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull short[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -498,11 +801,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull char[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -515,11 +814,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull int[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -532,11 +827,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull long[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -549,11 +840,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull float[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -566,11 +853,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull double[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -583,11 +866,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull Object[] array, CharSequence separator) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, out);
 		return out.toString();
 	}
 	/**
@@ -601,11 +880,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull boolean[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**
@@ -619,11 +894,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull byte[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**
@@ -637,11 +908,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull short[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**
@@ -655,11 +922,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull char[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**
@@ -673,11 +936,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull int[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**
@@ -691,11 +950,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull long[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**
@@ -709,11 +964,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull float[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**
@@ -727,11 +978,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull double[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**
@@ -745,11 +992,7 @@ public final class ArrayUtils {
 	 */
 	public static String join(@NonNull Object[] array, CharSequence separator, String format) {
 		StringBuilder out = new StringBuilder();
-		try {
-			join(array, separator, format, out);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+		join(array, separator, format, out);
 		return out.toString();
 	}
 	/**

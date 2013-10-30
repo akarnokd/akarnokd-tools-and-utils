@@ -1976,4 +1976,44 @@ public class DB implements Closeable {
 	public DatabaseMetaData getMetaData()  throws SQLException {
 		return conn.getMetaData();
 	}
+	/**
+	 * Insert a single record by using the given marshaller.
+	 * @param <T> the record type
+	 * @param sql the query
+	 * @param marshaller the marshaller
+	 * @param value the value
+	 * @return the generated identifier or zero if somehow none was generated
+	 * @throws SQLException on error
+	 */
+	public <T> long insertAuto(CharSequence sql, 
+			Action2E<PreparedStatement, T, SQLException> marshaller, 
+			T value) throws SQLException {
+		try (PreparedStatement pstmt = prepare(true, sql)) {
+			marshaller.invoke(pstmt, value);
+			pstmt.executeUpdate();
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+				if (rs.next()) {
+					return rs.getLong(1);
+				}
+			}
+		}
+		return 0L;
+	}
+	/**
+	 * Update a single record by using the given marshaller to set the
+	 * parameters.
+	 * @param <T> the record type
+	 * @param sql the SQL query
+	 * @param marshaller the marshaller
+	 * @param value the value
+	 * @return the update count
+	 * @throws SQLException on error
+	 */
+	public <T> int update(CharSequence sql, 
+			Action2E<PreparedStatement, T, SQLException> marshaller, T value) throws SQLException {
+		try (PreparedStatement pstmt = prepare(sql)) {
+			marshaller.invoke(pstmt, value);
+			return pstmt.executeUpdate();
+		}
+	}
 }

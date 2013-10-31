@@ -18,6 +18,8 @@ package hu.akarnokd.utils.lang;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -102,5 +104,24 @@ public final class ReflectionUtils {
 			clazz = clazz.getSuperclass();
 		}
 		return result;
+	}
+	/**
+	 * Returns the parametrized type of the given interface implemented by
+	 * the class.
+	 * @param inClazz the class to search
+	 * @param theInterface the target interface to look for
+	 * @return the parametrized type
+	 */
+	public static ParameterizedType getGenericInterface(@NonNull Class<?> inClazz, @NonNull Class<?> theInterface) {
+		for (Type c : inClazz.getGenericInterfaces()) {
+			if (c instanceof ParameterizedType) {
+				ParameterizedType pt = (ParameterizedType) c;
+				Type rawType = pt.getRawType();
+				if (theInterface.equals(rawType)) {
+					return pt;
+				}
+			}
+		}
+		return null;
 	}
 }

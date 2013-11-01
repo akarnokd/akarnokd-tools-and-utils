@@ -29,10 +29,17 @@ import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import org.joda.time.DateMidnight;
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -65,15 +72,163 @@ public class DBPojo<T> {
 	/** Create function. */
 	protected final Func0<T> create;
 	/** Fields. */
-	private List<Field> allFields;
+	private List<FieldGetterSetter> allFields;
 	/** Fields. */
-	private List<Field> idFields;
+	private List<FieldGetterSetter> idFields;
 	/** Fields. */
-	private List<Field> nonIdFields;
+	private List<FieldGetterSetter> nonIdFields;
 	/** The SQL result converter function. */
 	private Func1E<ResultSet, T, SQLException> sqlResult;
 	/** The table name. */
 	protected String table;
+	/**
+	 * Getter-setter callback interface.
+	 * @author akarnokd, 2013.11.01.
+	 */
+	protected interface GetterSetter {
+		/**
+		 * Sets the value on an instance.
+		 * @param instance the instance
+		 * @param value the value
+		 */
+		void set(Object instance, Object value);
+		/**
+		 * Returns the value from the instance.
+		 * @param instance the instance
+		 * @return the value
+		 */
+		Object get(Object instance);
+	}
+	/**
+	 * Default field getter-setter implementation.
+	 * @author akarnokd, 2013.11.01.
+	 *
+	 */
+	protected static class FieldGetterSetter implements GetterSetter {
+		/** The field. */
+		protected final Field field;
+		/**
+		 * Constructor, sets the field. 
+		 * @param field the field
+		 */
+		public FieldGetterSetter(Field field) {
+			this.field = field;
+		}
+		@Override
+		public Object get(Object instance) {
+			return ReflectionUtils.get(field, instance);
+		}
+		@Override
+		public void set(Object instance, Object value) {
+			ReflectionUtils.set(field, instance, value);
+		}
+		/**
+		 * Returns the field.
+		 * @return the field
+		 */
+		public Field field() {
+			return field;
+		}
+	}
+	/**
+	 * Getter-setter for a Joda DateTime field.
+	 * @author akarnokd, 2013.11.01.
+	 */
+	protected static class DateTimeGetterSetter extends FieldGetterSetter {
+		/**
+		 * @param field the field
+		 */
+		public DateTimeGetterSetter(Field field) {
+			super(field);
+		}
+		@Override
+		public Object get(Object instance) {
+			Object o = super.get(instance);
+			return o != null ? new Timestamp(((DateTime)o).getMillis()) : null;
+		}
+		@Override
+		public void set(Object instance, Object value) {
+			if (value != null) {
+				value = new DateTime(value);
+			}
+			super.set(instance, value);
+		}
+	}
+	/**
+	 * Getter-setter for a Joda DateMidnight field.
+	 * @author akarnokd, 2013.11.01.
+	 */
+	protected static class DateMidnightGetterSetter extends FieldGetterSetter {
+
+		/**
+		 * @param field the field
+		 */
+		public DateMidnightGetterSetter(Field field) {
+			super(field);
+		}
+		@Override
+		public Object get(Object instance) {
+			Object o = super.get(instance);
+			return o != null ? new java.sql.Date(((DateTime)o).getMillis()) : null;
+		}
+		@Override
+		public void set(Object instance, Object value) {
+			if (value != null) {
+				value = new DateMidnight(value);
+			}
+			super.set(instance, value);
+		}
+		
+	}
+	/**
+	 * Getter-setter for a Joda LocalTime field.
+	 * @author akarnokd, 2013.11.01.
+	 */
+	protected static class LocalTimeGetterSetter extends FieldGetterSetter {
+
+		/**
+		 * @param field the field
+		 */
+		public LocalTimeGetterSetter(Field field) {
+			super(field);
+		}
+		@Override
+		public Object get(Object instance) {
+			Object o = super.get(instance);
+			return o != null ? DB.toSQLTime((LocalTime)o) : null;
+		}
+		@Override
+		public void set(Object instance, Object value) {
+			if (value != null) {
+				value = DB.toLocalTime((Time)value);
+			}
+			super.set(instance, value);
+		}
+	}
+	/**
+	 * Getter-setter for a Joda LocalDate field.
+	 * @author akarnokd, 2013.11.01.
+	 */
+	protected static class LocalDateGetterSetter extends FieldGetterSetter {
+		/**
+		 * @param field the field
+		 */
+		public LocalDateGetterSetter(Field field) {
+			super(field);
+		}
+		@Override
+		public Object get(Object instance) {
+			Object o = super.get(instance);
+			return o != null ? new java.sql.Date(((LocalDate)o).toDateMidnight().getMillis()) : null;
+		}
+		@Override
+		public void set(Object instance, Object value) {
+			if (value != null) {
+				value = new DateMidnight(value).toLocalDate();
+			}
+			super.set(instance, value);
+		}
+	}
 	/**
 	 * Constructor, prepares the structure-dependant internal objects.
 	 * @param clazz the POJO class.
@@ -83,11 +238,12 @@ public class DBPojo<T> {
 		SQLTable atable = clazz.getAnnotation(SQLTable.class);
 		table = atable != null ? atable.value() : clazz.getSimpleName();
 		
-		allFields = ReflectionUtils.allFields(clazz, SQLColumn.class);
+		List<Field> fields = ReflectionUtils.allFields(clazz, SQLColumn.class);
+		allFields = new ArrayList<>();
 		idFields = new ArrayList<>();
 		nonIdFields = new ArrayList<>();
 		// order them according to their index
-		Collections.sort(allFields, new Comparator<Field>() {
+		Collections.sort(fields, new Comparator<Field>() {
 			@Override
 			public int compare(Field o1, Field o2) {
 				return Integer.compare(
@@ -101,17 +257,34 @@ public class DBPojo<T> {
 		List<String> upd = new ArrayList<>();
 		List<String> upd2 = new ArrayList<>();
 		
-		for (Field f : allFields) {
+		for (Field f : fields) {
 			String fn = fieldName(f);
 
+			FieldGetterSetter fs = null;
+			if (f.getType().equals(DateTime.class)) {
+				fs = new DateTimeGetterSetter(f);
+			} else
+			if (f.getType().equals(DateMidnight.class)) {
+				fs = new DateMidnightGetterSetter(f);
+			} else
+			if (f.getType().equals(LocalTime.class)) {
+				fs = new LocalTimeGetterSetter(f);
+			} else
+			if (f.getType().equals(LocalDate.class)) {
+				fs = new LocalDateGetterSetter(f);
+			} else {
+				fs = new FieldGetterSetter(f);
+			}
+			
 			if (f.isAnnotationPresent(SQLID.class)) {
 				upd2.add(fn);
-				idFields.add(f);
+				idFields.add(fs);
 			} else {
 				upd.add(fn);
 				ins.add(fn);
-				nonIdFields.add(f);
+				nonIdFields.add(fs);
 			}
+			allFields.add(fs);
 			sel.add(fn);
 		}
 		
@@ -229,8 +402,8 @@ public class DBPojo<T> {
 			@Override
 			public void invoke(ResultSet t, T u) throws SQLException {
 				int i = 1;
-				for (Field f : allFields) {
-					ReflectionUtils.set(f, u, t.getObject(i));
+				for (FieldGetterSetter f : allFields) {
+					f.set(u, t.getObject(i));
 					i++;
 				}
 			}
@@ -245,12 +418,12 @@ public class DBPojo<T> {
 			@Override
 			public void invoke(PreparedStatement t, T u) throws SQLException {
 				int i = 1;
-				for (Field f : nonIdFields) {
-					t.setObject(i, ReflectionUtils.get(f, u));
+				for (FieldGetterSetter f : nonIdFields) {
+					t.setObject(i, f.get(u));
 					i++;
 				}
-				for (Field f : idFields) {
-					t.setObject(i, ReflectionUtils.get(f, u));
+				for (FieldGetterSetter f : idFields) {
+					t.setObject(i, f.get(u));
 					i++;
 				}
 			}
@@ -265,8 +438,8 @@ public class DBPojo<T> {
 			@Override
 			public void invoke(PreparedStatement t, T u) throws SQLException {
 				int i = 1;
-				for (Field f : nonIdFields) {
-					t.setObject(i, ReflectionUtils.get(f, u));
+				for (FieldGetterSetter f : nonIdFields) {
+					t.setObject(i, f.get(u));
 					i++;
 				}
 			}
@@ -281,8 +454,8 @@ public class DBPojo<T> {
 			@Override
 			public void invoke(PreparedStatement t, T u) throws SQLException {
 				int i = 1;
-				for (Field f : idFields) {
-					t.setObject(i, ReflectionUtils.get(f, u));
+				for (FieldGetterSetter f : idFields) {
+					t.setObject(i, f.get(u));
 					i++;
 				}
 			}

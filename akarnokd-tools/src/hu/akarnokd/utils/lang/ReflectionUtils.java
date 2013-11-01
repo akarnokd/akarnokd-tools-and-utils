@@ -16,8 +16,14 @@
 
 package hu.akarnokd.utils.lang;
 
+import hu.akarnokd.reactive4java.base.Func0;
+import hu.akarnokd.reactive4java.base.Func1;
+import hu.akarnokd.reactive4java.base.Func2;
+
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -25,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * Utility methods for supporting reflection access.
@@ -123,5 +130,167 @@ public final class ReflectionUtils {
 			}
 		}
 		return null;
+	}
+	/**
+	 * Recursively checks each field for the given annotation and returns the
+	 * first field found.
+	 * @param clazz the starting class
+	 * @param annot the annotation to look for
+	 * @return the field or null if not found
+	 */
+	@Nullable
+	public static Field declaredField(@NonNull Class<?> clazz, @NonNull Class<? extends Annotation> annot) {
+		while (clazz != null) {
+			for (Field f : clazz.getFields()) {
+				if (f.isAnnotationPresent(annot)) {
+					return f;
+				}
+			}
+			clazz = clazz.getSuperclass();
+		}
+		return null;
+	}
+	/**
+	 * Returns the value of a static field,
+	 * converting the IllegalAccessException
+	 * to IllegalArgumentException.
+	 * @param <T> the expected value type
+	 * @param f the field
+	 * @return the field value
+	 */
+	public static <T> T get(@NonNull Field f) {
+		return get(f, null);
+	}
+	/**
+	 * Returns the value of a field,
+	 * converting the IllegalAccessException
+	 * to IllegalArgumentException.
+	 * @param <T> the expected value type
+	 * @param f the field
+	 * @param instance the object instance
+	 * @return the field value
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T get(@NonNull Field f, Object instance) {
+		try {
+			return (T)f.get(instance);
+		} catch (IllegalAccessException ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
+	/**
+	 * Returns the value of a field,
+	 * converting the IllegalAccessException
+	 * to IllegalArgumentException.
+	 * @param <T> the expected value type
+	 * @param f the field
+	 * @param clazz the expected class
+	 * @param instance the object instance
+	 * @return the field value
+	 */
+	public static <T> T get(@NonNull Field f, Class<T> clazz, Object instance) {
+		try {
+			return clazz.cast(f.get(instance));
+		} catch (IllegalAccessException ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
+	/**
+	 * Returns a Func0 function which returns a new
+	 * instance of the target class by invoking the
+	 * default constructor.
+	 * <p>Until Java 8 and T::new</p>
+	 * @param <T> the type
+	 * @param clazz the target class
+	 * @return the function
+	 */
+	public static <T> Func0<T> constructor(Class<T> clazz) {
+		try {
+			final Constructor<T> c = clazz.getConstructor();
+			return new Func0<T>() {
+				@Override
+				public T invoke() {
+					try {
+						return c.newInstance();
+					} catch (InstantiationException | InvocationTargetException | IllegalAccessException ex) {
+						throw new IllegalArgumentException(ex);
+					}
+				}
+			};
+		} catch (NoSuchMethodException ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
+	/**
+	 * Returns a Func1 function which returns a new
+	 * instance of the target class by invoking the
+	 * one parameter constructor.
+	 * <p>Until Java 8 and T::new</p>
+	 * @param <T> the type
+	 * @param <U> the first parameter type
+	 * @param clazz the target class
+	 * @param param1 the first parameter class
+	 * @return the function
+	 */
+	public static <T, U> Func1<U, T> constructor(Class<T> clazz, Class<U> param1) {
+		try {
+			final Constructor<T> c = clazz.getConstructor(param1);
+			return new Func1<U, T>() {
+				@Override
+				public T invoke(U param1) {
+					try {
+						return c.newInstance(param1);
+					} catch (InstantiationException | InvocationTargetException | IllegalAccessException ex) {
+						throw new IllegalArgumentException(ex);
+					}
+				}
+			};
+		} catch (NoSuchMethodException ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
+	/**
+	 * Returns a Func1 function which returns a new
+	 * instance of the target class by invoking the
+	 * one parameter constructor.
+	 * <p>Until Java 8 and T::new</p>
+	 * @param <T> the type
+	 * @param <U> the first parameter type
+	 * @param <V> the second parameter type
+	 * @param clazz the target class
+	 * @param param1 the first parameter class
+	 * @param param2 the second parameter class
+	 * @return the function
+	 */
+	public static <T, U, V> Func2<U, V, T> constructor(Class<T> clazz, Class<U> param1, Class<V> param2) {
+		try {
+			final Constructor<T> c = clazz.getConstructor(param1, param2);
+			return new Func2<U, V, T>() {
+				@Override
+				public T invoke(U param1, V param2) {
+					try {
+						return c.newInstance(param1, param2);
+					} catch (InstantiationException | InvocationTargetException | IllegalAccessException ex) {
+						throw new IllegalArgumentException(ex);
+					}
+				}
+			};
+		} catch (NoSuchMethodException ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
+	/**
+	 * Sets a field, converting the potential exceptions to
+	 * IllegalArgumentException.
+	 * @param f the field
+	 * @param instance the instance
+	 * @param value the new value
+	 */
+	public static void set(@NonNull Field f, Object instance, Object value) {
+		try {
+			f.set(instance, value);
+		} catch (IllegalAccessException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 }

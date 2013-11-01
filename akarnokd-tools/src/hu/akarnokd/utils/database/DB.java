@@ -940,6 +940,20 @@ public class DB implements Closeable {
 	}
 	/**
 	 * Sets the parameters on a prepared statement.
+	 * @param offset the parameter start offset
+	 * @param pstmt the statement
+	 * @param values the list of values
+	 * @throws SQLException on error
+	 */
+	public static void setParams(
+			int offset,
+			@NonNull PreparedStatement pstmt, 
+			@NonNull Iterable<?> values)
+			throws SQLException {
+		setParams(offset, pstmt, Iterables.toArray(values, Object.class));
+	}
+	/**
+	 * Sets the parameters on a prepared statement.
 	 * @param pstmt the statement
 	 * @param values the list of values
 	 * @throws SQLException on error
@@ -948,7 +962,21 @@ public class DB implements Closeable {
 			@NonNull PreparedStatement pstmt, 
 			Object... values)
 			throws SQLException {
-		int i = 1;
+		setParams(1, pstmt, values);
+	}
+	/**
+	 * Sets the parameters on a prepared statement.
+	 * @param offset the parameter offset to start from
+	 * @param pstmt the statement
+	 * @param values the list of values
+	 * @throws SQLException on error
+	 */
+	public static void setParams(
+			int offset,
+			@NonNull PreparedStatement pstmt,
+			Object... values)
+			throws SQLException {
+		int i = offset;
 		for (Object o : values) {
 			if (o instanceof Class<?>) {
 				if (o == byte[].class) {
@@ -2015,5 +2043,25 @@ public class DB implements Closeable {
 			marshaller.invoke(pstmt, value);
 			return pstmt.executeUpdate();
 		}
+	}
+	/**
+	 * Returns a builder for a prepared statement.
+	 * @param sql the query
+	 * @return the builder
+	 * @throws SQLException one error
+	 */
+	public DBParams prepareBuild(CharSequence sql) throws SQLException {
+		return new DBParams(prepare(sql));
+	}
+	/**
+	 * Returns a builder for a prepared statement with optional
+	 * automatic results.
+	 * @param auto prepare for auto-generated keys?
+	 * @param sql the query
+	 * @return the builder
+	 * @throws SQLException one error
+	 */
+	public DBParams prepareBuild(boolean auto, CharSequence sql) throws SQLException {
+		return new DBParams(prepare(auto, sql));
 	}
 }

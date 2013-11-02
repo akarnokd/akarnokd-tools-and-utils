@@ -22,6 +22,7 @@ import hu.akarnokd.reactive4java.base.Func0;
 import hu.akarnokd.reactive4java.base.Func1;
 import hu.akarnokd.reactive4java.base.Func1E;
 import hu.akarnokd.reactive4java.interactive.Interactive;
+import hu.akarnokd.utils.generator.CodeCreator;
 import hu.akarnokd.utils.lang.ReflectionUtils;
 import hu.akarnokd.utils.sequence.SequenceUtils;
 
@@ -312,11 +313,11 @@ public class DBPojo<T> {
 		deleteSql = "DELETE FROM " + table + " WHERE "
 				 + SequenceUtils.join(upd2, " AND ", "%s = ?");
 		
-		this.create = findCreator(clazz);
+		this.create = CodeCreator.createConstructor(clazz);
 		
-		this.select = findSelect(clazz);
-		this.insert = findInsert(clazz);
-		this.update = findUpdate(clazz);
+		this.select = DBCodeCreator.createSelect(clazz);
+		this.insert = DBCodeCreator.createInsert(clazz);
+		this.update = DBCodeCreator.createUpdate(clazz);
 
 		sqlResult = new SQLResult<T>() {
 			@Override
@@ -328,58 +329,6 @@ public class DBPojo<T> {
 		};
 
 		delete = defaultDelete();
-	}
-	/**
-	 * Finds or creates a default select function callback.
-	 * @param clazz the target class
-	 * @return the function callback
-	 */
-	@NonNull
-	protected Action2E<ResultSet, T, SQLException> findSelect(Class<T> clazz) {
-		Field fselect = ReflectionUtils.declaredField(clazz, SQLSelect.class);
-		if (fselect == null) {
-			return defaultSelect();
-		}
-		return ReflectionUtils.get(fselect);
-	}
-	/**
-	 * Finds or creates a default insert function callback.
-	 * @param clazz the target class
-	 * @return the function callback
-	 */
-	@NonNull
-	protected Action2E<PreparedStatement, T, SQLException> findInsert(Class<T> clazz) {
-		Field finsert = ReflectionUtils.declaredField(clazz, SQLInsert.class);
-		
-		if (finsert == null) {
-			return defaultInsert();
-		}
-		return ReflectionUtils.get(finsert);
-	}
-	/**
-	 * Finds or creates a default update function callback.
-	 * @param clazz the target class
-	 * @return the function callback
-	 */
-	protected Action2E<PreparedStatement, T, SQLException> findUpdate(Class<T> clazz) {
-		Field fupdate = ReflectionUtils.declaredField(clazz, SQLUpdate.class);
-		
-		if (fupdate == null) {
-			return defaultUpdate();
-		}
-		return ReflectionUtils.get(fupdate);
-	}
-	/**
-	 * Find a creator Func0 on the class.
-	 * @param clazz the class
-	 * @return the function
-	 */
-	protected Func0<T> findCreator(Class<T> clazz) {
-		Field fcreate = ReflectionUtils.declaredField(clazz, SQLCreate.class);
-		if (fcreate == null) {
-			return ReflectionUtils.constructor(clazz);
-		}
-		return ReflectionUtils.get(fcreate);
 	}
 	/**
 	 * Extracts the SQL field name from the field.

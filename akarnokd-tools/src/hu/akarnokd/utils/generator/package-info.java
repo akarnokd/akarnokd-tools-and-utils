@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package hu.akarnokd.utils.database;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Indicator interface for a class field of type 
- * Action2E&lt;PreparedStatement, T, SQLException>
- * that can save the parameters of the parent class into
- * a PreparedStatement.
- * @author akarnokd, 2013.11.01.
+ * Code generator package.
+ * @author akarnokd, 2013.04.16.
+ *
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface SQLUpdate {
-
-}
+package hu.akarnokd.utils.generator;

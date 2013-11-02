@@ -48,7 +48,7 @@ public class PrintlnProgress {
 	public PrintlnProgress(long dotCount, int lineDots) {
 		this.dotCount = dotCount;
 		this.lineDots = lineDots;
-		this.stopwatch = new Stopwatch();
+		this.stopwatch = Stopwatch.createUnstarted();
 	}
 	/**
 	 * Set the current count.

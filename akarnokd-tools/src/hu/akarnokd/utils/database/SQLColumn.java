@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface SQLColumn {
 	/** The column index in the table. */
-	int index();
+	int index() default 0;
 	/** The column name in the table. */
 	String name() default "";
 }

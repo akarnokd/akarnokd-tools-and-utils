@@ -49,10 +49,7 @@ public final class ReflectionUtils {
 	@NonNull
 	public static List<Field> allFields(@NonNull Class<?> clazz) {
 		List<Field> result = new ArrayList<>();
-		while (clazz != null) {
-			result.addAll(Arrays.asList(clazz.getFields()));
-			clazz = clazz.getSuperclass();
-		}
+		result.addAll(Arrays.asList(clazz.getFields()));
 		return result;
 	}
 	/**
@@ -66,13 +63,10 @@ public final class ReflectionUtils {
 	public static List<Field> allFields(@NonNull Class<?> clazz, 
 			@NonNull Class<? extends Annotation> annot) {
 		List<Field> result = new ArrayList<>();
-		while (clazz != null) {
-			for (Field f : clazz.getFields()) {
-				if (f.isAnnotationPresent(annot)) {
-					result.add(f);
-				}
+		for (Field f : clazz.getFields()) {
+			if (f.isAnnotationPresent(annot)) {
+				result.add(f);
 			}
-			clazz = clazz.getSuperclass();
 		}
 		return result;
 	}

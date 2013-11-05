@@ -16,10 +16,12 @@
 
 package hu.akarnokd.utils.generator;
 
+import hu.akarnokd.reactive4java.base.Action2;
 import hu.akarnokd.reactive4java.base.Func0;
 import hu.akarnokd.reactive4java.base.Func1;
 import hu.akarnokd.reactive4java.base.Func2;
 
+import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javassist.ClassPool;
@@ -151,6 +153,111 @@ public final class CodeCreator {
 			c.addMethod(CtMethod.make(b.toString(), c));
 		
 			return (Func2<U, V, T>)c.toClass().newInstance();
+		} catch (Exception ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
+	/**
+	 * Generates a getter function for the given class and field.
+	 * @param <T> the class type
+	 * @param clazz the parent class
+	 * @param f the field
+	 * @return the function to get the object value
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> Func1<T, Object> createGetter(Class<T> clazz, Field f) {
+		try {
+			ClassPool pool = ClassPool.getDefault();
+			
+			String classname = clazz.getName() + "$Get" + f.getName(); 
+			
+			if (pool.getOrNull(classname) != null) {
+				return (Func1<T, Object>)Class.forName(classname).newInstance();
+			}
+
+			Class<?> ft = f.getType();
+			
+			CtClass c = pool.makeClass(classname);
+			c.addInterface(pool.get(Func1.class.getName()));
+			c.setModifiers(Modifier.FINAL);
+			c.setModifiers(Modifier.PUBLIC);
+
+			StringBuilder b = new StringBuilder();
+
+			b.append("public Object invoke(Object t0) {");
+			b.append("return ");
+			if (ft.isPrimitive()) {
+				if (Boolean.TYPE.equals(ft)) {
+					b.append("Boolean.valueOf(");
+				} else
+				if (Byte.TYPE.equals(ft)) {
+					b.append("Byte.valueOf(");
+				} else
+				if (Short.TYPE.equals(ft)) {
+					b.append("Short.valueOf(");
+				} else
+				if (Integer.TYPE.equals(ft)) {
+					b.append("Integer.valueOf(");
+				} else
+				if (Long.TYPE.equals(ft)) {
+					b.append("Long.valueOf(");
+				} else
+				if (Float.TYPE.equals(ft)) {
+					b.append("Float.valueOf(");
+				} else
+				if (Double.TYPE.equals(ft)) {
+					b.append("Double.valueOf(");
+				} else {
+					throw new AssertionError("" + f);
+				}
+			}
+			b.append("((").append(clazz.getName()).append(")t0).").append(f.getName());
+			if (ft.isPrimitive()) {
+				b.append(")");
+			}
+			b.append(";");
+			
+			b.append("}");
+			
+			c.addMethod(CtMethod.make(b.toString(), c));
+					
+			return (Func1<T, Object>)c.toClass().newInstance();
+		} catch (Exception ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
+	/**
+	 * Creates a setter action for the given class and field.
+	 * @param <T> the class type
+	 * @param clazz the target class
+	 * @param f the target field
+	 * @return the setter action
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> Action2<T, Object> createSetter(Class<T> clazz, Field f) {
+		try {
+			ClassPool pool = ClassPool.getDefault();
+			
+			String classname = clazz.getName() + "$Set" + f.getName(); 
+			
+			if (pool.getOrNull(classname) != null) {
+				return (Action2<T, Object>)Class.forName(classname).newInstance();
+			}
+			
+			Class<?> ft = f.getType();
+			
+			CtClass c = pool.makeClass(classname);
+			c.addInterface(pool.get(Action2.class.getName()));
+			c.setModifiers(Modifier.FINAL);
+			c.setModifiers(Modifier.PUBLIC);
+			
+			String method = "public void invoke(Object t0, Object u0) {"
+			+ "((" + clazz.getName() + ")t0)." + f.getName() + " = (" + ft.getName() + ")u0;"
+			+ "}"
+			;
+			c.addMethod(CtMethod.make(method, c));
+					
+			return (Action2<T, Object>)c.toClass().newInstance();
 		} catch (Exception ex) {
 			throw new IllegalArgumentException(ex);
 		}

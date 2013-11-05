@@ -306,4 +306,64 @@ public final class DBCodeCreator {
 			throw new IllegalArgumentException(ex);
 		}
 	}
+	/**
+	 * Generate an DELETE callback for the given SQLColumn annotated class.
+	 * @param <T> the target type
+	 * @param clazz the target class
+	 * @return the save callback instance
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> SQLSave<T> createDelete(Class<T> clazz) {
+		try {
+			ClassPool pool = ClassPool.getDefault();
+			String classname = clazz.getName() + "$Delete";
+			
+			// generate once
+			if (pool.getOrNull(classname) != null) {
+				return (SQLSave<T>)Class.forName(classname).newInstance();
+			}
+
+			pool.importPackage(DB.class.getPackage().getName());
+			
+			CtClass c = pool.makeClass(classname);
+			c.setModifiers(Modifier.FINAL);
+			c.setModifiers(Modifier.PUBLIC);
+			c.addInterface(pool.get(SQLSave.class.getName()));
+			
+			StringBuilder b = new StringBuilder();
+
+			b.append("\r\npublic final void invoke(Object t0, Object u0) throws java.sql.SQLException {\r\n");
+			b.append("\tjava.sql.PreparedStatement t = (java.sql.PreparedStatement)t0;\r\n");
+			b.append("\t").append(clazz.getName()).append(" u = (").append(clazz.getName()).append(")u0;\r\n");
+			b.append("\tDBParams p = new DBParams(t);\r\n");
+			List<Field> fields = ReflectionUtils.allFields(clazz, SQLColumn.class);
+			Collections.sort(fields, FIELD_SQLCOLUMN_COMPARE);
+
+			Field idField = ReflectionUtils.declaredField(clazz, SQLID.class);
+			if (idField == null) {
+				throw new IllegalArgumentException("No field with @SQLID annotation found.");
+			}
+			
+			for (Field f : fields) {
+				if (f.isAnnotationPresent(SQLID.class)) {
+					if (f.getType().isEnum()) {
+						b.append("\tp.add(u.").append(f.getName()).append(".ordinal());\r\n");
+					} else {
+						b.append("\tp.add(u.").append(f.getName()).append(");\r\n");
+					}
+				}
+			}
+			
+			b.append("}\r\n");
+
+//			LOG.debug(b.toString());
+
+			c.addMethod(CtMethod.make(b.toString(), c));
+			
+
+			return (SQLSave<T>)c.toClass().newInstance();
+		} catch (Exception ex) {
+			throw new IllegalArgumentException(ex);
+		}
+	}
 }

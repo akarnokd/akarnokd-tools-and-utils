@@ -328,7 +328,14 @@ public class DBPojo<T> {
 			}
 		};
 
-		delete = defaultDelete();
+		delete = DBCodeCreator.createDelete(clazz);
+	}
+	/**
+	 * The associated table.
+	 * @return the associated table
+	 */
+	public String table() {
+		return table;
 	}
 	/**
 	 * Extracts the SQL field name from the field.
@@ -341,58 +348,6 @@ public class DBPojo<T> {
 			return c.name();
 		}
 		return f.getName();
-	}
-	/**
-	 * Creates a default selector callback.
-	 * @return the default selector callback
-	 */
-	protected Action2E<ResultSet, T, SQLException> defaultSelect() {
-		return new Action2E<ResultSet, T, SQLException>() {
-			@Override
-			public void invoke(ResultSet t, T u) throws SQLException {
-				int i = 1;
-				for (FieldGetterSetter f : allFields) {
-					f.set(u, t.getObject(i));
-					i++;
-				}
-			}
-		};
-	}
-	/**
-	 * Creates a default update callback.
-	 * @return the default selector callback
-	 */
-	protected Action2E<PreparedStatement, T, SQLException> defaultUpdate() {
-		return new Action2E<PreparedStatement, T, SQLException>() {
-			@Override
-			public void invoke(PreparedStatement t, T u) throws SQLException {
-				int i = 1;
-				for (FieldGetterSetter f : nonIdFields) {
-					t.setObject(i, f.get(u));
-					i++;
-				}
-				for (FieldGetterSetter f : idFields) {
-					t.setObject(i, f.get(u));
-					i++;
-				}
-			}
-		};
-	}
-	/**
-	 * Creates a default update callback.
-	 * @return the default selector callback
-	 */
-	protected Action2E<PreparedStatement, T, SQLException> defaultInsert() {
-		return new Action2E<PreparedStatement, T, SQLException>() {
-			@Override
-			public void invoke(PreparedStatement t, T u) throws SQLException {
-				int i = 1;
-				for (FieldGetterSetter f : nonIdFields) {
-					t.setObject(i, f.get(u));
-					i++;
-				}
-			}
-		};
 	}
 	/**
 	 * Creates a default update callback.

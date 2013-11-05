@@ -108,20 +108,24 @@ public final class ReflectionUtils {
 	}
 	/**
 	 * Returns the parametrized type of the given interface implemented by
-	 * the class.
+	 * the class or any of its superclass.
 	 * @param inClazz the class to search
 	 * @param theInterface the target interface to look for
-	 * @return the parametrized type
+	 * @return the parametrized type or null if not found
 	 */
+	@Nullable
 	public static ParameterizedType getGenericInterface(@NonNull Class<?> inClazz, @NonNull Class<?> theInterface) {
-		for (Type c : inClazz.getGenericInterfaces()) {
-			if (c instanceof ParameterizedType) {
-				ParameterizedType pt = (ParameterizedType) c;
-				Type rawType = pt.getRawType();
-				if (theInterface.equals(rawType)) {
-					return pt;
+		while (inClazz != null) {
+			for (Type c : inClazz.getGenericInterfaces()) {
+				if (c instanceof ParameterizedType) {
+					ParameterizedType pt = (ParameterizedType) c;
+					Type rawType = pt.getRawType();
+					if (theInterface.equals(rawType)) {
+						return pt;
+					}
 				}
 			}
+			inClazz = inClazz.getSuperclass();
 		}
 		return null;
 	}

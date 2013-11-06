@@ -16,6 +16,8 @@
 
 package hu.akarnokd.utils.database;
 
+import hu.akarnokd.reactive4java.base.Action1;
+import hu.akarnokd.reactive4java.base.Action1E;
 import hu.akarnokd.reactive4java.base.Action2;
 import hu.akarnokd.reactive4java.base.Action2E;
 import hu.akarnokd.reactive4java.base.Func0;
@@ -30,17 +32,11 @@ import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import org.joda.time.DateMidnight;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalTime;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -72,164 +68,10 @@ public class DBPojo<T> {
 	protected final Action2E<PreparedStatement, T, SQLException> delete;
 	/** Create function. */
 	protected final Func0<T> create;
-	/** Fields. */
-	private List<FieldGetterSetter> allFields;
-	/** Fields. */
-	private List<FieldGetterSetter> idFields;
-	/** Fields. */
-	private List<FieldGetterSetter> nonIdFields;
 	/** The SQL result converter function. */
 	private Func1E<ResultSet, T, SQLException> sqlResult;
 	/** The table name. */
 	protected String table;
-	/**
-	 * Getter-setter callback interface.
-	 * @author akarnokd, 2013.11.01.
-	 */
-	protected interface GetterSetter {
-		/**
-		 * Sets the value on an instance.
-		 * @param instance the instance
-		 * @param value the value
-		 */
-		void set(Object instance, Object value);
-		/**
-		 * Returns the value from the instance.
-		 * @param instance the instance
-		 * @return the value
-		 */
-		Object get(Object instance);
-	}
-	/**
-	 * Default field getter-setter implementation.
-	 * @author akarnokd, 2013.11.01.
-	 *
-	 */
-	protected static class FieldGetterSetter implements GetterSetter {
-		/** The field. */
-		protected final Field field;
-		/**
-		 * Constructor, sets the field. 
-		 * @param field the field
-		 */
-		public FieldGetterSetter(Field field) {
-			this.field = field;
-		}
-		@Override
-		public Object get(Object instance) {
-			return ReflectionUtils.get(field, instance);
-		}
-		@Override
-		public void set(Object instance, Object value) {
-			ReflectionUtils.set(field, instance, value);
-		}
-		/**
-		 * Returns the field.
-		 * @return the field
-		 */
-		public Field field() {
-			return field;
-		}
-	}
-	/**
-	 * Getter-setter for a Joda DateTime field.
-	 * @author akarnokd, 2013.11.01.
-	 */
-	protected static class DateTimeGetterSetter extends FieldGetterSetter {
-		/**
-		 * @param field the field
-		 */
-		public DateTimeGetterSetter(Field field) {
-			super(field);
-		}
-		@Override
-		public Object get(Object instance) {
-			Object o = super.get(instance);
-			return o != null ? new Timestamp(((DateTime)o).getMillis()) : null;
-		}
-		@Override
-		public void set(Object instance, Object value) {
-			if (value != null) {
-				value = new DateTime(value);
-			}
-			super.set(instance, value);
-		}
-	}
-	/**
-	 * Getter-setter for a Joda DateMidnight field.
-	 * @author akarnokd, 2013.11.01.
-	 */
-	protected static class DateMidnightGetterSetter extends FieldGetterSetter {
-
-		/**
-		 * @param field the field
-		 */
-		public DateMidnightGetterSetter(Field field) {
-			super(field);
-		}
-		@Override
-		public Object get(Object instance) {
-			Object o = super.get(instance);
-			return o != null ? new java.sql.Date(((DateTime)o).getMillis()) : null;
-		}
-		@Override
-		public void set(Object instance, Object value) {
-			if (value != null) {
-				value = new DateMidnight(value);
-			}
-			super.set(instance, value);
-		}
-		
-	}
-	/**
-	 * Getter-setter for a Joda LocalTime field.
-	 * @author akarnokd, 2013.11.01.
-	 */
-	protected static class LocalTimeGetterSetter extends FieldGetterSetter {
-
-		/**
-		 * @param field the field
-		 */
-		public LocalTimeGetterSetter(Field field) {
-			super(field);
-		}
-		@Override
-		public Object get(Object instance) {
-			Object o = super.get(instance);
-			return o != null ? DB.toSQLTime((LocalTime)o) : null;
-		}
-		@Override
-		public void set(Object instance, Object value) {
-			if (value != null) {
-				value = DB.toLocalTime((Time)value);
-			}
-			super.set(instance, value);
-		}
-	}
-	/**
-	 * Getter-setter for a Joda LocalDate field.
-	 * @author akarnokd, 2013.11.01.
-	 */
-	protected static class LocalDateGetterSetter extends FieldGetterSetter {
-		/**
-		 * @param field the field
-		 */
-		public LocalDateGetterSetter(Field field) {
-			super(field);
-		}
-		@Override
-		public Object get(Object instance) {
-			Object o = super.get(instance);
-			return o != null ? new java.sql.Date(((LocalDate)o).toDateMidnight().getMillis()) : null;
-		}
-		@Override
-		public void set(Object instance, Object value) {
-			if (value != null) {
-				value = new DateMidnight(value).toLocalDate();
-			}
-			super.set(instance, value);
-		}
-	}
 	/**
 	 * Constructor, prepares the structure-dependant internal objects.
 	 * @param clazz the POJO class.
@@ -240,9 +82,6 @@ public class DBPojo<T> {
 		table = atable != null ? atable.value() : clazz.getSimpleName();
 		
 		List<Field> fields = ReflectionUtils.allFields(clazz, SQLColumn.class);
-		allFields = new ArrayList<>();
-		idFields = new ArrayList<>();
-		nonIdFields = new ArrayList<>();
 		// order them according to their index
 		Collections.sort(fields, new Comparator<Field>() {
 			@Override
@@ -261,31 +100,12 @@ public class DBPojo<T> {
 		for (Field f : fields) {
 			String fn = fieldName(f);
 
-			FieldGetterSetter fs = null;
-			if (f.getType().equals(DateTime.class)) {
-				fs = new DateTimeGetterSetter(f);
-			} else
-			if (f.getType().equals(DateMidnight.class)) {
-				fs = new DateMidnightGetterSetter(f);
-			} else
-			if (f.getType().equals(LocalTime.class)) {
-				fs = new LocalTimeGetterSetter(f);
-			} else
-			if (f.getType().equals(LocalDate.class)) {
-				fs = new LocalDateGetterSetter(f);
-			} else {
-				fs = new FieldGetterSetter(f);
-			}
-			
 			if (f.isAnnotationPresent(SQLID.class)) {
 				upd2.add(fn);
-				idFields.add(fs);
 			} else {
 				upd.add(fn);
 				ins.add(fn);
-				nonIdFields.add(fs);
 			}
-			allFields.add(fs);
 			sel.add(fn);
 		}
 		
@@ -318,6 +138,7 @@ public class DBPojo<T> {
 		this.select = DBCodeCreator.createSelect(clazz);
 		this.insert = DBCodeCreator.createInsert(clazz);
 		this.update = DBCodeCreator.createUpdate(clazz);
+		this.delete = DBCodeCreator.createDelete(clazz);
 
 		sqlResult = new SQLResult<T>() {
 			@Override
@@ -328,7 +149,6 @@ public class DBPojo<T> {
 			}
 		};
 
-		delete = DBCodeCreator.createDelete(clazz);
 	}
 	/**
 	 * The associated table.
@@ -348,22 +168,6 @@ public class DBPojo<T> {
 			return c.name();
 		}
 		return f.getName();
-	}
-	/**
-	 * Creates a default update callback.
-	 * @return the default selector callback
-	 */
-	protected Action2E<PreparedStatement, T, SQLException> defaultDelete() {
-		return new Action2E<PreparedStatement, T, SQLException>() {
-			@Override
-			public void invoke(PreparedStatement t, T u) throws SQLException {
-				int i = 1;
-				for (FieldGetterSetter f : idFields) {
-					t.setObject(i, f.get(u));
-					i++;
-				}
-			}
-		};
 	}
 	/**
 	 * Returns all records from the database.
@@ -537,5 +341,108 @@ public class DBPojo<T> {
 			pstmtInsert.executeBatch();
 			pstmtUpdate.executeBatch();
 		}
+	}
+	/**
+	 * Select a single value into an existing object,
+	 * which should have its @SQLID fields prepared.
+	 * @param db the database connection
+	 * @param out the output object
+	 * @return true if the object was loaded
+	 * @throws SQLException on error
+	 */
+	public boolean selectInto(@NonNull DB db, T out) throws SQLException {
+		try (PreparedStatement pstmt = db.prepare(selectOneSql)) {
+			delete.invoke(pstmt, out);
+			try (ResultSet rs = pstmt.executeQuery()) {
+				if (rs.next()) {
+					select.invoke(rs, out);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	/**
+	 * Select all records and place them into the output collection.
+	 * @param db the database connection
+	 * @param coll the output collection
+	 * @throws SQLException on error
+	 */
+	public void selectAllInto(@NonNull DB db, Collection<? super T> coll) throws SQLException {
+		db.query(selectSql, SequenceUtils.into(coll, sqlResult));
+	}
+	/**
+	 * Select some records based on a where clause (without the WHERE keyword)
+	 * and place the objects in the collection.
+	 * @param db he database connection
+	 * @param coll the output colllection
+	 * @param where the where clause without WHERE
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void selectSomeInto(@NonNull DB db, Collection<? super T> coll, String where, Object... params) throws SQLException {
+		db.query(selectSql + " WHERE " + where, SequenceUtils.into(coll, sqlResult), params);
+		
+	}
+	/**
+	 * Select some records based on a where clause (without the WHERE keyword)
+	 * and place the objects in the collection.
+	 * @param db he database connection
+	 * @param coll the output colllection
+	 * @param where the where clause without WHERE
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */
+	public void selectSomeInto(@NonNull DB db, Collection<? super T> coll, String where, Iterable<?> params) throws SQLException {
+		db.query(selectSql + " WHERE " + where, SequenceUtils.into(coll, sqlResult), params);
+	}
+	/**
+	 * Wraps the given action into an SQLException-throwing action
+	 * which extracts a record from the query.
+	 * @param action the action to wrap
+	 * @return the wrapped action
+	 */
+	@NonNull
+	protected Action1E<ResultSet, SQLException> wrap(@NonNull final Action1<? super T> action) {
+		return new Action1E<ResultSet, SQLException>() {
+			@Override
+			public void invoke(ResultSet t) throws SQLException {
+				action.invoke(sqlResult.invoke(t));
+			}
+		};
+	}
+	/**
+	 * Returns all records and hands them over one-by-one
+	 * to the given consumer callback.
+	 * @param db the database connection
+	 * @param consumer the consumner callback
+	 * @throws SQLException on error
+	 */
+	public void selectAll(@NonNull DB db, @NonNull Action1<? super T> consumer) throws SQLException {
+		db.query(selectSql, wrap(consumer));
+	}
+	/**
+	 * Returns some records and hands them over one-by-one
+	 * to the given consumer callback.
+	 * @param db the database connection
+	 * @param consumer the consumner callback
+	 * @param where the where clause without the WHERE keyword
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */	
+	public void selectSome(@NonNull DB db, @NonNull Action1<? super T> consumer, String where, Object... params) throws SQLException {
+		db.query(selectSql + " WHERE " + where, wrap(consumer), params);
+	}
+	/**
+	 * Returns some records and hands them over one-by-one
+	 * to the given consumer callback.
+	 * @param db the database connection
+	 * @param consumer the consumner callback
+	 * @param where the where clause without the WHERE keyword
+	 * @param params the parameters
+	 * @throws SQLException on error
+	 */	
+	public void selectSome(@NonNull DB db, @NonNull Action1<? super T> consumer, String where, Iterable<?> params) throws SQLException {
+		db.query(selectSql + " WHERE " + where, wrap(consumer), params);
 	}
 }

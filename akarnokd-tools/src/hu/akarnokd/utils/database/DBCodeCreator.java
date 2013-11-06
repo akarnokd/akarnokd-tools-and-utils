@@ -16,6 +16,7 @@
 
 package hu.akarnokd.utils.database;
 
+import hu.akarnokd.utils.generator.CodeCreator;
 import hu.akarnokd.utils.lang.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -57,7 +58,7 @@ public final class DBCodeCreator {
 	@SuppressWarnings("unchecked")
 	public static <T> SQLLoad<T> createSelect(Class<T> clazz) {
 		try {
-			ClassPool pool = ClassPool.getDefault();
+			ClassPool pool = CodeCreator.POOL;
 
 			String classname = clazz.getName() + "$Select";
 			
@@ -186,7 +187,7 @@ public final class DBCodeCreator {
 	@SuppressWarnings("unchecked")
 	public static <T> SQLSave<T> createInsert(Class<T> clazz) {
 		try {
-			ClassPool pool = ClassPool.getDefault();
+			ClassPool pool = CodeCreator.POOL;
 			String classname = clazz.getName() + "$Insert";
 			
 			// generate once
@@ -246,7 +247,7 @@ public final class DBCodeCreator {
 	@SuppressWarnings("unchecked")
 	public static <T> SQLSave<T> createUpdate(Class<T> clazz) {
 		try {
-			ClassPool pool = ClassPool.getDefault();
+			ClassPool pool = CodeCreator.POOL;
 			String classname = clazz.getName() + "$Update";
 			
 			// generate once
@@ -315,7 +316,7 @@ public final class DBCodeCreator {
 	@SuppressWarnings("unchecked")
 	public static <T> SQLSave<T> createDelete(Class<T> clazz) {
 		try {
-			ClassPool pool = ClassPool.getDefault();
+			ClassPool pool = CodeCreator.POOL;
 			String classname = clazz.getName() + "$Delete";
 			
 			// generate once

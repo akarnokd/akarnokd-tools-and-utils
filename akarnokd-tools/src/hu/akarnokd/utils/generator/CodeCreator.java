@@ -24,6 +24,7 @@ import hu.akarnokd.reactive4java.base.Func2;
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -36,6 +37,11 @@ import javassist.Modifier;
 public final class CodeCreator {
 	/** Utility class. */
 	private CodeCreator() { }
+	/** The default pool, prepared with the proper classpaths. */
+	public static final ClassPool POOL = ClassPool.getDefault();
+	static {
+		POOL.insertClassPath(new ClassClassPath(CodeCreator.class));
+	}
 	/**
 	 * Creates a function which creates a new instance of the class
 	 * without reflection.
@@ -48,19 +54,18 @@ public final class CodeCreator {
 		try {
 			clazz.getConstructor();
 			
-			ClassPool pool = ClassPool.getDefault();
 
 			String classname = clazz.getName() + "$Constructor0";
 			
 			// generate once
-			if (pool.getOrNull(classname) != null) {
+			if (POOL.getOrNull(classname) != null) {
 				return (Func0<T>)Class.forName(classname).newInstance();
 			}
 
-			CtClass c = pool.makeClass(classname);
+			CtClass c = POOL.makeClass(classname);
 			c.setModifiers(Modifier.FINAL);
 			c.setModifiers(Modifier.PUBLIC);
-			c.addInterface(pool.get(Func0.class.getName()));
+			c.addInterface(POOL.get(Func0.class.getName()));
 			
 			StringBuilder b = new StringBuilder();
 			b.append("\r\npublic final Object invoke() {\r\n");

@@ -16,6 +16,7 @@
 
 package hu.akarnokd.utils.database;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
@@ -361,6 +362,34 @@ public class DBParams {
 			pstmt.setBigDecimal(p++, new BigDecimal(value));
 		} else {
 			pstmt.setNull(p++, Types.DECIMAL);
+		}
+		return this;
+	}
+	/**
+	 * Add a new parameter value.
+	 * @param value the value
+	 * @return this
+	 * @throws SQLException on error
+	 */
+	public DBParams add(byte[] value) throws SQLException {
+		if (value != null) {
+			pstmt.setBytes(p++, value);
+		} else {
+			pstmt.setNull(p++, Types.BLOB);
+		}
+		return this;
+	}
+	/**
+	 * Add a new parameter value.
+	 * @param value the value
+	 * @return this
+	 * @throws SQLException on error
+	 */
+	public DBParams add(InputStream value) throws SQLException {
+		if (value != null) {
+			pstmt.setBinaryStream(p++, value);
+		} else {
+			pstmt.setNull(p++, Types.BLOB);
 		}
 		return this;
 	}

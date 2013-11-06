@@ -124,7 +124,7 @@ public final class DBCodeCreator {
 					b.append("DB.getShort(t, ").append(p).append(")");
 				} else
 				if (Integer.class.equals(ft)) {
-					b.append("DB.getInteger(t, ").append(p).append(")");
+					b.append("DB.getInt(t, ").append(p).append(")");
 				} else
 				if (Long.class.equals(ft)) {
 					b.append("DB.getLong(t, ").append(p).append(")");

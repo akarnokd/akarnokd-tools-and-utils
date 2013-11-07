@@ -1210,7 +1210,7 @@ public class DB implements Closeable {
 	/** The underlying connection. */
 	protected Connection conn;
 	/** The defualt query fetch size. */
-	protected int fetchSize = -1;
+	protected int fetchSize = 0;
 	/** Log the queries? */
 	protected boolean logQueries;
 	@Override
@@ -1505,6 +1505,9 @@ public class DB implements Closeable {
 			Object... params) throws SQLException {
 		try (PreparedStatement pstmt = prepare(false, sql, params)) {
 			try (ResultSet rs = pstmt.executeQuery()) {
+				if (fetchSize != 0) {
+					rs.setFetchSize(fetchSize);
+				}
 				while (rs.next()) {
 					action.invoke(rs);
 				}
@@ -1537,6 +1540,9 @@ public class DB implements Closeable {
 			Object... params) throws SQLException {
 		try (PreparedStatement pstmt = prepare(false, sql, params)) {
 			try (ResultSet rs = pstmt.executeQuery()) {
+				if (fetchSize != 0) {
+					rs.setFetchSize(fetchSize);
+				}
 				int i = 0;
 				while (rs.next()) {
 					action.invoke(rs, i++);
@@ -1577,7 +1583,7 @@ public class DB implements Closeable {
 		List<T> result = Lists.newArrayList();
 		try (PreparedStatement pstmt = prepare(false, sql, params)) {
 			try (ResultSet rs = pstmt.executeQuery()) {
-				if (fetchSize != -1) {
+				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
 				}
 				while (rs.next()) {
@@ -1621,6 +1627,9 @@ public class DB implements Closeable {
 			
 			pstmt.setFetchSize(Integer.MIN_VALUE);
 			final ResultSet rs = pstmt.executeQuery();
+			if (fetchSize != 0) {
+				rs.setFetchSize(fetchSize);
+			}
 			
 			return new CloseableIterator<T>() {
 				/** The resultset has finished. */
@@ -1703,6 +1712,9 @@ public class DB implements Closeable {
 			Object... params) throws SQLException {
 		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
 			try (ResultSet rs = pstmt.executeQuery()) {
+				if (fetchSize != 0) {
+					rs.setFetchSize(fetchSize);
+				}
 				while (rs.next()) {
 					action.invoke(rs);
 				}
@@ -1742,7 +1754,7 @@ public class DB implements Closeable {
 		List<T> result = Lists.newArrayList();
 		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
 			try (ResultSet rs = pstmt.executeQuery()) {
-				if (fetchSize != -1) {
+				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
 				}
 				while (rs.next()) {
@@ -1786,7 +1798,7 @@ public class DB implements Closeable {
 		List<T> result = Lists.newArrayList();
 		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
 			try (ResultSet rs = pstmt.executeQuery()) {
-				if (fetchSize != -1) {
+				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
 				}
 				int i = 0;

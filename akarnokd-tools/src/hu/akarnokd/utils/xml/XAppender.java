@@ -19,7 +19,7 @@ package hu.akarnokd.utils.xml;
  * A callback interface to append to a stream. 
  * @author akarnokd, 2013.08.26.
  */
-interface XAppender {
+public interface XAppender {
 	/**
 	 * Append an object. 
 	 * @param o the object

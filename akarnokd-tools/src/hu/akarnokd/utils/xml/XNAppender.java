@@ -19,7 +19,7 @@ package hu.akarnokd.utils.xml;
  * A callback interface to append to a stream and return the number of characters appended. 
  * @author akarnokd, 2013.08.26.
  */
-interface XNAppender extends XAppender {
+public interface XNAppender extends XAppender {
 	@Override
 	XNAppender append(Object o);
 	/** @return The number of characters appended. */

@@ -304,6 +304,8 @@ public class DB implements Closeable {
 			}
 		}
 	}
+	/** No instances by default. */
+	protected DB() { }
 	/**
 	 * Adds a new database info record to the common DB object.
 	 * @param info the new info to add
@@ -331,6 +333,9 @@ public class DB implements Closeable {
 		
 		return result;
 	}
+	/** The info that created the connection. */
+	@Nullable
+	protected DBInfo dbi;
 	/**
 	 * Establish a connection to the given database.
 	 * @param dbi the the database info 
@@ -361,6 +366,7 @@ public class DB implements Closeable {
 			Closeables.closeSilently(result);
 			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
 		}
+		result.dbi = new DBInfo(dbi);
 		
 		return result;
 	}
@@ -2075,5 +2081,16 @@ public class DB implements Closeable {
 	 */
 	public DBParams prepareBuild(boolean auto, CharSequence sql) throws SQLException {
 		return new DBParams(prepare(auto, sql));
+	}
+	/**
+	 * Create a new connection with the same parameters
+	 * as this connection.
+	 * @return the new database connection
+	 */
+	public DB copy() {
+		if (dbi != null) {
+			return connect(dbi);
+		}
+		throw new IllegalStateException("DB was not created from a DBInfo object");
 	}
 }

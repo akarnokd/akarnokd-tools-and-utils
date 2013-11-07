@@ -20,8 +20,8 @@ import hu.akarnokd.reactive4java.base.MultiIOException;
 
 import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -35,7 +35,7 @@ import com.google.common.collect.Sets;
  */
 public class BoundedPool<T> implements Pool<T> {
 	/** The available pool of objects. */
-	protected final BlockingQueue<T> objects;
+	protected final BlockingDeque<T> objects;
 	/** The storage of all created objects. */
 	@GuardedBy("allObjects")
 	protected final Set<T> allObjects = Sets.newHashSet();
@@ -43,6 +43,8 @@ public class BoundedPool<T> implements Pool<T> {
 	protected final int poolSize;
 	/** The manager of the pool objects. */
 	protected final PoolManager<T> manager;
+	/** Flag to indicate lifo queue management. */
+	protected final boolean lifo;
 	/**
 	 * Creates a pool with the given size.
 	 * @param poolSize the pool size
@@ -50,10 +52,20 @@ public class BoundedPool<T> implements Pool<T> {
 	 */
 	public BoundedPool(int poolSize, 
 			PoolManager<T> manager) {
+		this(poolSize, manager, true);
+	}
+	/**
+	 * Creates a pool with the given size.
+	 * @param poolSize the pool size
+	 * @param manager the pool manager
+	 * @param lifo use lifo queue management?
+	 */
+	public BoundedPool(int poolSize, 
+			PoolManager<T> manager, boolean lifo) {
 		this.poolSize = poolSize;
 		this.manager = manager;
-		
-		objects = new LinkedBlockingQueue<T>(poolSize);
+		this.lifo = lifo;
+		objects = new LinkedBlockingDeque<T>(poolSize);
 	}
 	@Override
 	public T get() throws Exception {
@@ -87,7 +99,11 @@ public class BoundedPool<T> implements Pool<T> {
 				throw new IllegalArgumentException("obj is not managed by this pool");
 			}			
 		}
-		objects.add(obj);
+		if (lifo) {
+			objects.addFirst(obj);
+		} else {
+			objects.addLast(obj);
+		}
 	}
 	@Override
 	public void close() throws IOException {

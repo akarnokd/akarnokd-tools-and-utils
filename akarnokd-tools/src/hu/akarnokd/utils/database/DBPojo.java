@@ -251,9 +251,14 @@ public class DBPojo<T> {
 	 * Deletes the record which is identified through the value.
 	 * @param db the database connection
 	 * @param value the record sample
+	 * @return the changed record count
 	 * @throws SQLException on error
 	 */
-	public void deleteOne(@NonNull DB db, T value) throws SQLException {
+	public int deleteOne(@NonNull DB db, T value) throws SQLException {
+		try (PreparedStatement pstmt = db.prepare(deleteSql)) {
+			delete.invoke(pstmt, value);
+			return pstmt.executeUpdate();
+		}
 	}
 	/**
 	 * Deletes the record identified by the key parameters.

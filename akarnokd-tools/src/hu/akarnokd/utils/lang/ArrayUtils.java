@@ -4076,4 +4076,109 @@ public final class ArrayUtils {
 		}
 		return result;
 	}
+	/**
+	 * Reverses an array in-place.
+	 * @param array the array to reverse
+	 * @return the array
+	 */
+	public static boolean[] reverse(boolean... array) {
+		for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+			boolean v = array[i];
+			array[i] = array[j];
+			array[j] = v;
+		}
+		return array;
+	}
+	/**
+	 * Reverses an array in-place.
+	 * @param array the array to reverse
+	 * @return the array
+	 */
+	public static byte[] reverse(byte... array) {
+		for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+			byte v = array[i];
+			array[i] = array[j];
+			array[j] = v;
+		}
+		return array;
+	}
+	/**
+	 * Reverses an array in-place.
+	 * @param array the array to reverse
+	 * @return the array
+	 */
+	public static short[] reverse(short... array) {
+		for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+			short v = array[i];
+			array[i] = array[j];
+			array[j] = v;
+		}
+		return array;
+	}
+	/**
+	 * Reverses an array in-place.
+	 * @param array the array to reverse
+	 * @return the array
+	 */
+	public static int[] reverse(int... array) {
+		for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+			int v = array[i];
+			array[i] = array[j];
+			array[j] = v;
+		}
+		return array;
+	}
+	/**
+	 * Reverses an array in-place.
+	 * @param array the array to reverse
+	 * @return the array
+	 */
+	public static long[] reverse(long... array) {
+		for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+			long v = array[i];
+			array[i] = array[j];
+			array[j] = v;
+		}
+		return array;
+	}
+	/**
+	 * Reverses an array in-place.
+	 * @param array the array to reverse
+	 * @return the array
+	 */
+	public static float[] reverse(float... array) {
+		for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+			float v = array[i];
+			array[i] = array[j];
+			array[j] = v;
+		}
+		return array;
+	}
+	/**
+	 * Reverses an array in-place.
+	 * @param array the array to reverse
+	 * @return the array
+	 */
+	public static double[] reverse(double... array) {
+		for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+			double v = array[i];
+			array[i] = array[j];
+			array[j] = v;
+		}
+		return array;
+	}
+	/**
+	 * Reverses an array in-place.
+	 * @param <T> the array type
+	 * @param array the array to reverse
+	 * @return the array
+	 */
+	public static <T> T[] reverse(T[] array) {
+		for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+			T v = array[i];
+			array[i] = array[j];
+			array[j] = v;
+		}
+		return array;
+	}
 }

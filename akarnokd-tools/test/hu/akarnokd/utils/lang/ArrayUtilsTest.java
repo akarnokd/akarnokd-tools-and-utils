@@ -17,7 +17,6 @@
 package hu.akarnokd.utils.lang;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 
 /**
@@ -69,5 +68,18 @@ public class ArrayUtilsTest {
 		Assert.assertEquals(2, ArrayUtils.lastIndexOf(b, 0, 3, t, 1, 2));
 		Assert.assertEquals(2, ArrayUtils.lastIndexOf(b, 2, 3, t, 1, 2));
 	}
-
+	/** Test odd reverse. */
+	@Test
+	public void testArrayReverse() {
+		int[] array = ArrayUtils.reverse(1, 2, 3);
+		
+		Assert.assertArrayEquals(new int[] { 3, 2, 1}, array);
+	}
+	/** Test even reverse. */
+	@Test
+	public void testArrayReverse2() {
+		int[] array = ArrayUtils.reverse(1, 2, 3, 4);
+		
+		Assert.assertArrayEquals(new int[] { 4, 3, 2, 1}, array);
+	}
 }

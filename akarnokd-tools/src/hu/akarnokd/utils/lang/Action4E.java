@@ -34,5 +34,5 @@ public interface Action4E<T1, T2, T3, T4, E extends Exception> {
 	 * @param w the fourth parameter
 	 * @throws E the expection
 	 */
-	void invoke(T1 t, T2 u, T3 v, T4 w) throws E;
+	void call(T1 t, T2 u, T3 v, T4 w) throws E;
 }

@@ -32,5 +32,5 @@ public interface Action3E<T1, T2, T3, E extends Exception> {
 	 * @param v the third parameter
 	 * @throws E the expection
 	 */
-	void invoke(T1 t, T2 u, T3 v) throws E;
+	void call(T1 t, T2 u, T3 v) throws E;
 }

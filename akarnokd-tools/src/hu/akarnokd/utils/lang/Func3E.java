@@ -33,5 +33,5 @@ public interface Func3E<T1, T2, T3, R, E extends Exception> {
 	 * @return the result
 	 * @throws E the exception
 	 */
-	R invoke(T1 t, T2 u, T3 v) throws E;
+	R call(T1 t, T2 u, T3 v) throws E;
 }

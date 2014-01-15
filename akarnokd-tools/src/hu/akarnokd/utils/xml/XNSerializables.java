@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package hu.akarnokd.utils.xml;
 
-import hu.akarnokd.reactive4java.base.Func0;
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.base.Observable;
-import hu.akarnokd.reactive4java.reactive.Reactive;
-
 import java.util.List;
+
+import rx.Observable;
+import rx.util.functions.Func0;
+import rx.util.functions.Func1;
 
 import com.google.common.collect.Lists;
 
@@ -73,7 +72,7 @@ public final class XNSerializables {
 			String itemName, Func0<T> creator) {
 		List<T> result = Lists.newArrayList();
 		for (XNElement e : container.childrenWithName(itemName)) {
-			T obj = creator.invoke();
+			T obj = creator.call();
 			obj.load(e);
 			result.add(obj);
 		}
@@ -88,7 +87,7 @@ public final class XNSerializables {
 	 * @return the created and loaded object
 	 */
 	public static <T extends XNSerializable> T parseItem(XNElement item, Func0<T> creator) {
-		T result = creator.invoke();
+		T result = creator.call();
 		result.load(item);
 		return result;
 	}
@@ -123,10 +122,10 @@ public final class XNSerializables {
 	 * @return the sequence of XNSerializable objects
 	 */
 	public static <T extends XNSerializable> Observable<T> parse(Observable<XNElement> source, final Func0<T> creator) {
-		return Reactive.select(source, new Func1<XNElement, T>() {
+		return source.map(new Func1<XNElement, T>() {
 			@Override
-			public T invoke(XNElement param1) {
-				T result = creator.invoke();
+			public T call(XNElement param1) {
+				T result = creator.call();
 				result.load(param1);
 				return result;
 			}
@@ -143,9 +142,9 @@ public final class XNSerializables {
 	public static <T extends XNSerializable> Observable<XNElement> serialize(
 			Observable<T> source, 
 			final String elementName, final String namespace) {
-		return Reactive.select(source, new Func1<T, XNElement>() {
+		return source.map(new Func1<T, XNElement>() {
 			@Override
-			public XNElement invoke(T param1) {
+			public XNElement call(T param1) {
 				XNElement e = new XNElement(elementName);
 				e.namespace = namespace;
 				param1.save(e);
@@ -163,9 +162,9 @@ public final class XNSerializables {
 	public static <T extends XNSerializable> Observable<XNElement> serialize(
 			Observable<T> source, 
 			final String elementName) {
-		return Reactive.select(source, new Func1<T, XNElement>() {
+		return source.map(new Func1<T, XNElement>() {
 			@Override
-			public XNElement invoke(T param1) {
+			public XNElement call(T param1) {
 				XNElement e = new XNElement(elementName);
 				param1.save(e);
 				return e;
@@ -183,12 +182,12 @@ public final class XNSerializables {
 	public static <T extends XNSerializable> Observable<List<T>> parseList(
 			Observable<? extends Iterable<XNElement>> source, 
 			final Func0<T> creator) {
-		return Reactive.select(source, new Func1<Iterable<XNElement>, List<T>>() {
+		return source.map(new Func1<Iterable<XNElement>, List<T>>() {
 			@Override
-			public List<T> invoke(Iterable<XNElement> param1) {
+			public List<T> call(Iterable<XNElement> param1) {
 				List<T> result = Lists.newArrayList();
 				for (XNElement e : param1) {
-					T obj = creator.invoke();
+					T obj = creator.call();
 					obj.load(e);
 					result.add(obj);
 				}
@@ -208,9 +207,9 @@ public final class XNSerializables {
 			Observable<? extends Iterable<T>> source,
 			final String elementName
 			) {
-		return Reactive.select(source, new Func1<Iterable<T>, List<XNElement>>() {
+		return source.map(new Func1<Iterable<T>, List<XNElement>>() {
 			@Override
-			public List<XNElement> invoke(Iterable<T> param1) {
+			public List<XNElement> call(Iterable<T> param1) {
 				List<XNElement> result = Lists.newArrayList();
 				for (T e : param1) {
 					XNElement x = new XNElement(elementName);
@@ -235,9 +234,9 @@ public final class XNSerializables {
 			final String elementName,
 			final String namespace
 			) {
-		return Reactive.select(source, new Func1<Iterable<T>, List<XNElement>>() {
+		return source.map(new Func1<Iterable<T>, List<XNElement>>() {
 			@Override
-			public List<XNElement> invoke(Iterable<T> param1) {
+			public List<XNElement> call(Iterable<T> param1) {
 				List<XNElement> result = Lists.newArrayList();
 				for (T e : param1) {
 					XNElement x = new XNElement(elementName);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package hu.akarnokd.utils.xml;
 
-import hu.akarnokd.reactive4java.base.Func0;
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.base.Observable;
-import hu.akarnokd.reactive4java.reactive.Reactive;
-
 import java.util.List;
+
+import rx.Observable;
+import rx.util.functions.Func0;
+import rx.util.functions.Func1;
 
 import com.google.common.collect.Lists;
 
@@ -73,7 +72,7 @@ public final class XSerializables {
 			String itemName, Func0<T> creator) {
 		List<T> result = Lists.newArrayList();
 		for (XElement e : container.childrenWithName(itemName)) {
-			T obj = creator.invoke();
+			T obj = creator.call();
 			obj.load(e);
 			result.add(obj);
 		}
@@ -88,7 +87,7 @@ public final class XSerializables {
 	 * @return the created and loaded object
 	 */
 	public static <T extends XSerializable> T parseItem(XElement item, Func0<T> creator) {
-		T result = creator.invoke();
+		T result = creator.call();
 		result.load(item);
 		return result;
 	}
@@ -123,10 +122,10 @@ public final class XSerializables {
 	 * @return the sequence of XSerializable objects
 	 */
 	public static <T extends XSerializable> Observable<T> parse(Observable<XElement> source, final Func0<T> creator) {
-		return Reactive.select(source, new Func1<XElement, T>() {
+		return source.map(new Func1<XElement, T>() {
 			@Override
-			public T invoke(XElement param1) {
-				T result = creator.invoke();
+			public T call(XElement param1) {
+				T result = creator.call();
 				result.load(param1);
 				return result;
 			}
@@ -142,9 +141,9 @@ public final class XSerializables {
 	public static <T extends XSerializable> Observable<XElement> serialize(
 			Observable<T> source, 
 			final String elementName) {
-		return Reactive.select(source, new Func1<T, XElement>() {
+		return source.map(new Func1<T, XElement>() {
 			@Override
-			public XElement invoke(T param1) {
+			public XElement call(T param1) {
 				XElement e = new XElement(elementName);
 				param1.save(e);
 				return e;
@@ -162,12 +161,12 @@ public final class XSerializables {
 	public static <T extends XSerializable> Observable<List<T>> parseList(
 			Observable<? extends Iterable<XElement>> source, 
 			final Func0<T> creator) {
-		return Reactive.select(source, new Func1<Iterable<XElement>, List<T>>() {
+		return source.map(new Func1<Iterable<XElement>, List<T>>() {
 			@Override
-			public List<T> invoke(Iterable<XElement> param1) {
+			public List<T> call(Iterable<XElement> param1) {
 				List<T> result = Lists.newArrayList();
 				for (XElement e : param1) {
-					T obj = creator.invoke();
+					T obj = creator.call();
 					obj.load(e);
 					result.add(obj);
 				}
@@ -187,9 +186,9 @@ public final class XSerializables {
 			Observable<? extends Iterable<T>> source,
 			final String elementName
 			) {
-		return Reactive.select(source, new Func1<Iterable<T>, List<XElement>>() {
+		return source.map(new Func1<Iterable<T>, List<XElement>>() {
 			@Override
-			public List<XElement> invoke(Iterable<T> param1) {
+			public List<XElement> call(Iterable<T> param1) {
 				List<XElement> result = Lists.newArrayList();
 				for (T e : param1) {
 					XElement x = new XElement(elementName);

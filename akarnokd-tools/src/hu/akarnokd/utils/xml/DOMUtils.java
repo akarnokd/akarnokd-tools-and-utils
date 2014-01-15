@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package hu.akarnokd.utils.xml;
 
-import hu.akarnokd.reactive4java.base.Pred1;
-import hu.akarnokd.reactive4java.query.IterableBuilder;
+import ix.IterableBuilder;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -26,6 +25,7 @@ import java.util.Objects;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import rx.util.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -88,9 +88,9 @@ public final class DOMUtils {
 	@NonNull
 	public static Iterable<Element> childElements(@NonNull Node parent) {
 		return IterableBuilder.from(childNodes(parent))
-		.where(new Pred1<Node>() {
+		.where(new Func1<Node, Boolean>() {
 			@Override
-			public Boolean invoke(Node param1) {
+			public Boolean call(Node param1) {
 				return param1.getNodeType() == Node.ELEMENT_NODE;
 			}
 		}).cast(Element.class);
@@ -105,9 +105,9 @@ public final class DOMUtils {
 			@NonNull Node parent, 
 			@NonNull final String name) {
 		return IterableBuilder.from(childNodes(parent))
-		.where(new Pred1<Node>() {
+		.where(new Func1<Node, Boolean>() {
 			@Override
-			public Boolean invoke(Node param1) {
+			public Boolean call(Node param1) {
 				return param1.getNodeType() == Node.ELEMENT_NODE
 						&& param1.getNodeName().equals(name);
 			}
@@ -125,9 +125,9 @@ public final class DOMUtils {
 			@NonNull final String name,
 			@NonNull final String namespaceURI) {
 		return IterableBuilder.from(childNodes(parent))
-		.where(new Pred1<Node>() {
+		.where(new Func1<Node, Boolean>() {
 			@Override
-			public Boolean invoke(Node param1) {
+			public Boolean call(Node param1) {
 				return param1.getNodeType() == Node.ELEMENT_NODE
 						&& param1.getNodeName().equals(name)
 						&& Objects.equals(param1.getNamespaceURI(), namespaceURI);

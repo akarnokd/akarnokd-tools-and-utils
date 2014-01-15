@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package hu.akarnokd.utils.database;
 
-import hu.akarnokd.reactive4java.base.Func1E;
+import ix.util.Func1E;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package hu.akarnokd.utils.crypto;
 
-import hu.akarnokd.reactive4java.base.Pair;
+import ix.util.Pair;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@
 
 package hu.akarnokd.utils.collection;
 
-import hu.akarnokd.reactive4java.base.Action1;
-import hu.akarnokd.reactive4java.base.Action1E;
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.base.Func1E;
-import hu.akarnokd.reactive4java.base.Pred1;
 import hu.akarnokd.utils.lang.StringUtils;
+import ix.util.Action1E;
+import ix.util.Func1E;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -34,6 +31,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 
+import rx.util.functions.Action1;
+import rx.util.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -434,7 +433,7 @@ public final class HeadList<T> implements Iterable<T> {
 		
 		HeadList<T> hl = this;
 		while (hl != null) {
-			if (!predicate.invoke(hl.value)) {
+			if (!predicate.call(hl.value)) {
 				if (t == null) {
 					t = new HeadList<>(hl.value);
 					r = t;
@@ -470,7 +469,7 @@ public final class HeadList<T> implements Iterable<T> {
 	public void forEach(@NonNull Action1<? super T> action) {
 		HeadList<T> tl = this;
 		while (tl != null) {
-			action.invoke(tl.value);
+			action.call(tl.value);
 			tl = tl.head;
 		}
 	}
@@ -484,7 +483,7 @@ public final class HeadList<T> implements Iterable<T> {
 			@NonNull Action1E<? super T, E> action) throws E {
 		HeadList<T> tl = this;
 		while (tl != null) {
-			action.invoke(tl.value);
+			action.call(tl.value);
 			tl = tl.head;
 		}
 	}
@@ -496,7 +495,7 @@ public final class HeadList<T> implements Iterable<T> {
 	public void forEach(@NonNull Func1<? super T, Boolean> func) {
 		HeadList<T> tl = this;
 		while (tl != null) {
-			if (!func.invoke(tl.value)) {
+			if (!func.call(tl.value)) {
 				return;
 			}
 			tl = tl.head;
@@ -513,7 +512,7 @@ public final class HeadList<T> implements Iterable<T> {
 			@NonNull Func1E<? super T, Boolean, E> func) throws E {
 		HeadList<T> tl = this;
 		while (tl != null) {
-			if (!func.invoke(tl.value)) {
+			if (!func.call(tl.value)) {
 				return;
 			}
 			tl = tl.head;
@@ -528,16 +527,16 @@ public final class HeadList<T> implements Iterable<T> {
 	public HeadList<T> removeAll(final Iterable<?> src) {
 		if (src instanceof Set<?>) {
 			final Set<?> set = (Set<?>)src;
-			return removeIf(new Pred1<T>() {
+			return removeIf(new Func1<T, Boolean>() {
 				@Override
-				public Boolean invoke(T v) {
+				public Boolean call(T v) {
 					return set.contains(v);
 				}
 			});
 		}
-		return removeIf(new Pred1<T>() {
+		return removeIf(new Func1<T, Boolean>() {
 			@Override
-			public Boolean invoke(T v) {
+			public Boolean call(T v) {
 				for (Object o : src) {
 					if (Objects.equals(v, o)) {
 						return true;
@@ -556,16 +555,16 @@ public final class HeadList<T> implements Iterable<T> {
 	public HeadList<T> retainAll(final Iterable<?> src) {
 		if (src instanceof Set<?>) {
 			final Set<?> set = (Set<?>)src;
-			return removeIf(new Pred1<T>() {
+			return removeIf(new Func1<T, Boolean>() {
 				@Override
-				public Boolean invoke(T v) {
+				public Boolean call(T v) {
 					return !set.contains(v);
 				}
 			});
 		}
-		return removeIf(new Pred1<T>() {
+		return removeIf(new Func1<T, Boolean>() {
 			@Override
-			public Boolean invoke(T v) {
+			public Boolean call(T v) {
 				for (Object o : src) {
 					if (Objects.equals(v, o)) {
 						return false;
@@ -581,11 +580,11 @@ public final class HeadList<T> implements Iterable<T> {
 	 * @return the new list without the object
 	 */
 	public HeadList<T> remove(final Object o) {
-		return removeIf(new Pred1<T>() {
+		return removeIf(new Func1<T, Boolean>() {
 			/** Remove one element only. */
 			boolean once = true;
 			@Override
-			public Boolean invoke(T param1) {
+			public Boolean call(T param1) {
 				if (once && Objects.equals(param1, o)) {
 					once = false;
 					return true;

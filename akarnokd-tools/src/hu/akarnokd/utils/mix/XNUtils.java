@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public final class XNUtils {
 	public static SQLResult<XNElement> fromResultSet(@NonNull final String column) {
 		return new SQLResult<XNElement>() {
 			@Override
-			public XNElement invoke(ResultSet rs) throws SQLException {
+			public XNElement call(ResultSet rs) throws SQLException {
 				try {
 					return XNElement.parseXML(rs, column);
 				} catch (IOException | XMLStreamException ex) {
@@ -66,7 +66,7 @@ public final class XNUtils {
 			final XNElement defaultValue) {
 		return new SQLResult<XNElement>() {
 			@Override
-			public XNElement invoke(ResultSet rs) throws SQLException {
+			public XNElement call(ResultSet rs) throws SQLException {
 				try {
 					XNElement e = XNElement.parseXML(rs, column);
 					return e != null ? e : defaultValue;
@@ -86,7 +86,7 @@ public final class XNUtils {
 	public static SQLResult<XNElement> fromResultSet(@NonNull final int index) {
 		return new SQLResult<XNElement>() {
 			@Override
-			public XNElement invoke(ResultSet rs) throws SQLException {
+			public XNElement call(ResultSet rs) throws SQLException {
 				try {
 					return XNElement.parseXML(rs, index);
 				} catch (IOException | XMLStreamException ex) {
@@ -108,7 +108,7 @@ public final class XNUtils {
 			final XNElement defaultValue) {
 		return new SQLResult<XNElement>() {
 			@Override
-			public XNElement invoke(ResultSet rs) throws SQLException {
+			public XNElement call(ResultSet rs) throws SQLException {
 				try {
 					XNElement e = XNElement.parseXML(rs, index);
 					return e != null ? e : defaultValue;

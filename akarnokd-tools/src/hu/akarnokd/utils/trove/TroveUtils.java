@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package hu.akarnokd.utils.trove;
 
+import ix.util.Action1E;
+
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,6 +26,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import rx.util.functions.Func0;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import gnu.trove.TByteCollection;
 import gnu.trove.TCharCollection;
@@ -256,8 +259,6 @@ import gnu.trove.set.hash.TFloatHashSet;
 import gnu.trove.set.hash.TIntHashSet;
 import gnu.trove.set.hash.TLongHashSet;
 import gnu.trove.set.hash.TShortHashSet;
-import hu.akarnokd.reactive4java.base.Action1E;
-import hu.akarnokd.reactive4java.base.Func0;
 
 /**
  * Utility methods for Trove classes.
@@ -420,7 +421,7 @@ public final class TroveUtils {
 		TByteIterator it = collection.iterator();
 		while (it.hasNext()) {
 			if (list == null || list.size() == splitSize) {
-				list = factory.invoke();
+				list = factory.call();
 				result.add(list);
 			}
 			list.add(it.next());
@@ -441,7 +442,7 @@ public final class TroveUtils {
 		TShortIterator it = collection.iterator();
 		while (it.hasNext()) {
 			if (list == null || list.size() == splitSize) {
-				list = factory.invoke();
+				list = factory.call();
 				result.add(list);
 			}
 			list.add(it.next());
@@ -462,7 +463,7 @@ public final class TroveUtils {
 		TCharIterator it = collection.iterator();
 		while (it.hasNext()) {
 			if (list == null || list.size() == splitSize) {
-				list = factory.invoke();
+				list = factory.call();
 				result.add(list);
 			}
 			list.add(it.next());
@@ -483,7 +484,7 @@ public final class TroveUtils {
 		TIntIterator it = collection.iterator();
 		while (it.hasNext()) {
 			if (list == null || list.size() == splitSize) {
-				list = factory.invoke();
+				list = factory.call();
 				result.add(list);
 			}
 			list.add(it.next());
@@ -504,7 +505,7 @@ public final class TroveUtils {
 		TLongIterator it = collection.iterator();
 		while (it.hasNext()) {
 			if (list == null || list.size() == splitSize) {
-				list = factory.invoke();
+				list = factory.call();
 				result.add(list);
 			}
 			list.add(it.next());
@@ -525,7 +526,7 @@ public final class TroveUtils {
 		TFloatIterator it = collection.iterator();
 		while (it.hasNext()) {
 			if (list == null || list.size() == splitSize) {
-				list = factory.invoke();
+				list = factory.call();
 				result.add(list);
 			}
 			list.add(it.next());
@@ -546,7 +547,7 @@ public final class TroveUtils {
 		TDoubleIterator it = collection.iterator();
 		while (it.hasNext()) {
 			if (list == null || list.size() == splitSize) {
-				list = factory.invoke();
+				list = factory.call();
 				result.add(list);
 			}
 			list.add(it.next());
@@ -1486,7 +1487,7 @@ public final class TroveUtils {
 	public static Action1E<ResultSet, SQLException> into(@NonNull final TByteCollection coll) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
+			public void call(ResultSet t) throws SQLException {
 				coll.add(t.getByte(1));
 			}
 		};
@@ -1500,7 +1501,7 @@ public final class TroveUtils {
 	public static Action1E<ResultSet, SQLException> into(@NonNull final TShortCollection coll) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
+			public void call(ResultSet t) throws SQLException {
 				coll.add(t.getShort(1));
 			}
 		};
@@ -1514,7 +1515,7 @@ public final class TroveUtils {
 	public static Action1E<ResultSet, SQLException> into(@NonNull final TCharCollection coll) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
+			public void call(ResultSet t) throws SQLException {
 				coll.add(t.getString(1).charAt(0));
 			}
 		};
@@ -1528,7 +1529,7 @@ public final class TroveUtils {
 	public static Action1E<ResultSet, SQLException> into(@NonNull final TIntCollection coll) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
+			public void call(ResultSet t) throws SQLException {
 				coll.add(t.getInt(1));
 			}
 		};
@@ -1542,7 +1543,7 @@ public final class TroveUtils {
 	public static Action1E<ResultSet, SQLException> into(@NonNull final TLongCollection coll) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
+			public void call(ResultSet t) throws SQLException {
 				coll.add(t.getLong(1));
 			}
 		};
@@ -1557,7 +1558,7 @@ public final class TroveUtils {
 	public static Action1E<ResultSet, SQLException> into(@NonNull final TFloatCollection coll) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
+			public void call(ResultSet t) throws SQLException {
 				coll.add(t.getFloat(1));
 			}
 		};
@@ -1571,7 +1572,7 @@ public final class TroveUtils {
 	public static Action1E<ResultSet, SQLException> into(@NonNull final TDoubleCollection coll) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
+			public void call(ResultSet t) throws SQLException {
 				coll.add(t.getDouble(1));
 			}
 		};

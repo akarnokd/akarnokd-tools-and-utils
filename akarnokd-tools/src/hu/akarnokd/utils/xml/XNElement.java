@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package hu.akarnokd.utils.xml;
 
-import hu.akarnokd.reactive4java.base.Action1;
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.base.Pair;
-import hu.akarnokd.reactive4java.interactive.Interactive;
+import ix.Interactive;
+import ix.util.Pair;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -52,6 +50,9 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+
+import rx.util.functions.Action1;
+import rx.util.functions.Func1;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
@@ -508,7 +509,7 @@ public class XNElement extends XElementBase {
 	public Iterable<XNElement> childrenWithName(final String name) {
 		return Interactive.where(children, new Func1<XNElement, Boolean>() {
 			@Override
-			public Boolean invoke(XNElement param1) {
+			public Boolean call(XNElement param1) {
 				return Objects.equal(param1.name, name);
 			}
 		});
@@ -522,7 +523,7 @@ public class XNElement extends XElementBase {
 	public Iterable<XNElement> childrenWithName(final String name, final String namespace) {
 		return Interactive.where(children, new Func1<XNElement, Boolean>() {
 			@Override
-			public Boolean invoke(XNElement param1) {
+			public Boolean call(XNElement param1) {
 				return Objects.equal(param1.name, name) && Objects.equal(param1.namespace, namespace);
 			}
 		});
@@ -1228,7 +1229,7 @@ public class XNElement extends XElementBase {
 		out.append(indent);
 		
 		if (callback != null) {
-			callback.invoke(new XRepresentationRecord(XRepresentationState.START_ELEMENT, this, 
+			callback.call(new XRepresentationRecord(XRepresentationState.START_ELEMENT, this, 
 					out.length()));
 		}
 		out.append("<");
@@ -1267,12 +1268,12 @@ public class XNElement extends XElementBase {
 			} else {
 				out.append(">");
 				if (callback != null) {
-					callback.invoke(new XRepresentationRecord(XRepresentationState.START_TEXT, this, out.length()));
+					callback.call(new XRepresentationRecord(XRepresentationState.START_TEXT, this, out.length()));
 				}
 				String s = sanitize(content);
 				out.append(s);
 				if (callback != null) {
-					callback.invoke(new XRepresentationRecord(XRepresentationState.END_TEXT, this, out.length()));
+					callback.call(new XRepresentationRecord(XRepresentationState.END_TEXT, this, out.length()));
 				}
 				if (s.endsWith("\n")) {
 					out.append(indent);
@@ -1290,11 +1291,11 @@ public class XNElement extends XElementBase {
 			} else {
 				out.append(">");
 				if (callback != null) {
-					callback.invoke(new XRepresentationRecord(XRepresentationState.START_TEXT, this, out.length()));
+					callback.call(new XRepresentationRecord(XRepresentationState.START_TEXT, this, out.length()));
 				}
 				out.append(sanitize(content));
 				if (callback != null) {
-					callback.invoke(new XRepresentationRecord(XRepresentationState.END_TEXT, this, out.length()));
+					callback.call(new XRepresentationRecord(XRepresentationState.END_TEXT, this, out.length()));
 				}
 
 				out.append(String.format("%n"));
@@ -1310,7 +1311,7 @@ public class XNElement extends XElementBase {
 			out.append(">");
 		}
 		if (callback != null) {
-			callback.invoke(new XRepresentationRecord(XRepresentationState.END_ELEMENT, this, out.length()));
+			callback.call(new XRepresentationRecord(XRepresentationState.END_ELEMENT, this, out.length()));
 		}
 		out.append(String.format("%n"));
 	}

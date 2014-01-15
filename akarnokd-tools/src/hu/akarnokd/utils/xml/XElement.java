@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package hu.akarnokd.utils.xml;
 
-import hu.akarnokd.reactive4java.base.Action1;
 import hu.akarnokd.utils.collection.ParameterMap;
 import hu.akarnokd.utils.lang.ReflectionUtils;
 
@@ -51,6 +50,8 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+
+import rx.util.functions.Action1;
 
 /**
  * A simplified XML element model.
@@ -937,7 +938,7 @@ public class XElement extends XElementBase implements ParameterMap {
 		queue.add(this);
 		while (!queue.isEmpty()) {
 			XElement x = queue.removeFirst();
-			action.invoke(x);
+			action.call(x);
 			if (depthFirst) {
 				ListIterator<XElement> li = x.children.listIterator(x.children.size());
 				while (li.hasPrevious()) {

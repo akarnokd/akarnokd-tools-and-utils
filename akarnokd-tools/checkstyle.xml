@@ -173,7 +173,7 @@
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
   </module>
   <module name="RegexpHeader">
-    <property name="header" value="^/\*$\n^ \* Copyright 2012-2013 David Karnok*$\n^ \*.*$\n^ \* Licensed under the Apache License, Version 2.0.*$"/>
+    <property name="header" value="^/\*$\n^ \* Copyright 2012-2014 David Karnok*$\n^ \*.*$\n^ \* Licensed under the Apache License, Version 2.0.*$"/>
     <property name="fileExtensions" value="java"/>
     <metadata name="com.atlassw.tools.eclipse.checkstyle.comment" value="Advance header"/>
   </module>

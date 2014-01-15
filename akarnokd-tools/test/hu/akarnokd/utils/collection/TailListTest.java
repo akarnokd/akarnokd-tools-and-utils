@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package hu.akarnokd.utils.collection;
 
-import hu.akarnokd.reactive4java.base.Pred1;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import rx.util.functions.Func1;
 
 /**
  * Test the Tail list methods.
@@ -99,9 +99,9 @@ public class TailListTest {
 	public void testRemoveIf() {
 		TailList<Integer> tl = TailList.from(1, 2, 3, 4);
 		
-		TailList<Integer> tl1 = tl.removeIf(new Pred1<Integer>() {
+		TailList<Integer> tl1 = tl.removeIf(new Func1<Integer, Boolean>() {
 			@Override
-			public Boolean invoke(Integer param1) {
+			public Boolean call(Integer param1) {
 				return param1 % 2 == 0;
 			}
 		});

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public final class DBCodeCreator {
 			
 			StringBuilder b = new StringBuilder();
 			
-			b.append("\r\npublic final void invoke(Object t0, Object u0) throws java.sql.SQLException {\r\n");
+			b.append("\r\npublic final void call(Object t0, Object u0) throws java.sql.SQLException {\r\n");
 			b.append("\tjava.sql.ResultSet t = (java.sql.ResultSet)t0;\r\n");
 			b.append("\t").append(clazz.getName()).append(" u = (").append(clazz.getName()).append(")u0;\r\n");
 			
@@ -204,7 +204,7 @@ public final class DBCodeCreator {
 			
 			StringBuilder b = new StringBuilder();
 
-			b.append("\r\npublic final void invoke(Object t0, Object u0) throws java.sql.SQLException {\r\n");
+			b.append("\r\npublic final void call(Object t0, Object u0) throws java.sql.SQLException {\r\n");
 			b.append("\tjava.sql.PreparedStatement t = (java.sql.PreparedStatement)t0;\r\n");
 			b.append("\t").append(clazz.getName()).append(" u = (").append(clazz.getName()).append(")u0;\r\n");
 			b.append("\tDBParams p = new DBParams(t);\r\n");
@@ -264,7 +264,7 @@ public final class DBCodeCreator {
 			
 			StringBuilder b = new StringBuilder();
 
-			b.append("\r\npublic final void invoke(Object t0, Object u0) throws java.sql.SQLException {\r\n");
+			b.append("\r\npublic final void call(Object t0, Object u0) throws java.sql.SQLException {\r\n");
 			b.append("\tjava.sql.PreparedStatement t = (java.sql.PreparedStatement)t0;\r\n");
 			b.append("\t").append(clazz.getName()).append(" u = (").append(clazz.getName()).append(")u0;\r\n");
 			b.append("\tDBParams p = new DBParams(t);\r\n");
@@ -333,7 +333,7 @@ public final class DBCodeCreator {
 			
 			StringBuilder b = new StringBuilder();
 
-			b.append("\r\npublic final void invoke(Object t0, Object u0) throws java.sql.SQLException {\r\n");
+			b.append("\r\npublic final void call(Object t0, Object u0) throws java.sql.SQLException {\r\n");
 			b.append("\tjava.sql.PreparedStatement t = (java.sql.PreparedStatement)t0;\r\n");
 			b.append("\t").append(clazz.getName()).append(" u = (").append(clazz.getName()).append(")u0;\r\n");
 			b.append("\tDBParams p = new DBParams(t);\r\n");

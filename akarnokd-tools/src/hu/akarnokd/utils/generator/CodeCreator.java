@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,6 @@
 
 package hu.akarnokd.utils.generator;
 
-import hu.akarnokd.reactive4java.base.Action2;
-import hu.akarnokd.reactive4java.base.Func0;
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.base.Func2;
-
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,6 +24,10 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.Modifier;
+import rx.util.functions.Action2;
+import rx.util.functions.Func0;
+import rx.util.functions.Func1;
+import rx.util.functions.Func2;
 
 /**
  * Utility class to engineer certain classes.
@@ -68,7 +67,7 @@ public final class CodeCreator {
 			c.addInterface(POOL.get(Func0.class.getName()));
 			
 			StringBuilder b = new StringBuilder();
-			b.append("\r\npublic final Object invoke() {\r\n");
+			b.append("\r\npublic final Object call() {\r\n");
 			b.append("\treturn new ").append(clazz.getName()).append("();\r\n");
 			b.append("}\r\n");
 			
@@ -107,7 +106,7 @@ public final class CodeCreator {
 			c.addInterface(pool.get(Func1.class.getName()));
 			
 			StringBuilder b = new StringBuilder();
-			b.append("\r\npublic final Object invoke(Object p1) {\r\n");
+			b.append("\r\npublic final Object call(Object p1) {\r\n");
 			b.append("\treturn new ").append(clazz.getName()).append("(");
 			b.append("(").append(param1.getName()).append(")p1");
 			b.append(");\r\n");
@@ -146,7 +145,7 @@ public final class CodeCreator {
 			c.addInterface(pool.get(Func2.class.getName()));
 			
 			StringBuilder b = new StringBuilder();
-			b.append("\r\npublic final Object invoke(Object p1, Object p2) {\r\n");
+			b.append("\r\npublic final Object call(Object p1, Object p2) {\r\n");
 			b.append("\treturn new ").append(clazz.getName()).append("(");
 			b.append("(").append(param1.getName()).append(")p1");
 			b.append(", (").append(param1.getName()).append(")p2");
@@ -189,7 +188,7 @@ public final class CodeCreator {
 
 			StringBuilder b = new StringBuilder();
 
-			b.append("public Object invoke(Object t0) {");
+			b.append("public Object call(Object t0) {");
 			b.append("return ");
 			if (ft.isPrimitive()) {
 				if (Boolean.TYPE.equals(ft)) {
@@ -256,7 +255,7 @@ public final class CodeCreator {
 			c.setModifiers(Modifier.FINAL);
 			c.setModifiers(Modifier.PUBLIC);
 			
-			String method = "public void invoke(Object t0, Object u0) {"
+			String method = "public void call(Object t0, Object u0) {"
 			+ "((" + clazz.getName() + ")t0)." + f.getName() + " = (" + ft.getName() + ")u0;"
 			+ "}"
 			;

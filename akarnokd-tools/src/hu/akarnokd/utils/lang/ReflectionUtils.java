@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package hu.akarnokd.utils.lang;
 
-import hu.akarnokd.reactive4java.base.Func0;
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.base.Func2;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -30,6 +26,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import rx.util.functions.Func0;
+import rx.util.functions.Func1;
+import rx.util.functions.Func2;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
@@ -207,7 +206,7 @@ public final class ReflectionUtils {
 			final Constructor<T> c = clazz.getConstructor();
 			return new Func0<T>() {
 				@Override
-				public T invoke() {
+				public T call() {
 					try {
 						return c.newInstance();
 					} catch (InstantiationException | InvocationTargetException | IllegalAccessException ex) {
@@ -235,7 +234,7 @@ public final class ReflectionUtils {
 			final Constructor<T> c = clazz.getConstructor(param1);
 			return new Func1<U, T>() {
 				@Override
-				public T invoke(U param1) {
+				public T call(U param1) {
 					try {
 						return c.newInstance(param1);
 					} catch (InstantiationException | InvocationTargetException | IllegalAccessException ex) {
@@ -265,7 +264,7 @@ public final class ReflectionUtils {
 			final Constructor<T> c = clazz.getConstructor(param1, param2);
 			return new Func2<U, V, T>() {
 				@Override
-				public T invoke(U param1, V param2) {
+				public T call(U param1, V param2) {
 					try {
 						return c.newInstance(param1, param2);
 					} catch (InstantiationException | InvocationTargetException | IllegalAccessException ex) {

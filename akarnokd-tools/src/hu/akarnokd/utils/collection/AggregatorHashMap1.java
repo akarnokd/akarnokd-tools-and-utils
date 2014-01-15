@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package hu.akarnokd.utils.collection;
 
-import hu.akarnokd.reactive4java.base.Func1;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import rx.util.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -37,7 +36,7 @@ public class AggregatorHashMap1<K, V> implements AggregatorMap1<K, V> {
 	@NonNull 
 	protected Func1<Object, ? extends V> itemCreator = new Func1<Object, V>() {
 		@Override
-		public V invoke(Object param1) {
+		public V call(Object param1) {
 			return null;
 		}
 	};
@@ -74,7 +73,7 @@ public class AggregatorHashMap1<K, V> implements AggregatorMap1<K, V> {
 	public V get(Object key) {
 		V r = map.get(key);
 		if (r == null) {
-			r = itemCreator.invoke(key);
+			r = itemCreator.call(key);
 			map.put((K)key, r);
 		}
 		return r;

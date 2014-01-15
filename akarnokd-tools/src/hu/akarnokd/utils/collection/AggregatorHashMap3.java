@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package hu.akarnokd.utils.collection;
 
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.interactive.Interactive;
+import ix.Interactive;
 
 import java.util.Map;
 import java.util.Map.Entry;
 
+import rx.util.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -42,7 +42,7 @@ implements AggregatorMap3<K1, K2, K3, V> {
 	public AggregatorHashMap3() {
 		super(new Func1<Object, AggregatorMap1<K3, V>>() {
 			@Override
-			public AggregatorMap1<K3, V> invoke(Object param1) {
+			public AggregatorMap1<K3, V> call(Object param1) {
 				return new AggregatorHashMap1<>();
 			}
 		});
@@ -54,7 +54,7 @@ implements AggregatorMap3<K1, K2, K3, V> {
 	public AggregatorHashMap3(@NonNull final Func1<Object, ? extends V> itemCreator) {
 		super(new Func1<Object, AggregatorMap1<K3, V>>() {
 			@Override
-			public AggregatorMap1<K3, V> invoke(Object param1) {
+			public AggregatorMap1<K3, V> call(Object param1) {
 				return new AggregatorHashMap1<>(itemCreator);
 			}
 		});
@@ -72,12 +72,12 @@ implements AggregatorMap3<K1, K2, K3, V> {
 		return Interactive.selectMany(entries2(), 
 			new Func1<Value2<K1, K2, AggregatorMap1<K3, V>>, Iterable<Value3<K1, K2, K3, V>>>() { 
 			@Override
-			public Iterable<Value3<K1, K2, K3, V>> invoke(
+			public Iterable<Value3<K1, K2, K3, V>> call(
 					final Value2<K1, K2, AggregatorMap1<K3, V>> param1) {
 				
 				return Interactive.select(param1.value.entries(), new Func1<Map.Entry<K3, V>, Value3<K1, K2, K3, V>>() {
 					@Override
-					public Value3<K1, K2, K3, V> invoke(Entry<K3, V> param2) {
+					public Value3<K1, K2, K3, V> call(Entry<K3, V> param2) {
 						return new Value3<>(param1.key1, param1.key2, param2.getKey(), param2.getValue());
 					}
 				});
@@ -88,7 +88,7 @@ implements AggregatorMap3<K1, K2, K3, V> {
 	public Iterable<K3> keys3() {
 		return Interactive.selectMany(values2(), new Func1<AggregatorMap1<K3, V>, Iterable<K3>>() {
 			@Override
-			public Iterable<K3> invoke(AggregatorMap1<K3, V> param1) {
+			public Iterable<K3> call(AggregatorMap1<K3, V> param1) {
 				return param1.keys();
 			}
 		});
@@ -98,12 +98,12 @@ implements AggregatorMap3<K1, K2, K3, V> {
 		return Interactive.selectMany(entries2(), 
 			new Func1<Value2<K1, K2, AggregatorMap1<K3, V>>, Iterable<Value2<K1, K2, K3>>>() { 
 			@Override
-			public Iterable<Value2<K1, K2, K3>> invoke(
+			public Iterable<Value2<K1, K2, K3>> call(
 					final Value2<K1, K2, AggregatorMap1<K3, V>> param1) {
 				
 				return Interactive.select(param1.value.keys(), new Func1<K3, Value2<K1, K2, K3>>() {
 					@Override
-					public Value2<K1, K2, K3> invoke(K3 param2) {
+					public Value2<K1, K2, K3> call(K3 param2) {
 						return new Value2<>(param1.key1, param1.key2, param2);
 					}
 				});
@@ -114,7 +114,7 @@ implements AggregatorMap3<K1, K2, K3, V> {
 	public Iterable<V> values3() {
 		return Interactive.selectMany(values2(), new Func1<AggregatorMap1<K3, V>, Iterable<V>>() {
 			@Override
-			public Iterable<V> invoke(AggregatorMap1<K3, V> param1) {
+			public Iterable<V> call(AggregatorMap1<K3, V> param1) {
 				return param1.values();
 			}
 		});

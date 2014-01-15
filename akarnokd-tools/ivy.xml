@@ -30,5 +30,6 @@
 		<dependency org="net.sf.trove4j" name="trove4j" rev="3.0.3"/> 
 		<dependency org="org.bouncycastle" name="bcprov-jdk15on" rev="1.49"/>
 		<dependency org="org.javassist" name="javassist" rev="3.18.1-GA"/>
+		<dependency org="com.netflix.rxjava" name="rxjava-core" rev="0.16.1" />
 	</dependencies>
 </ivy-module>

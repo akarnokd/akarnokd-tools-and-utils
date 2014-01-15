@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,8 @@ public class CodeCreatorTest {
 	 */
 	@Test
 	public void testCreateConstructorClassOfT() {
-		CodeCreator.createConstructor(C1.class).invoke();
-		CodeCreator.createConstructor(C2.class).invoke();
+		CodeCreator.createConstructor(C1.class).call();
+		CodeCreator.createConstructor(C2.class).call();
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class CodeCreatorTest {
 	 */
 	@Test
 	public void testCreateConstructorClassOfTClassOfU() {
-		CodeCreator.createConstructor(C1.class, String.class).invoke("1");
+		CodeCreator.createConstructor(C1.class, String.class).call("1");
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class CodeCreatorTest {
 	 */
 	@Test
 	public void testCreateConstructorClassOfTClassOfUClassOfV() {
-		CodeCreator.createConstructor(C1.class, String.class, String.class).invoke("1", "2");
+		CodeCreator.createConstructor(C1.class, String.class, String.class).call("1", "2");
 	}
 
 }

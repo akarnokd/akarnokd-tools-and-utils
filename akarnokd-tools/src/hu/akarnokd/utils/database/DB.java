@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  */
 package hu.akarnokd.utils.database;
 
-import hu.akarnokd.reactive4java.base.Action1E;
-import hu.akarnokd.reactive4java.base.Action2E;
-import hu.akarnokd.reactive4java.base.CloseableIterator;
-import hu.akarnokd.reactive4java.base.Func1E;
-import hu.akarnokd.reactive4java.base.Func2E;
-import hu.akarnokd.reactive4java.util.Closeables;
 import hu.akarnokd.utils.Base64;
+import hu.akarnokd.utils.io.Closeables;
 import hu.akarnokd.utils.xml.XElement;
+import ix.util.Action1E;
+import ix.util.Action2E;
+import ix.util.CloseableIterator;
+import ix.util.Func1E;
+import ix.util.Func2E;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -116,7 +116,7 @@ public class DB implements Closeable {
 	 */
 	public static final SQLAction<Long> DELETE_LONG = new SQLAction<Long>() {
 		@Override
-		public void invoke(PreparedStatement t, Long u)
+		public void call(PreparedStatement t, Long u)
 				throws SQLException {
 			t.setLong(1, u);
 		}
@@ -124,7 +124,7 @@ public class DB implements Closeable {
 	/** Returns a single boolean value. */
 	public static final SQLResult<Boolean> SELECT_BOOLEAN = new SQLResult<Boolean>() {
 		@Override
-		public Boolean invoke(ResultSet param1)
+		public Boolean call(ResultSet param1)
 				throws SQLException {
 			return param1.getBoolean(1);
 		}
@@ -132,7 +132,7 @@ public class DB implements Closeable {
 	/** Returns a single boolean value. */
 	public static final SQLResult<Boolean> SELECT_BOOLEAN_OPTION = new SQLResult<Boolean>() {
 		@Override
-		public Boolean invoke(ResultSet param1)
+		public Boolean call(ResultSet param1)
 				throws SQLException {
 			return getBoolean(param1, 1);
 		}
@@ -140,7 +140,7 @@ public class DB implements Closeable {
 	/** Returns a single datemidnight value. */
 	public static final SQLResult<DateMidnight> SELECT_DATEMIDNIGHT = new SQLResult<DateMidnight>() {
 		@Override
-		public DateMidnight invoke(ResultSet param1)
+		public DateMidnight call(ResultSet param1)
 				throws SQLException {
 			Timestamp timestamp = param1.getTimestamp(1);
 			if (timestamp != null) {
@@ -152,7 +152,7 @@ public class DB implements Closeable {
 	/** Returns a single datetime value. */
 	public static final SQLResult<DateTime> SELECT_DATETIME = new SQLResult<DateTime>() {
 		@Override
-		public DateTime invoke(ResultSet param1)
+		public DateTime call(ResultSet param1)
 				throws SQLException {
 			Timestamp timestamp = param1.getTimestamp(1);
 			if (timestamp != null) {
@@ -164,7 +164,7 @@ public class DB implements Closeable {
 	/** Returns a single byte value. */
 	public static final SQLResult<Byte> SELECT_BYTE = new SQLResult<Byte>() {
 		@Override
-		public Byte invoke(ResultSet param1)
+		public Byte call(ResultSet param1)
 				throws SQLException {
 			return param1.getByte(1);
 		}
@@ -172,7 +172,7 @@ public class DB implements Closeable {
 	/** Returns a single byte value or null. */
 	public static final SQLResult<Byte> SELECT_BYTE_OPTION = new SQLResult<Byte>() {
 		@Override
-		public Byte invoke(ResultSet param1)
+		public Byte call(ResultSet param1)
 				throws SQLException {
 			return DB.getByte(param1, 1);
 		}
@@ -180,7 +180,7 @@ public class DB implements Closeable {
 	/** Returns a single short value. */
 	public static final SQLResult<Short> SELECT_SHORT = new SQLResult<Short>() {
 		@Override
-		public Short invoke(ResultSet param1)
+		public Short call(ResultSet param1)
 				throws SQLException {
 			return param1.getShort(1);
 		}
@@ -188,7 +188,7 @@ public class DB implements Closeable {
 	/** Returns a single short value or null. */
 	public static final SQLResult<Short> SELECT_SHORT_OPTION = new SQLResult<Short>() {
 		@Override
-		public Short invoke(ResultSet param1)
+		public Short call(ResultSet param1)
 				throws SQLException {
 			return DB.getShort(param1, 1);
 		}
@@ -196,7 +196,7 @@ public class DB implements Closeable {
 	/** Returns a single long value. */
 	public static final SQLResult<Integer> SELECT_INT = new SQLResult<Integer>() {
 		@Override
-		public Integer invoke(ResultSet param1)
+		public Integer call(ResultSet param1)
 				throws SQLException {
 			return param1.getInt(1);
 		}
@@ -204,7 +204,7 @@ public class DB implements Closeable {
 	/** Returns a single long value or null. */
 	public static final SQLResult<Integer> SELECT_INT_OPTION = new SQLResult<Integer>() {
 		@Override
-		public Integer invoke(ResultSet param1)
+		public Integer call(ResultSet param1)
 				throws SQLException {
 			return DB.getInt(param1, 1);
 		}
@@ -212,7 +212,7 @@ public class DB implements Closeable {
 	/** Returns a single long value. */
 	public static final SQLResult<Long> SELECT_LONG = new SQLResult<Long>() {
 		@Override
-		public Long invoke(ResultSet param1)
+		public Long call(ResultSet param1)
 				throws SQLException {
 			return param1.getLong(1);
 		}
@@ -220,7 +220,7 @@ public class DB implements Closeable {
 	/** Returns a single long value or null. */
 	public static final SQLResult<Long> SELECT_LONG_OPTION = new SQLResult<Long>() {
 		@Override
-		public Long invoke(ResultSet param1)
+		public Long call(ResultSet param1)
 				throws SQLException {
 			return DB.getLong(param1, 1);
 		}
@@ -228,7 +228,7 @@ public class DB implements Closeable {
 	/** Returns a single float value. */
 	public static final SQLResult<Float> SELECT_FLOAT = new SQLResult<Float>() {
 		@Override
-		public Float invoke(ResultSet param1)
+		public Float call(ResultSet param1)
 				throws SQLException {
 			return param1.getFloat(1);
 		}
@@ -236,7 +236,7 @@ public class DB implements Closeable {
 	/** Returns a single float value or null. */
 	public static final SQLResult<Float> SELECT_FLOAT_OPTION = new SQLResult<Float>() {
 		@Override
-		public Float invoke(ResultSet param1)
+		public Float call(ResultSet param1)
 				throws SQLException {
 			return DB.getFloat(param1, 1);
 		}
@@ -244,7 +244,7 @@ public class DB implements Closeable {
 	/** Returns a single double value. */
 	public static final SQLResult<Double> SELECT_DOUBLE = new SQLResult<Double>() {
 		@Override
-		public Double invoke(ResultSet param1)
+		public Double call(ResultSet param1)
 				throws SQLException {
 			return param1.getDouble(1);
 		}
@@ -252,7 +252,7 @@ public class DB implements Closeable {
 	/** Returns a single double value or null. */
 	public static final SQLResult<Double> SELECT_DOUBLE_OPTION = new SQLResult<Double>() {
 		@Override
-		public Double invoke(ResultSet param1)
+		public Double call(ResultSet param1)
 				throws SQLException {
 			return DB.getDouble(param1, 1);
 		}
@@ -260,7 +260,7 @@ public class DB implements Closeable {
 	/** Returns a single long value. */
 	public static final SQLResult<String> SELECT_STRING = new SQLResult<String>() {
 		@Override
-		public String invoke(ResultSet param1)
+		public String call(ResultSet param1)
 				throws SQLException {
 			return param1.getString(1);
 		}
@@ -268,7 +268,7 @@ public class DB implements Closeable {
 	/** Returns a single timestamp value. */
 	public static final SQLResult<Timestamp> SELECT_TIMESTAMP = new SQLResult<Timestamp>() {
 		@Override
-		public Timestamp invoke(ResultSet param1)
+		public Timestamp call(ResultSet param1)
 				throws SQLException {
 			return param1.getTimestamp(1);
 		}
@@ -390,7 +390,7 @@ public class DB implements Closeable {
 	public static void execute(
 			@NonNull Action1E<? super DB, ? extends SQLException> action) throws SQLException {
 		try (DB db = DB.connect()) {
-			action.invoke(db);
+			action.call(db);
 		} catch (IOException ex) {
 			throw new SQLException(ex);
 		}
@@ -406,7 +406,7 @@ public class DB implements Closeable {
 	public static <T> T execute(
 			@NonNull Func1E<? super DB, ? extends T, ? extends SQLException> func) throws SQLException {
 		try (DB db = DB.connect()) {
-			return func.invoke(db);
+			return func.call(db);
 		} catch (IOException ex) {
 			throw new SQLException(ex);
 		}
@@ -422,7 +422,7 @@ public class DB implements Closeable {
 			@NonNull String id, 
 			@NonNull Action1E<? super DB, ? extends SQLException> action) throws SQLException {
 		try (DB db = DB.connect(id)) {
-			action.invoke(db);
+			action.call(db);
 		} catch (IOException ex) {
 			throw new SQLException(ex);
 		}
@@ -440,7 +440,7 @@ public class DB implements Closeable {
 			@NonNull String id, 
 			@NonNull Func1E<? super DB, ? extends T, ? extends SQLException> func) throws SQLException {
 		try (DB db = DB.connect(id)) {
-			return func.invoke(db);
+			return func.call(db);
 		} catch (IOException ex) {
 			throw new SQLException(ex);
 		}
@@ -1290,7 +1290,7 @@ public class DB implements Closeable {
 			pstmt.executeUpdate();
 			try (ResultSet rs = pstmt.getGeneratedKeys()) {
 				if (rs.next()) {
-					setAutoKey.invoke(rs);
+					setAutoKey.call(rs);
 				}
 			}
 		}
@@ -1515,7 +1515,7 @@ public class DB implements Closeable {
 					rs.setFetchSize(fetchSize);
 				}
 				while (rs.next()) {
-					action.invoke(rs);
+					action.call(rs);
 				}
 			}
 		}
@@ -1551,7 +1551,7 @@ public class DB implements Closeable {
 				}
 				int i = 0;
 				while (rs.next()) {
-					action.invoke(rs, i++);
+					action.call(rs, i++);
 				}
 			}
 		}
@@ -1593,7 +1593,7 @@ public class DB implements Closeable {
 					rs.setFetchSize(fetchSize);
 				}
 				while (rs.next()) {
-					T t = unmarshaller.invoke(rs);
+					T t = unmarshaller.call(rs);
 					result.add(t);
 				}
 			}
@@ -1643,7 +1643,7 @@ public class DB implements Closeable {
 				/** The cursor has been moved. */
 				boolean moved;
 				@Override
-				public void close() throws IOException {
+				public void unsubscribe() {
 					try {
 						rs.close();
 					} catch (SQLException ex) {
@@ -1674,7 +1674,7 @@ public class DB implements Closeable {
 				public T next() {
 					if (hasNext()) {
 						try {
-							T result = unmarshaller.invoke(rs);
+							T result = unmarshaller.call(rs);
 							moved = false;
 							return result;
 						} catch (SQLException ex) {
@@ -1722,7 +1722,7 @@ public class DB implements Closeable {
 					rs.setFetchSize(fetchSize);
 				}
 				while (rs.next()) {
-					action.invoke(rs);
+					action.call(rs);
 				}
 			}
 		}
@@ -1764,7 +1764,7 @@ public class DB implements Closeable {
 					rs.setFetchSize(fetchSize);
 				}
 				while (rs.next()) {
-					T t = unmarshaller.invoke(rs);
+					T t = unmarshaller.call(rs);
 					result.add(t);
 				}
 			}
@@ -1809,7 +1809,7 @@ public class DB implements Closeable {
 				}
 				int i = 0;
 				while (rs.next()) {
-					T t = unmarshaller.invoke(rs, i++);
+					T t = unmarshaller.call(rs, i++);
 					result.add(t);
 				}
 			}
@@ -1849,7 +1849,7 @@ public class DB implements Closeable {
 		try (PreparedStatement pstmt = prepare(false, sql, params)) {
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (rs.next()) {
-					return unmarshaller.invoke(rs);
+					return unmarshaller.call(rs);
 				}
 				return null;
 			}
@@ -1881,7 +1881,7 @@ public class DB implements Closeable {
 		PreparedStatement pstmt = prepare(false, sql);
 		try {
 			for (T t : items) {
-				marshaller.invoke(pstmt, t);
+				marshaller.call(pstmt, t);
 				pstmt.addBatch();
 			}
 			pstmt.executeBatch();
@@ -1906,7 +1906,7 @@ public class DB implements Closeable {
 		PreparedStatement pstmt = prepare(true, sql);
 		try {
 			for (T t : items) {
-				marshaller.invoke(pstmt, t);
+				marshaller.call(pstmt, t);
 				pstmt.addBatch();
 			}
 			pstmt.executeBatch();
@@ -1918,7 +1918,7 @@ public class DB implements Closeable {
 				Iterator<T> it = items.iterator();
 				while (it.hasNext() && rs.next()) {
 					T t = it.next();
-					setAutoKey.invoke(rs, t);
+					setAutoKey.call(rs, t);
 				}
 			} finally {
 				rs.close();
@@ -2035,7 +2035,7 @@ public class DB implements Closeable {
 			Action2E<PreparedStatement, T, SQLException> marshaller, 
 			T value) throws SQLException {
 		try (PreparedStatement pstmt = prepare(true, sql)) {
-			marshaller.invoke(pstmt, value);
+			marshaller.call(pstmt, value);
 			pstmt.executeUpdate();
 			try (ResultSet rs = pstmt.getGeneratedKeys()) {
 				if (rs.next()) {
@@ -2058,7 +2058,7 @@ public class DB implements Closeable {
 	public <T> int update(CharSequence sql, 
 			Action2E<PreparedStatement, T, SQLException> marshaller, T value) throws SQLException {
 		try (PreparedStatement pstmt = prepare(sql)) {
-			marshaller.invoke(pstmt, value);
+			marshaller.call(pstmt, value);
 			return pstmt.executeUpdate();
 		}
 	}

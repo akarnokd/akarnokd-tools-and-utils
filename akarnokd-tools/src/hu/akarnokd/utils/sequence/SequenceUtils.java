@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package hu.akarnokd.utils.sequence;
 
-import hu.akarnokd.reactive4java.base.Action1E;
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.base.Func1E;
-import hu.akarnokd.reactive4java.query.IterableBuilder;
+import ix.IterableBuilder;
+import ix.util.Action1E;
+import ix.util.Func1E;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -27,6 +26,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Iterator;
 
+import rx.util.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -207,8 +207,8 @@ public final class SequenceUtils {
 			@NonNull final Func1E<? super ResultSet, ? extends T, ? extends SQLException> map) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
-				out.add(map.invoke(t));
+			public void call(ResultSet t) throws SQLException {
+				out.add(map.call(t));
 			}
 		};
 	}
@@ -221,7 +221,7 @@ public final class SequenceUtils {
     public static Iterable<String> trim(@NonNull Iterable<String> sequence) {
     	return IterableBuilder.from(sequence).select(new Func1<String, String>() {
     		@Override
-    		public String invoke(String param1) {
+    		public String call(String param1) {
     			return param1.trim();
     		}
     	});

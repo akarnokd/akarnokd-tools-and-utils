@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,13 @@
 
 package hu.akarnokd.utils.database;
 
-import hu.akarnokd.reactive4java.base.Action1;
-import hu.akarnokd.reactive4java.base.Action1E;
-import hu.akarnokd.reactive4java.base.Action2;
-import hu.akarnokd.reactive4java.base.Action2E;
-import hu.akarnokd.reactive4java.base.Func0;
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.base.Func1E;
-import hu.akarnokd.reactive4java.interactive.Interactive;
 import hu.akarnokd.utils.generator.CodeCreator;
 import hu.akarnokd.utils.lang.ReflectionUtils;
 import hu.akarnokd.utils.sequence.SequenceUtils;
+import ix.Interactive;
+import ix.util.Action1E;
+import ix.util.Action2E;
+import ix.util.Func1E;
 
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -38,6 +34,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import rx.util.functions.Action1;
+import rx.util.functions.Action2;
+import rx.util.functions.Func0;
+import rx.util.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -142,9 +142,9 @@ public class DBPojo<T> {
 
 		sqlResult = new SQLResult<T>() {
 			@Override
-			public T invoke(ResultSet t) throws SQLException {
-				T r = create.invoke();
-				select.invoke(t, r);
+			public T call(ResultSet t) throws SQLException {
+				T r = create.call();
+				select.call(t, r);
 				return r;
 			}
 		};
@@ -256,7 +256,7 @@ public class DBPojo<T> {
 	 */
 	public int deleteOne(@NonNull DB db, T value) throws SQLException {
 		try (PreparedStatement pstmt = db.prepare(deleteSql)) {
-			delete.invoke(pstmt, value);
+			delete.call(pstmt, value);
 			return pstmt.executeUpdate();
 		}
 	}
@@ -310,11 +310,11 @@ public class DBPojo<T> {
 			@NonNull Action2<? super T, ? super Long> setId) throws SQLException {
 		try (PreparedStatement pstmt = db.prepare(updateSql)) {
 			for (T v : items) {
-				if (insert.invoke(v)) {
+				if (insert.call(v)) {
 					long id = db.insertAuto(insertSql, insert, v);
-					setId.invoke(v, id);
+					setId.call(v, id);
 				} else {
-					update.invoke(pstmt, v);
+					update.call(pstmt, v);
 					pstmt.addBatch();
 				}
 			}
@@ -335,11 +335,11 @@ public class DBPojo<T> {
 		try (PreparedStatement pstmtUpdate = db.prepare(updateSql);
 				PreparedStatement pstmtInsert = db.prepare(insertExactSql)) {
 			for (T v : items) {
-				if (insert.invoke(v)) {
-					update.invoke(pstmtInsert, v);
+				if (insert.call(v)) {
+					update.call(pstmtInsert, v);
 					pstmtInsert.addBatch();
 				} else {
-					update.invoke(pstmtUpdate, v);
+					update.call(pstmtUpdate, v);
 					pstmtUpdate.addBatch();
 				}
 			}
@@ -357,10 +357,10 @@ public class DBPojo<T> {
 	 */
 	public boolean selectInto(@NonNull DB db, T out) throws SQLException {
 		try (PreparedStatement pstmt = db.prepare(selectOneSql)) {
-			delete.invoke(pstmt, out);
+			delete.call(pstmt, out);
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (rs.next()) {
-					select.invoke(rs, out);
+					select.call(rs, out);
 					return true;
 				}
 			}
@@ -411,8 +411,8 @@ public class DBPojo<T> {
 	protected Action1E<ResultSet, SQLException> wrap(@NonNull final Action1<? super T> action) {
 		return new Action1E<ResultSet, SQLException>() {
 			@Override
-			public void invoke(ResultSet t) throws SQLException {
-				action.invoke(sqlResult.invoke(t));
+			public void call(ResultSet t) throws SQLException {
+				action.call(sqlResult.call(t));
 			}
 		};
 	}

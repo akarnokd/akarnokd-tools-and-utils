@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 David Karnok
+ * Copyright 2012-2014 David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package hu.akarnokd.utils.collection;
 
-import hu.akarnokd.reactive4java.base.Func1;
-import hu.akarnokd.reactive4java.interactive.Interactive;
+import ix.Interactive;
 
 import java.util.Map;
 import java.util.Map.Entry;
+
+import rx.util.functions.Func1;
 
 /**
  * A multi-level map with four key levels.
@@ -42,7 +43,7 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 	public AggregatorHashMap5() {
 		super(new Func1<Object, AggregatorMap1<K5, V>>() {
 			@Override
-			public AggregatorMap1<K5, V> invoke(Object param1) {
+			public AggregatorMap1<K5, V> call(Object param1) {
 				return new AggregatorHashMap1<>();
 			}
 		});
@@ -54,7 +55,7 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 	public AggregatorHashMap5(final Func1<Object, ? extends V> itemCreator) {
 		super(new Func1<Object, AggregatorMap1<K5, V>>() {
 			@Override
-			public AggregatorMap1<K5, V> invoke(Object param1) {
+			public AggregatorMap1<K5, V> call(Object param1) {
 				return new AggregatorHashMap1<>(itemCreator);
 			}
 		});
@@ -72,11 +73,11 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 		return Interactive.selectMany(entries4(), 
 		new Func1<Value4<K1, K2, K3, K4, AggregatorMap1<K5, V>>, Iterable<Value5<K1, K2, K3, K4, K5, V>>>() {
 			@Override
-			public Iterable<Value5<K1, K2, K3, K4, K5, V>> invoke(
+			public Iterable<Value5<K1, K2, K3, K4, K5, V>> call(
 					final Value4<K1, K2, K3, K4, AggregatorMap1<K5, V>> param1) {
 				return Interactive.select(param1.value.entries(), new Func1<Map.Entry<K5, V>, Value5<K1, K2, K3, K4, K5, V>>() {
 					@Override
-					public Value5<K1, K2, K3, K4, K5, V> invoke(Entry<K5, V> param2) {
+					public Value5<K1, K2, K3, K4, K5, V> call(Entry<K5, V> param2) {
 						return new Value5<>(param1.key1, param1.key2, param1.key3, param1.key4, param2.getKey(), param2.getValue());
 					}
 				});
@@ -87,7 +88,7 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 	public Iterable<K5> keys5() {
 		return Interactive.selectMany(values4(), new Func1<AggregatorMap1<K5, V>, Iterable<K5>>() {
 			@Override
-			public Iterable<K5> invoke(AggregatorMap1<K5, V> param1) {
+			public Iterable<K5> call(AggregatorMap1<K5, V> param1) {
 				return param1.keys();
 			}
 		});
@@ -97,12 +98,12 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 		return Interactive.selectMany(entries4(), 
 				new Func1<Value4<K1, K2, K3, K4, AggregatorMap1<K5, V>>, Iterable<Value4<K1, K2, K3, K4, K5>>>() { 
 				@Override
-				public Iterable<Value4<K1, K2, K3, K4, K5>> invoke(
+				public Iterable<Value4<K1, K2, K3, K4, K5>> call(
 						final Value4<K1, K2, K3, K4, AggregatorMap1<K5, V>> param1) {
 					
 					return Interactive.select(param1.value.keys(), new Func1<K5, Value4<K1, K2, K3, K4, K5>>() {
 						@Override
-						public Value4<K1, K2, K3, K4, K5> invoke(K5 param2) {
+						public Value4<K1, K2, K3, K4, K5> call(K5 param2) {
 							return new Value4<>(param1.key1, param1.key2, param1.key3, param1.key4, param2);
 						}
 					});
@@ -113,7 +114,7 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 	public Iterable<V> values5() {
 		return Interactive.selectMany(values4(), new Func1<AggregatorMap1<K5, V>, Iterable<V>>() {
 			@Override
-			public Iterable<V> invoke(AggregatorMap1<K5, V> param1) {
+			public Iterable<V> call(AggregatorMap1<K5, V> param1) {
 				return param1.values();
 			}
 		});

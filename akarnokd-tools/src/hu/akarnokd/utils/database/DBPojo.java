@@ -311,7 +311,7 @@ public class DBPojo<T> {
 		try (PreparedStatement pstmt = db.prepare(updateSql)) {
 			for (T v : items) {
 				if (insert.call(v)) {
-					long id = db.insertAuto(insertSql, insert, v);
+					long id = db.insertAuto(insertSql, this.insert, v);
 					setId.call(v, id);
 				} else {
 					update.call(pstmt, v);

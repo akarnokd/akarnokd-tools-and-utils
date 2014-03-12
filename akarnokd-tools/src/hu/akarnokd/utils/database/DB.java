@@ -1510,6 +1510,9 @@ public class DB implements Closeable {
 			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
 			Object... params) throws SQLException {
 		try (PreparedStatement pstmt = prepare(false, sql, params)) {
+			if (fetchSize != 0) {
+				pstmt.setFetchSize(fetchSize);
+			}
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
@@ -1545,6 +1548,9 @@ public class DB implements Closeable {
 			@NonNull Action2E<? super ResultSet, ? super Integer, ? extends SQLException> action,
 			Object... params) throws SQLException {
 		try (PreparedStatement pstmt = prepare(false, sql, params)) {
+			if (fetchSize != 0) {
+				pstmt.setFetchSize(fetchSize);
+			}
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
@@ -1588,6 +1594,9 @@ public class DB implements Closeable {
 			Object... params) throws SQLException {
 		List<T> result = Lists.newArrayList();
 		try (PreparedStatement pstmt = prepare(false, sql, params)) {
+			if (fetchSize != 0) {
+				pstmt.setFetchSize(fetchSize);
+			}
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
@@ -1717,6 +1726,9 @@ public class DB implements Closeable {
 			@NonNull Action1E<? super ResultSet, ? extends SQLException> action,
 			Object... params) throws SQLException {
 		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
+			if (fetchSize != 0) {
+				pstmt.setFetchSize(fetchSize);
+			}
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
@@ -1759,6 +1771,9 @@ public class DB implements Closeable {
 			Object... params) throws SQLException {
 		List<T> result = Lists.newArrayList();
 		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
+			if (fetchSize != 0) {
+				pstmt.setFetchSize(fetchSize);
+			}
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
@@ -1803,6 +1818,9 @@ public class DB implements Closeable {
 			Object... params) throws SQLException {
 		List<T> result = Lists.newArrayList();
 		try (PreparedStatement pstmt = prepareReadOnly(sql, params)) {
+			if (fetchSize != 0) {
+				pstmt.setFetchSize(fetchSize);
+			}
 			try (ResultSet rs = pstmt.executeQuery()) {
 				if (fetchSize != 0) {
 					rs.setFetchSize(fetchSize);
@@ -1905,6 +1923,9 @@ public class DB implements Closeable {
 			@NonNull Action2E<? super ResultSet, ? super T, ? extends SQLException> setAutoKey) throws SQLException {
 		PreparedStatement pstmt = prepare(true, sql);
 		try {
+			if (fetchSize != 0) {
+				pstmt.setFetchSize(fetchSize);
+			}
 			for (T t : items) {
 				marshaller.call(pstmt, t);
 				pstmt.addBatch();

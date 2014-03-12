@@ -248,6 +248,22 @@ public class DBPojo<T> {
 		db.update(insertExactSql, update, value);
 	}
 	/**
+	 * Insert a sequence of values into an auto-increment table without
+	 * retrieveing the new identifiers.
+	 * @param db the database connection
+	 * @param values the values to insert
+	 * @throws SQLException on error
+	 */
+	public void insertBatch(@NonNull DB db, Iterable<T> values) throws SQLException {
+		try (PreparedStatement pstmt = db.prepare(insertSql)) {
+			for (T v : values) {
+				insert.call(pstmt, v);
+				pstmt.addBatch();
+			}
+			pstmt.executeBatch();
+		}
+	}
+	/**
 	 * Deletes the record which is identified through the value.
 	 * @param db the database connection
 	 * @param value the record sample

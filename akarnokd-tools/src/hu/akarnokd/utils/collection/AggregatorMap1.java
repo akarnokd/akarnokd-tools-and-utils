@@ -19,7 +19,7 @@ package hu.akarnokd.utils.collection;
 import java.util.Collection;
 import java.util.Map;
 
-import rx.util.functions.Func1;
+import rx.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**

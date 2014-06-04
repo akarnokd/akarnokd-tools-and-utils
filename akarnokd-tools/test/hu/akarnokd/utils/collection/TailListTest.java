@@ -23,7 +23,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import rx.util.functions.Func1;
+import rx.functions.Func1;
 
 /**
  * Test the Tail list methods.

@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-import rx.util.functions.Func0;
+import rx.functions.Func0;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import gnu.trove.TByteCollection;
 import gnu.trove.TCharCollection;

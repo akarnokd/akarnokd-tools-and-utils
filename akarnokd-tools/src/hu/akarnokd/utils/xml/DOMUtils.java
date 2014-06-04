@@ -25,7 +25,7 @@ import java.util.Objects;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import rx.util.functions.Func1;
+import rx.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**

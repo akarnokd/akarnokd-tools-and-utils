@@ -26,7 +26,7 @@ import java.util.Arrays;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import rx.util.functions.Action0;
+import rx.functions.Action0;
 
 /**
  * Utility class to manage Closeable instances.

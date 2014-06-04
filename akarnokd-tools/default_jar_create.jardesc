@@ -11,8 +11,8 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
-        <file path="/akarnokd-tools/LICENSE"/>
         <javaElement handleIdentifier="=akarnokd-tools/test"/>
         <javaElement handleIdentifier="=akarnokd-tools/src"/>
+        <file path="/akarnokd-tools/LICENSE"/>
     </selectedElements>
 </jardesc>

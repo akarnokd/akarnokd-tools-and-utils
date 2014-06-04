@@ -21,7 +21,7 @@ import ix.Interactive;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import rx.util.functions.Func1;
+import rx.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**

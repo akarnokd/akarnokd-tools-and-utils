@@ -51,7 +51,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import rx.util.functions.Action1;
+import rx.functions.Action1;
 
 /**
  * A simplified XML element model.

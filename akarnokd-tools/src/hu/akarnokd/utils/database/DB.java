@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nonnull;
 import javax.xml.stream.XMLStreamException;
@@ -1651,16 +1652,23 @@ public class DB implements Closeable {
 				boolean done;
 				/** The cursor has been moved. */
 				boolean moved;
+				final AtomicBoolean once = new AtomicBoolean();
 				@Override
 				public void unsubscribe() {
-					try {
-						rs.close();
-					} catch (SQLException ex) {
+					if (once.compareAndSet(false, true)) {
+						try {
+							rs.close();
+						} catch (SQLException ex) {
+						}
+						try {
+							pstmt.close();
+						} catch (SQLException ex) {
+						}
 					}
-					try {
-						pstmt.close();
-					} catch (SQLException ex) {
-					}
+				}
+				@Override
+				public boolean isUnsubscribed() {
+					return once.get();
 				}
 				@Override
 				public boolean hasNext() {
@@ -1871,6 +1879,9 @@ public class DB implements Closeable {
 				}
 				return null;
 			}
+		} catch (SQLException ex) {
+			System.err.println(sql);
+			throw ex;
 		}
 	}
 	/**
@@ -1903,6 +1914,9 @@ public class DB implements Closeable {
 				pstmt.addBatch();
 			}
 			pstmt.executeBatch();
+		} catch (SQLException ex) {
+			System.err.println(sql);
+			throw ex;
 		} finally {
 			pstmt.close();
 		}
@@ -1944,6 +1958,9 @@ public class DB implements Closeable {
 			} finally {
 				rs.close();
 			}
+		} catch (SQLException ex) {
+			System.err.println(sql);
+			throw ex;
 		} finally {
 			pstmt.close();
 		}
@@ -1993,6 +2010,7 @@ public class DB implements Closeable {
 				pstmt.close();
 			}
 		} catch (SQLException ex) {
+			System.err.println(sql);
 			throw ex;
 		}
 	}
@@ -2063,6 +2081,9 @@ public class DB implements Closeable {
 					return rs.getLong(1);
 				}
 			}
+		} catch (SQLException ex) {
+			System.err.println(sql);
+			throw ex;
 		}
 		return 0L;
 	}
@@ -2081,6 +2102,9 @@ public class DB implements Closeable {
 		try (PreparedStatement pstmt = prepare(sql)) {
 			marshaller.call(pstmt, value);
 			return pstmt.executeUpdate();
+		} catch (SQLException ex) {
+			System.err.println(sql);
+			throw ex;
 		}
 	}
 	/**

@@ -26,7 +26,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Iterator;
 
-import rx.util.functions.Func1;
+import rx.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**

@@ -16,7 +16,7 @@
 
 package hu.akarnokd.utils.database;
 
-import ix.util.Func1E;
+import hu.akarnokd.utils.lang.Func1E;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

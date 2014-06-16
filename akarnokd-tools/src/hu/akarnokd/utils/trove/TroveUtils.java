@@ -16,8 +16,6 @@
 
 package hu.akarnokd.utils.trove;
 
-import ix.util.Action1E;
-
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -259,6 +257,7 @@ import gnu.trove.set.hash.TFloatHashSet;
 import gnu.trove.set.hash.TIntHashSet;
 import gnu.trove.set.hash.TLongHashSet;
 import gnu.trove.set.hash.TShortHashSet;
+import hu.akarnokd.utils.lang.Action1E;
 
 /**
  * Utility methods for Trove classes.

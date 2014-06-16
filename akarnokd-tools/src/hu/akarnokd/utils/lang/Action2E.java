@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package hu.akarnokd.utils.database;
-
-import hu.akarnokd.utils.lang.Func1E;
-
-import java.sql.SQLException;
+package hu.akarnokd.utils.lang;
 
 /**
- * Interface to calculate a result with a connection.
- * @author akarnokd, 2013.04.18.
- * @param <T> the return type
+ * A two parameter + exception functional interface.
+ * @author akarnokd, 2013.11.01.
+ * @param <T1> the first parameter
+ * @param <T2> the second parameter
+ * @param <E> the exception class
  */
-public interface SQLCall<T> extends Func1E<DB, T, SQLException> {
-
+public interface Action2E<T1, T2, E extends Exception> {
+	/**
+	 * Invokes the action.
+	 * @param t the first parameter
+	 * @param u the second parameter
+	 * @throws E the expection
+	 */
+	void call(T1 t, T2 u) throws E;
 }

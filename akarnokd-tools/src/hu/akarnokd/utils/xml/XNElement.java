@@ -16,8 +16,8 @@
 
 package hu.akarnokd.utils.xml;
 
-import ix.Interactive;
-import ix.util.Pair;
+import ix.Ix;
+import ix.Pair;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -507,7 +507,7 @@ public class XNElement extends XElementBase {
 	 * @return the iterator
 	 */
 	public Iterable<XNElement> childrenWithName(final String name) {
-		return Interactive.where(children, new Func1<XNElement, Boolean>() {
+		return Ix.from(children).filter(new Func1<XNElement, Boolean>() {
 			@Override
 			public Boolean call(XNElement param1) {
 				return Objects.equal(param1.name, name);
@@ -521,7 +521,7 @@ public class XNElement extends XElementBase {
 	 * @return the iterator
 	 */
 	public Iterable<XNElement> childrenWithName(final String name, final String namespace) {
-		return Interactive.where(children, new Func1<XNElement, Boolean>() {
+		return Ix.from(children).filter(new Func1<XNElement, Boolean>() {
 			@Override
 			public Boolean call(XNElement param1) {
 				return Objects.equal(param1.name, name) && Objects.equal(param1.namespace, namespace);

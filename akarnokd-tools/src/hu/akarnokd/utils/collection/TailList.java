@@ -16,8 +16,8 @@
 
 package hu.akarnokd.utils.collection;
 
-import ix.util.Action1E;
-import ix.util.Func1E;
+import hu.akarnokd.utils.lang.Action1E;
+import hu.akarnokd.utils.lang.Func1E;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;

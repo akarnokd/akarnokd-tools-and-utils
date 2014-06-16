@@ -17,12 +17,12 @@ package hu.akarnokd.utils.database;
 
 import hu.akarnokd.utils.Base64;
 import hu.akarnokd.utils.io.Closeables;
+import hu.akarnokd.utils.lang.Action1E;
+import hu.akarnokd.utils.lang.Action2E;
+import hu.akarnokd.utils.lang.Func1E;
+import hu.akarnokd.utils.lang.Func2E;
 import hu.akarnokd.utils.xml.XElement;
-import ix.util.Action1E;
-import ix.util.Action2E;
-import ix.util.CloseableIterator;
-import ix.util.Func1E;
-import ix.util.Func2E;
+import ix.CloseableIterator;
 
 import java.io.Closeable;
 import java.io.IOException;

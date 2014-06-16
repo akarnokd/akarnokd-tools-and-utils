@@ -16,7 +16,7 @@
 
 package hu.akarnokd.utils.crypto;
 
-import ix.util.Pair;
+import ix.Pair;
 
 import org.junit.Assert;
 import org.junit.Test;

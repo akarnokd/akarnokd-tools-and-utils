@@ -18,9 +18,8 @@ package hu.akarnokd.utils.database;
 
 import java.sql.Time;
 
-import org.junit.Assert;
-
 import org.joda.time.LocalTime;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**

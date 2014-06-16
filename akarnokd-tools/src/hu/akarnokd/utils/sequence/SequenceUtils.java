@@ -16,9 +16,9 @@
 
 package hu.akarnokd.utils.sequence;
 
-import ix.IterableBuilder;
-import ix.util.Action1E;
-import ix.util.Func1E;
+import hu.akarnokd.utils.lang.Action1E;
+import hu.akarnokd.utils.lang.Func1E;
+import ix.Ix;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -219,7 +219,7 @@ public final class SequenceUtils {
      */
     @NonNull
     public static Iterable<String> trim(@NonNull Iterable<String> sequence) {
-    	return IterableBuilder.from(sequence).select(new Func1<String, String>() {
+    	return Ix.from(sequence).map(new Func1<String, String>() {
     		@Override
     		public String call(String param1) {
     			return param1.trim();

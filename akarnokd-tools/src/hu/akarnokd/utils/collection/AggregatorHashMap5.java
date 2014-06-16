@@ -16,7 +16,7 @@
 
 package hu.akarnokd.utils.collection;
 
-import ix.Interactive;
+import ix.Ix;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -70,12 +70,12 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 	}
 	@Override
 	public Iterable<Value5<K1, K2, K3, K4, K5, V>> entries5() {
-		return Interactive.selectMany(entries4(), 
+		return Ix.from(entries4()).flatMap(
 		new Func1<Value4<K1, K2, K3, K4, AggregatorMap1<K5, V>>, Iterable<Value5<K1, K2, K3, K4, K5, V>>>() {
 			@Override
 			public Iterable<Value5<K1, K2, K3, K4, K5, V>> call(
 					final Value4<K1, K2, K3, K4, AggregatorMap1<K5, V>> param1) {
-				return Interactive.select(param1.value.entries(), new Func1<Map.Entry<K5, V>, Value5<K1, K2, K3, K4, K5, V>>() {
+				return Ix.from(param1.value.entries()).map(new Func1<Map.Entry<K5, V>, Value5<K1, K2, K3, K4, K5, V>>() {
 					@Override
 					public Value5<K1, K2, K3, K4, K5, V> call(Entry<K5, V> param2) {
 						return new Value5<>(param1.key1, param1.key2, param1.key3, param1.key4, param2.getKey(), param2.getValue());
@@ -86,7 +86,7 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 	}
 	@Override
 	public Iterable<K5> keys5() {
-		return Interactive.selectMany(values4(), new Func1<AggregatorMap1<K5, V>, Iterable<K5>>() {
+		return Ix.from(values4()).flatMap(new Func1<AggregatorMap1<K5, V>, Iterable<K5>>() {
 			@Override
 			public Iterable<K5> call(AggregatorMap1<K5, V> param1) {
 				return param1.keys();
@@ -95,13 +95,13 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 	}
 	@Override
 	public Iterable<Value4<K1, K2, K3, K4, K5>> keys12345() {
-		return Interactive.selectMany(entries4(), 
+		return Ix.from(entries4()).flatMap(
 				new Func1<Value4<K1, K2, K3, K4, AggregatorMap1<K5, V>>, Iterable<Value4<K1, K2, K3, K4, K5>>>() { 
 				@Override
 				public Iterable<Value4<K1, K2, K3, K4, K5>> call(
 						final Value4<K1, K2, K3, K4, AggregatorMap1<K5, V>> param1) {
 					
-					return Interactive.select(param1.value.keys(), new Func1<K5, Value4<K1, K2, K3, K4, K5>>() {
+					return Ix.from(param1.value.keys()).map(new Func1<K5, Value4<K1, K2, K3, K4, K5>>() {
 						@Override
 						public Value4<K1, K2, K3, K4, K5> call(K5 param2) {
 							return new Value4<>(param1.key1, param1.key2, param1.key3, param1.key4, param2);
@@ -112,7 +112,7 @@ implements AggregatorMap5<K1, K2, K3, K4, K5, V> {
 	}
 	@Override
 	public Iterable<V> values5() {
-		return Interactive.selectMany(values4(), new Func1<AggregatorMap1<K5, V>, Iterable<V>>() {
+		return Ix.from(values4()).flatMap(new Func1<AggregatorMap1<K5, V>, Iterable<V>>() {
 			@Override
 			public Iterable<V> call(AggregatorMap1<K5, V> param1) {
 				return param1.values();

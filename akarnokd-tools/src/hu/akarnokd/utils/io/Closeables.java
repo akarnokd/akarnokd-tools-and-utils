@@ -16,8 +16,8 @@
 
 package hu.akarnokd.utils.io;
 
-import ix.util.Action0E;
-import ix.util.MultiIOException;
+import hu.akarnokd.utils.lang.Action0E;
+import ix.exceptions.MultiIOException;
 
 import java.io.Closeable;
 import java.io.IOException;

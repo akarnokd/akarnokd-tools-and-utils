@@ -16,7 +16,7 @@
 
 package hu.akarnokd.utils.pool;
 
-import ix.util.MultiIOException;
+import ix.exceptions.MultiIOException;
 
 import java.io.IOException;
 import java.util.Set;

@@ -16,6 +16,8 @@
 
 package hu.akarnokd.utils.crypto;
 
+import ix.Pair;
+
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -25,8 +27,6 @@ import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
-
-import ix.util.Pair;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;

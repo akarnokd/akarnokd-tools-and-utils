@@ -16,7 +16,7 @@
 
 package hu.akarnokd.utils.database;
 
-import ix.util.Action2E;
+import hu.akarnokd.utils.lang.Action2E;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

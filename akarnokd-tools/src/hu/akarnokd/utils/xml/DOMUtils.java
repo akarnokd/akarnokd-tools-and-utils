@@ -16,7 +16,7 @@
 
 package hu.akarnokd.utils.xml;
 
-import ix.IterableBuilder;
+import ix.Ix;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -87,13 +87,13 @@ public final class DOMUtils {
 	 */
 	@NonNull
 	public static Iterable<Element> childElements(@NonNull Node parent) {
-		return IterableBuilder.from(childNodes(parent))
-		.where(new Func1<Node, Boolean>() {
+		return Ix.from(childNodes(parent))
+		.filter(new Func1<Node, Boolean>() {
 			@Override
 			public Boolean call(Node param1) {
 				return param1.getNodeType() == Node.ELEMENT_NODE;
 			}
-		}).cast(Element.class);
+		}).ofType(Element.class);
 	}
 	/**
 	 * Returns the child elements with the specified name.
@@ -104,14 +104,14 @@ public final class DOMUtils {
 	public static Iterable<Element> childrenWithName(
 			@NonNull Node parent, 
 			@NonNull final String name) {
-		return IterableBuilder.from(childNodes(parent))
-		.where(new Func1<Node, Boolean>() {
+		return Ix.from(childNodes(parent))
+		.filter(new Func1<Node, Boolean>() {
 			@Override
 			public Boolean call(Node param1) {
 				return param1.getNodeType() == Node.ELEMENT_NODE
 						&& param1.getNodeName().equals(name);
 			}
-		}).cast(Element.class);
+		}).ofType(Element.class);
 	}
 	/**
 	 * Returns the child elements with the specified name.
@@ -124,15 +124,15 @@ public final class DOMUtils {
 			@NonNull Node parent, 
 			@NonNull final String name,
 			@NonNull final String namespaceURI) {
-		return IterableBuilder.from(childNodes(parent))
-		.where(new Func1<Node, Boolean>() {
+		return Ix.from(childNodes(parent))
+		.filter(new Func1<Node, Boolean>() {
 			@Override
 			public Boolean call(Node param1) {
 				return param1.getNodeType() == Node.ELEMENT_NODE
 						&& param1.getNodeName().equals(name)
 						&& Objects.equals(param1.getNamespaceURI(), namespaceURI);
 			}
-		}).cast(Element.class);
+		}).ofType(Element.class);
 	}
 	/**
 	 * Returns the value of the first child with the given name.

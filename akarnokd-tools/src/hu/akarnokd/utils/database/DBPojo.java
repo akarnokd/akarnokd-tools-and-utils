@@ -17,12 +17,12 @@
 package hu.akarnokd.utils.database;
 
 import hu.akarnokd.utils.generator.CodeCreator;
+import hu.akarnokd.utils.lang.Action1E;
+import hu.akarnokd.utils.lang.Action2E;
+import hu.akarnokd.utils.lang.Func1E;
 import hu.akarnokd.utils.lang.ReflectionUtils;
 import hu.akarnokd.utils.sequence.SequenceUtils;
-import ix.Interactive;
-import ix.util.Action1E;
-import ix.util.Action2E;
-import ix.util.Func1E;
+import ix.internal.operators.Interactive;
 
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;

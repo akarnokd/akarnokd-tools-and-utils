@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="WINDOWS-1250" standalone="no"?>
 <jardesc>
     <jar path="E:/Downloads/akarnokd_tools.jar"/>
-    <options buildIfNeeded="true" compress="true" descriptionLocation="/akarnokd-tools/default_jar_create.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/akarnokd-tools/default_jar_create.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="false" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
     <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">

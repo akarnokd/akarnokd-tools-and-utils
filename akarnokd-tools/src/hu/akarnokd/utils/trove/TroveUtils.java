@@ -3092,7 +3092,7 @@ public final class TroveUtils {
 	 * @param coll the collection
 	 * @return the sum
 	 */
-	public static long sum(TIntCollection coll) {
+	public static int sum(TIntCollection coll) {
 		TIntIterator it = coll.iterator();
 		int value = 0;
 		while (it.hasNext()) {

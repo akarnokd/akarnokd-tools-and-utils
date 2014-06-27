@@ -174,6 +174,9 @@ public final class DBCodeCreator {
 			
 			return (SQLLoad<T>)c.toClass().newInstance();
 		} catch (Exception ex) {
+			if (ex instanceof RuntimeException) {
+				throw (RuntimeException)ex;
+			}
 			throw new IllegalArgumentException(ex);
 		}
 	}
@@ -212,12 +215,9 @@ public final class DBCodeCreator {
 			Collections.sort(fields, FIELD_SQLCOLUMN_COMPARE);
 
 			Field idField = ReflectionUtils.declaredField(clazz, SQLID.class);
-			if (idField == null) {
-				throw new IllegalArgumentException("No field with @SQLID annotation found.");
-			}
 			
 			for (Field f : fields) {
-				if (!f.isAnnotationPresent(SQLID.class)) {
+				if (idField == null || !f.isAnnotationPresent(SQLID.class)) {
 					if (f.getType().isEnum()) {
 						b.append("\tp.add(u.").append(f.getName()).append(".ordinal());\r\n");
 					} else {
@@ -235,6 +235,9 @@ public final class DBCodeCreator {
 
 			return (SQLSave<T>)c.toClass().newInstance();
 		} catch (Exception ex) {
+			if (ex instanceof RuntimeException) {
+				throw (RuntimeException)ex;
+			}
 			throw new IllegalArgumentException(ex);
 		}
 	}
@@ -272,12 +275,9 @@ public final class DBCodeCreator {
 			Collections.sort(fields, FIELD_SQLCOLUMN_COMPARE);
 
 			Field idField = ReflectionUtils.declaredField(clazz, SQLID.class);
-			if (idField == null) {
-				throw new IllegalArgumentException("No field with @SQLID annotation found.");
-			}
 			
 			for (Field f : fields) {
-				if (!f.isAnnotationPresent(SQLID.class)) {
+				if (idField == null || !f.isAnnotationPresent(SQLID.class)) {
 					if (f.getType().isEnum()) {
 						b.append("\tp.add(u.").append(f.getName()).append(".ordinal());\r\n");
 					} else {
@@ -304,6 +304,9 @@ public final class DBCodeCreator {
 
 			return (SQLSave<T>)c.toClass().newInstance();
 		} catch (Exception ex) {
+			if (ex instanceof RuntimeException) {
+				throw (RuntimeException)ex;
+			}
 			throw new IllegalArgumentException(ex);
 		}
 	}
@@ -340,11 +343,6 @@ public final class DBCodeCreator {
 			List<Field> fields = ReflectionUtils.allFields(clazz, SQLColumn.class);
 			Collections.sort(fields, FIELD_SQLCOLUMN_COMPARE);
 
-			Field idField = ReflectionUtils.declaredField(clazz, SQLID.class);
-			if (idField == null) {
-				throw new IllegalArgumentException("No field with @SQLID annotation found.");
-			}
-			
 			for (Field f : fields) {
 				if (f.isAnnotationPresent(SQLID.class)) {
 					if (f.getType().isEnum()) {
@@ -364,6 +362,9 @@ public final class DBCodeCreator {
 
 			return (SQLSave<T>)c.toClass().newInstance();
 		} catch (Exception ex) {
+			if (ex instanceof RuntimeException) {
+				throw (RuntimeException)ex;
+			}
 			throw new IllegalArgumentException(ex);
 		}
 	}

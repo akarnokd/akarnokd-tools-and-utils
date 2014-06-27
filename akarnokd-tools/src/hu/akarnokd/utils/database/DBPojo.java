@@ -38,6 +38,7 @@ import rx.functions.Action1;
 import rx.functions.Action2;
 import rx.functions.Func0;
 import rx.functions.Func1;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -215,6 +216,35 @@ public class DBPojo<T> {
 	@NonNull 
 	public T selectOne(@NonNull DB db, Object... keys) throws SQLException {
 		return db.querySingle(selectOneSql, sqlResult, keys);
+	}
+	
+	/**
+	 * Selects a single from the database filtered by the
+	 * given where clause and parameters.
+	 * @param db the database connection
+	 * @param where the WHERE clause without the keyword WHERE
+	 * @param params the optional parameters
+	 * @return the first item or null if not found
+	 * @throws SQLException on error
+	 */
+	@CheckForNull
+	public T selectFirst(@NonNull DB db, @NonNull CharSequence where, Object... params) throws SQLException {
+		List<T> list = selectSome(db, where, params);
+		return list.isEmpty() ? null : list.get(0);
+	}
+	/**
+	 * Selects a single from the database filtered by the
+	 * given where clause and parameters.
+	 * @param db the database connection
+	 * @param where the WHERE clause without the keyword WHERE
+	 * @param params the optional parameters
+	 * @return the first item or null if not found
+	 * @throws SQLException on error
+	 */
+	@CheckForNull
+	public T selectFirst(@NonNull DB db, @NonNull CharSequence where, Iterable<?> params) throws SQLException {
+		List<T> list = selectSome(db, where, params);
+		return list.isEmpty() ? null : list.get(0);
 	}
 	/**
 	 * Update a single record.

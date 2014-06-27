@@ -38,4 +38,14 @@ public class DBTest {
 		Assert.assertEquals(t1, t2);
 	}
 
+	@SQLTable("Table1")
+	public static class Row {
+		@SQLColumn
+		public String value;
+	}
+	@Test
+	public void testNoSQLID() {
+		DBPojo<Row> db = new DBPojo<>(Row.class);
+		Assert.assertEquals("Table1", db.table());
+	}
 }

@@ -499,10 +499,10 @@ public class XElement extends XElementBase implements ParameterMap {
 		return null;
 	}
 	@Override
-	public <T extends Enum<T>> T getEnum(String name, Class<T> clazz) {
+	public <E extends Enum<E>> E getEnum(String name, Class<E> clazz) {
 		String s = get(name);
-		T[] values = clazz.getEnumConstants();
-		for (T t : values) {
+		E[] values = clazz.getEnumConstants();
+		for (E t : values) {
 			if (t.toString().equals(s)) {
 				return t;
 			}
@@ -510,11 +510,11 @@ public class XElement extends XElementBase implements ParameterMap {
 		throw new NoSuchElementException(String.format("Attribute %s = %s is not a valid enum for %s", name, s, clazz.getName()));
 	}
 	@Override
-	public <T extends Enum<T>> T getEnum(String name, Class<T> clazz, T defaultValue) {
+	public <E extends Enum<E>> E getEnum(String name, Class<E> clazz, E defaultValue) {
 		String s = attributes.get(name);
 		if (s != null) {
-			T[] values = clazz.getEnumConstants();
-			for (T t : values) {
+			E[] values = clazz.getEnumConstants();
+			for (E t : values) {
 				if (t.toString().equals(s)) {
 					return t;
 				}

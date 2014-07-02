@@ -312,6 +312,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	 */
 	public void add(Iterable<XElement> elements) {
 		for (XElement e : elements) {
+			e.parent = this;
 			children.add(e);
 		}
 	}
@@ -322,6 +323,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	 */
 	public XElement add(String name) {
 		XElement result = new XElement(name);
+		result.parent = this;
 		children.add(result);
 		return result;
 	}
@@ -333,6 +335,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	 */
 	public XElement add(String name, Object value) {
 		XElement result = add(name);
+		result.parent = this;
 		result.setValue(value);
 		return result;
 	}
@@ -342,6 +345,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	 */
 	public void add(XElement... elements) {
 		for (XElement e : elements) {
+			e.parent = this;
 			children.add(e);
 		}
 	}
@@ -758,6 +762,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	 * @param element the element
 	 */
 	public void remove(XElement element) {
+		element.parent = null;
 		children.remove(element);
 	}
 	/**
@@ -767,7 +772,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	public void removeChildrenWithName(String name) {
 		for (int i = children.size() - 1; i >= 0; i--) {
 			if (children.get(i).name.equals(name)) {
-				children.remove(i);
+				children.remove(i).parent = null;
 			}
 		}
 	}
@@ -780,6 +785,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	public void replace(XElement oldChild, XElement newChild) {
 		int idx = children.indexOf(oldChild);
 		if (idx >= 0) {
+			children.get(idx).parent = null;
 			children.set(idx, newChild);
 			newChild.parent = this;
 		}

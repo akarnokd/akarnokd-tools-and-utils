@@ -704,7 +704,6 @@ public final class Base64 {
 			// the finally {} block is called for cleanup.
 			throw e;
 		} finally {
-			try { oos.close();   } catch (Exception e) { }
 			try { gzos.close();  } catch (Exception e) { }
 			try { b64os.close(); } catch (Exception e) { }
 			try { baos.close();  } catch (Exception e) { }
@@ -928,29 +927,17 @@ public final class Base64 {
 
 		// Compress?
 		if ((options & GZIP) != 0) {
-			java.io.ByteArrayOutputStream  baos  = null;
-			java.util.zip.GZIPOutputStream gzos  = null;
-			Base64.OutputStream            b64os = null;
-
-			try {
+			try (
 				// GZip -> Base64 -> ByteArray
-				baos = new java.io.ByteArrayOutputStream();
-				b64os = new Base64.OutputStream(baos, ENCODE | options);
-				gzos  = new java.util.zip.GZIPOutputStream(b64os);
+				java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+				Base64.OutputStream b64os = new Base64.OutputStream(baos, ENCODE | options);
+				java.util.zip.GZIPOutputStream gzos  = new java.util.zip.GZIPOutputStream(b64os)) {
 
 				gzos.write(source, off, len);
-				gzos.close();
-			} catch (java.io.IOException e) {
-				// Catch it and then throw it immediately so that
-				// the finally {} block is called for cleanup.
-				throw e;
-			} finally {
-				try { gzos.close();  } catch (Exception e) { }
-				try { b64os.close(); } catch (Exception e) { }
-				try { baos.close();  } catch (Exception e) { }
+				gzos.finish();
+				return baos.toByteArray();
 			}   // end finally
 
-			return baos.toByteArray();
 		} else {
 			// Else, don't compress. Better not to use streams at all then.
 			boolean breakLines = (options & DO_BREAK_LINES) != 0;
@@ -1277,16 +1264,13 @@ public final class Base64 {
 
 			int head = (bytes[0] & 0xff) | ((bytes[1] << 8) & 0xff00);
 			if (java.util.zip.GZIPInputStream.GZIP_MAGIC == head)  {
-				java.io.ByteArrayInputStream  bais = null;
-				java.util.zip.GZIPInputStream gzis = null;
-				java.io.ByteArrayOutputStream baos = null;
 				byte[] buffer = new byte[2048];
 				int    length = 0;
 
-				try {
-					baos = new java.io.ByteArrayOutputStream();
-					bais = new java.io.ByteArrayInputStream(bytes);
-					gzis = new java.util.zip.GZIPInputStream(bais);
+				try (
+						java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+						java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(bytes);
+						java.util.zip.GZIPInputStream gzis = new java.util.zip.GZIPInputStream(bais)) {
 
 					while ((length = gzis.read(buffer)) >= 0) {
 						baos.write(buffer, 0, length);
@@ -1294,14 +1278,6 @@ public final class Base64 {
 
 					// No error? Get new bytes.
 							bytes = baos.toByteArray();
-
-				} catch (java.io.IOException e) {
-					e.printStackTrace();
-					// Just return originally-decoded bytes
-				} finally {
-					try { baos.close(); } catch (Exception e) { }
-					try { gzis.close(); } catch (Exception e) { }
-					try { bais.close(); } catch (Exception e) { }
 				}   // end finally
 
 			}   // end if: gzipped
@@ -1353,12 +1329,10 @@ public final class Base64 {
 		// Decode and gunzip if necessary
 		byte[] objBytes = decode(encodedObject, options);
 
-		java.io.ByteArrayInputStream  bais = null;
 		java.io.ObjectInputStream     ois  = null;
 		Object obj = null;
 
-		try {
-			bais = new java.io.ByteArrayInputStream(objBytes);
+		try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(objBytes)) {
 
 			// If no custom class loader is provided, use Java's builtin OIS.
 			if (loader == null) {
@@ -1381,14 +1355,11 @@ public final class Base64 {
 			}   // end else: no custom class loader
 
 			obj = ois.readObject();
-		} catch (java.io.IOException e) {
-			throw e;    // Catch and throw in order to execute finally {}
-		} catch (java.lang.ClassNotFoundException e) {
-			throw e;    // Catch and throw in order to execute finally {}
 		} finally {
-			try { bais.close(); } catch (Exception e) { }
-			try { ois.close();  } catch (Exception e) { }
-		}   // end finally
+			if (ois != null) {
+				ois.close();
+			}
+		}
 
 		return obj;
 	}   // end decodeObject

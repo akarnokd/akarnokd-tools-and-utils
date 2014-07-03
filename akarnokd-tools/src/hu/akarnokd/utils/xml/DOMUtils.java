@@ -27,6 +27,7 @@ import org.w3c.dom.Node;
 
 import rx.functions.Func1;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * Utility class to convert DOM access into
@@ -140,7 +141,7 @@ public final class DOMUtils {
 	 * @param name the element name
 	 * @return the textual value or null if not found
 	 */
-	@NonNull
+	@Nullable
 	public static String childValue(
 			@NonNull Node parent, 
 			@NonNull String name) {
@@ -154,7 +155,7 @@ public final class DOMUtils {
 	 * @param namespaceURI the namespace uri
 	 * @return the textual value or null if not found
 	 */
-	@NonNull
+	@Nullable
 	public static String childValue(
 			@NonNull Node parent, 
 			@NonNull String name,
@@ -168,7 +169,7 @@ public final class DOMUtils {
 	 * @param name the element name
 	 * @return the textual value or null if not found
 	 */
-	@NonNull
+	@Nullable
 	public static Element childElement(
 			@NonNull Node parent, 
 			@NonNull String name) {
@@ -184,7 +185,7 @@ public final class DOMUtils {
 	 * @param namespaceURI the namespace uri
 	 * @return the textual value or null if not found
 	 */
-	@NonNull
+	@Nullable
 	public static Element childElement(
 			@NonNull Node parent, 
 			@NonNull String name,

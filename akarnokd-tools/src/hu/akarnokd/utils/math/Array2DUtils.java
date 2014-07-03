@@ -122,7 +122,7 @@ public final class Array2DUtils {
 			out = new double[columnMatrix[0].length];
 		}
 		if (columnMatrix.length != rowVector.length) {
-			throw new IllegalArgumentException("Matrix columns != row vector size: " + columnMatrix.length + " vs. " + rowVector);
+			throw new IllegalArgumentException("Matrix columns != row vector size: " + columnMatrix.length + " vs. " + rowVector.length);
 		}
 		int j = 0;
 		for (double[] col : columnMatrix) {

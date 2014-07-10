@@ -7181,6 +7181,94 @@ public final class TroveUtils {
 		return out;
 	}
 	
+	/**
+	 * Adjust or put the values of the source into the target.
+	 * @param source the source map
+	 * @param target the destination map
+	 */
+	public static void adjustOrPutAll(TIntIntMap source, final TIntIntMap target) {
+		source.forEachEntry(new TIntIntProcedure() {
+			@Override
+			public boolean execute(int a, int b) {
+				target.adjustOrPutValue(a, b, b);
+				return true;
+			}
+		});
+	}
+	/**
+	 * Adjust or put the values of the source into the target.
+	 * @param source the source map
+	 * @param target the destination map
+	 */
+	public static void adjustOrPutAll(TIntLongMap source, final TIntLongMap target) {
+		source.forEachEntry(new TIntLongProcedure() {
+			@Override
+			public boolean execute(int a, long b) {
+				target.adjustOrPutValue(a, b, b);
+				return true;
+			}
+		});
+	}
+	
+	/**
+	 * Adjust or put the values of the source into the target.
+	 * @param source the source map
+	 * @param target the destination map
+	 */
+	public static void adjustOrPutAll(TLongIntMap source, final TLongIntMap target) {
+		source.forEachEntry(new TLongIntProcedure() {
+			@Override
+			public boolean execute(long a, int b) {
+				target.adjustOrPutValue(a, b, b);
+				return true;
+			}
+		});
+	}
+
+	/**
+	 * Adjust or put the values of the source into the target.
+	 * @param source the source map
+	 * @param target the destination map
+	 */
+	public static void adjustOrPutAll(TLongLongMap source, final TLongLongMap target) {
+		source.forEachEntry(new TLongLongProcedure() {
+			@Override
+			public boolean execute(long a, long b) {
+				target.adjustOrPutValue(a, b, b);
+				return true;
+			}
+		});
+	}
+
+	/**
+	 * Adjust or put the values of the source into the target.
+	 * @param source the source map
+	 * @param target the destination map
+	 */
+	public static <T> void adjustOrPutAll(TObjectIntMap<T> source, final TObjectIntMap<T> target) {
+		source.forEachEntry(new TObjectIntProcedure<T>() {
+			@Override
+			public boolean execute(T a, int b) {
+				target.adjustOrPutValue(a, b, b);
+				return true;
+			}
+		});
+	}
+	/**
+	 * Adjust or put the values of the source into the target.
+	 * @param source the source map
+	 * @param target the destination map
+	 */
+	public static <T> void adjustOrPutAll(TObjectLongMap<T> source, final TObjectLongMap<T> target) {
+		source.forEachEntry(new TObjectLongProcedure<T>() {
+			@Override
+			public boolean execute(T a, long b) {
+				target.adjustOrPutValue(a, b, b);
+				return true;
+			}
+		});
+	}
+	
 	// -----------------------------
 	// intersection END
 	// -----------------------------

@@ -31,7 +31,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 public class AggregatorHashMap1<K, V> implements AggregatorMap1<K, V> {
 	/** The backing map. */
-	protected final Map<K, V> map = new HashMap<K, V>();
+	protected final Map<K, V> map = new HashMap<>();
 	/** The item creator function. */
 	@NonNull 
 	protected Func1<Object, ? extends V> itemCreator = new Func1<Object, V>() {

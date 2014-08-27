@@ -37,12 +37,18 @@ public class DBTest {
 		LocalTime t2 = DB.toLocalTime(time);
 		Assert.assertEquals(t1, t2);
 	}
-
+	/**
+	 * A row object.
+	 */
 	@SQLTable("Table1")
 	public static class Row {
+		/** The value. */
 		@SQLColumn
 		public String value;
 	}
+	/**
+	 * Test if DBPojo works on classes without SQLID annotated fields.
+	 */
 	@Test
 	public void testNoSQLID() {
 		DBPojo<Row> db = new DBPojo<>(Row.class);

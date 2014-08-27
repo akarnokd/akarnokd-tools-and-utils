@@ -1248,16 +1248,13 @@ public class DB implements Closeable {
 	@NonNull 
 	public List<Long> generatedKeys(@NonNull PreparedStatement pstmt) throws SQLException {
 		List<Long> result = Lists.newArrayList();
-		ResultSet rs = pstmt.getGeneratedKeys();
-		try {
+		try (ResultSet rs = pstmt.getGeneratedKeys()) {
 			if (fetchSize != 0) {
 				rs.setFetchSize(fetchSize);
 			}
 			while (rs.next()) {
 				result.add(rs.getLong(1));
 			}
-		} finally {
-			rs.close();
 		}
 		return result;
 	}
@@ -1907,8 +1904,7 @@ public class DB implements Closeable {
 			@NonNull CharSequence sql, 
 			@NonNull Iterable<T> items, 
 			@NonNull Action2E<? super PreparedStatement, ? super T, ? extends SQLException> marshaller) throws SQLException {
-		PreparedStatement pstmt = prepare(false, sql);
-		try {
+		try (PreparedStatement pstmt = prepare(false, sql)) {
 			for (T t : items) {
 				marshaller.call(pstmt, t);
 				pstmt.addBatch();
@@ -1917,8 +1913,6 @@ public class DB implements Closeable {
 		} catch (SQLException ex) {
 			System.err.println(sql);
 			throw ex;
-		} finally {
-			pstmt.close();
 		}
 	}
 	/**
@@ -1935,8 +1929,7 @@ public class DB implements Closeable {
 			@NonNull Iterable<T> items, 
 			@NonNull Action2E<? super PreparedStatement, ? super T, ? extends SQLException> marshaller,
 			@NonNull Action2E<? super ResultSet, ? super T, ? extends SQLException> setAutoKey) throws SQLException {
-		PreparedStatement pstmt = prepare(true, sql);
-		try {
+		try (PreparedStatement pstmt = prepare(true, sql)) {
 			if (fetchSize != 0) {
 				pstmt.setFetchSize(fetchSize);
 			}
@@ -1945,24 +1938,19 @@ public class DB implements Closeable {
 				pstmt.addBatch();
 			}
 			pstmt.executeBatch();
-			ResultSet rs = pstmt.getGeneratedKeys();
-			if (fetchSize != 0) {
-				rs.setFetchSize(fetchSize);
-			}
-			try {
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+				if (fetchSize != 0) {
+					rs.setFetchSize(fetchSize);
+				}
 				Iterator<T> it = items.iterator();
 				while (it.hasNext() && rs.next()) {
 					T t = it.next();
 					setAutoKey.call(rs, t);
 				}
-			} finally {
-				rs.close();
 			}
 		} catch (SQLException ex) {
 			System.err.println(sql);
 			throw ex;
-		} finally {
-			pstmt.close();
 		}
 	}
 	/**
@@ -2002,13 +1990,8 @@ public class DB implements Closeable {
 	public int update(
 			@NonNull CharSequence sql, 
 			Object... params) throws SQLException {
-		try {
-			PreparedStatement pstmt = prepare(false, sql, params);
-			try {
-				return pstmt.executeUpdate();
-			} finally {
-				pstmt.close();
-			}
+		try (PreparedStatement pstmt = prepare(false, sql, params)) {
+			return pstmt.executeUpdate();
 		} catch (SQLException ex) {
 			System.err.println(sql);
 			throw ex;

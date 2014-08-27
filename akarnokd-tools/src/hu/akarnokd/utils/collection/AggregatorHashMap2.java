@@ -42,7 +42,7 @@ implements AggregatorMap2<K1, K2, V> {
 		super(new Func1<Object, AggregatorHashMap1<K2, V>>() {
 			@Override
 			public AggregatorHashMap1<K2, V> call(Object param1) {
-				return new AggregatorHashMap1<K2, V>();
+				return new AggregatorHashMap1<>();
 			}
 		});
 	}
@@ -54,7 +54,7 @@ implements AggregatorMap2<K1, K2, V> {
 		super(new Func1<Object, AggregatorHashMap1<K2, V>>() {
 			@Override
 			public AggregatorHashMap1<K2, V> call(Object param1) {
-				return new AggregatorHashMap1<K2, V>(itemCreator);
+				return new AggregatorHashMap1<>(itemCreator);
 			}
 		});
 	}

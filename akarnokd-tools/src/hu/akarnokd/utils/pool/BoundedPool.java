@@ -65,7 +65,7 @@ public class BoundedPool<T> implements Pool<T> {
 		this.poolSize = poolSize;
 		this.manager = manager;
 		this.lifo = lifo;
-		objects = new LinkedBlockingDeque<T>(poolSize);
+		objects = new LinkedBlockingDeque<>(poolSize);
 	}
 	@Override
 	public T get() throws Exception {

@@ -86,7 +86,7 @@ public final class CollectionUtils {
 		for (Map.Entry<K, V> e : map.entrySet()) {
 			V v = e.getValue();
 			if (bestValue == null || bestValue.compareTo(v) > 0) {
-				result = new HashSet<K>();
+				result = new HashSet<>();
 				bestValue = v;
 				result.add(e.getKey());
 			} else
@@ -113,7 +113,7 @@ public final class CollectionUtils {
 		for (Map.Entry<K, V> e : map.entrySet()) {
 			V v = e.getValue();
 			if (bestValue == null || bestValue.compareTo(v) < 0) {
-				result = new HashSet<K>();
+				result = new HashSet<>();
 				bestValue = v;
 				result.add(e.getKey());
 			} else
@@ -179,7 +179,7 @@ public final class CollectionUtils {
 		for (Map.Entry<K, V> e : map.entrySet()) {
 			V v = e.getValue();
 			if (bestValue == null || comparator.compare(bestValue, v) > 0) {
-				result = new HashSet<K>();
+				result = new HashSet<>();
 				bestValue = v;
 				result.add(e.getKey());
 			} else
@@ -207,7 +207,7 @@ public final class CollectionUtils {
 		for (Map.Entry<K, V> e : map.entrySet()) {
 			V v = e.getValue();
 			if (bestValue == null || comparator.compare(bestValue, v) < 0) {
-				result = new HashSet<K>();
+				result = new HashSet<>();
 				bestValue = v;
 				result.add(e.getKey());
 			} else

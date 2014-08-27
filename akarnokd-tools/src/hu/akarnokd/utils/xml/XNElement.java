@@ -163,11 +163,8 @@ public class XNElement extends XElementBase {
 	 * @throws IOException if the file could not be found or other I/O error occurs
 	 */
 	public static XNElement parseXML(File file) throws IOException, XMLStreamException {
-		InputStream in = new FileInputStream(file);
-		try {
+		try (InputStream in = new FileInputStream(file)) {
 			return parseXML(in);
-		} finally {
-			in.close();
 		}
 	}
 	/**
@@ -236,11 +233,8 @@ public class XNElement extends XElementBase {
 	 * @throws IOException if the file could not be found or other I/O error occurs
 	 */
 	public static XNElement parseXML(String fileName) throws IOException, XMLStreamException {
-		InputStream in = new FileInputStream(fileName);
-		try {
+		try (InputStream in = new FileInputStream(fileName)) {
 			return parseXML(in);
-		} finally {
-			in.close();
 		}
 	}
 	/**
@@ -251,11 +245,8 @@ public class XNElement extends XElementBase {
 	 * @throws XMLStreamException if a parser error occurs
 	 */
 	public static XNElement parseXML(URL url) throws IOException, XMLStreamException {
-		InputStream in = new BufferedInputStream(url.openStream());
-		try {
+		try (InputStream in = new BufferedInputStream(url.openStream())) {
 			return parseXML(in);
-		} finally {
-			in.close();
 		}
 	}
 	/**
@@ -284,7 +275,7 @@ public class XNElement extends XElementBase {
 		XNElement root = null;
 		final StringBuilder emptyBuilder = new StringBuilder();
 		StringBuilder b = null;
-		Deque<StringBuilder> stack = new LinkedList<StringBuilder>();
+		Deque<StringBuilder> stack = new LinkedList<>();
 		
 		while (in.hasNext()) {
 			int type = in.next();
@@ -358,13 +349,8 @@ public class XNElement extends XElementBase {
 	 * @throws XMLStreamException on error
 	 */
 	public static XNElement parseXMLGZ(File file) throws XMLStreamException {
-		try {
-			GZIPInputStream gin = new GZIPInputStream(new BufferedInputStream(new FileInputStream(file), 64 * 1024));
-			try {
-				return parseXML(gin);
-			} finally {
-				gin.close();
-			}
+		try (GZIPInputStream gin = new GZIPInputStream(new BufferedInputStream(new FileInputStream(file), 64 * 1024))) {
+			return parseXML(gin);
 		} catch (IOException ex) {
 			throw new XMLStreamException(ex);
 		}
@@ -379,9 +365,9 @@ public class XNElement extends XElementBase {
 		return parseXMLGZ(new File(fileName));
 	}
 	/** The attribute map. */
-	protected final Map<XAttributeName, String> attributes = new LinkedHashMap<XAttributeName, String>();
+	protected final Map<XAttributeName, String> attributes = new LinkedHashMap<>();
 	/** The child elements. */
-	protected final List<XNElement> children = new ArrayList<XNElement>();
+	protected final List<XNElement> children = new ArrayList<>();
 	/** The optional associated namespace uri. */
 	public String namespace;
 	/** The parent element. */
@@ -717,7 +703,7 @@ public class XNElement extends XElementBase {
 	 * @return the list of attribute names
 	 */
 	public List<XAttributeName> getAttributeNames() {
-		return new ArrayList<XAttributeName>(attributes.keySet());
+		return new ArrayList<>(attributes.keySet());
 	}
 	/**
 	 * Retrieve a value of a boolean attribute.

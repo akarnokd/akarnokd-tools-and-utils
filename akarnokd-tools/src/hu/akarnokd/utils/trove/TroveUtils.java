@@ -2318,7 +2318,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TByteObjectMap<T> singletonMap(byte key, T value) {
-		TByteObjectMap<T> result = new TByteObjectHashMap<T>();
+		TByteObjectMap<T> result = new TByteObjectHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2407,7 +2407,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TShortObjectMap<T> singletonMap(short key, T value) {
-		TShortObjectMap<T> result = new TShortObjectHashMap<T>();
+		TShortObjectMap<T> result = new TShortObjectHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2496,7 +2496,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TCharObjectMap<T> singletonMap(char key, T value) {
-		TCharObjectMap<T> result = new TCharObjectHashMap<T>();
+		TCharObjectMap<T> result = new TCharObjectHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2585,7 +2585,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TIntObjectMap<T> singletonMap(int key, T value) {
-		TIntObjectMap<T> result = new TIntObjectHashMap<T>();
+		TIntObjectMap<T> result = new TIntObjectHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2674,7 +2674,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TLongObjectMap<T> singletonMap(long key, T value) {
-		TLongObjectMap<T> result = new TLongObjectHashMap<T>();
+		TLongObjectMap<T> result = new TLongObjectHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2763,7 +2763,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TFloatObjectMap<T> singletonMap(float key, T value) {
-		TFloatObjectMap<T> result = new TFloatObjectHashMap<T>();
+		TFloatObjectMap<T> result = new TFloatObjectHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2852,7 +2852,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TDoubleObjectMap<T> singletonMap(double key, T value) {
-		TDoubleObjectMap<T> result = new TDoubleObjectHashMap<T>();
+		TDoubleObjectMap<T> result = new TDoubleObjectHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2864,7 +2864,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TObjectByteMap<T> singletonMap(T key, byte value) {
-		TObjectByteMap<T> result = new TObjectByteHashMap<T>();
+		TObjectByteMap<T> result = new TObjectByteHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2876,7 +2876,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TObjectShortMap<T> singletonMap(T key, short value) {
-		TObjectShortMap<T> result = new TObjectShortHashMap<T>();
+		TObjectShortMap<T> result = new TObjectShortHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2888,7 +2888,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TObjectCharMap<T> singletonMap(T key, char value) {
-		TObjectCharMap<T> result = new TObjectCharHashMap<T>();
+		TObjectCharMap<T> result = new TObjectCharHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2900,7 +2900,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TObjectIntMap<T> singletonMap(T key, int value) {
-		TObjectIntMap<T> result = new TObjectIntHashMap<T>();
+		TObjectIntMap<T> result = new TObjectIntHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2912,7 +2912,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TObjectLongMap<T> singletonMap(T key, long value) {
-		TObjectLongMap<T> result = new TObjectLongHashMap<T>();
+		TObjectLongMap<T> result = new TObjectLongHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2924,7 +2924,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TObjectFloatMap<T> singletonMap(T key, float value) {
-		TObjectFloatMap<T> result = new TObjectFloatHashMap<T>();
+		TObjectFloatMap<T> result = new TObjectFloatHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -2936,7 +2936,7 @@ public final class TroveUtils {
 	 * @return the new map with a single key-value pair
 	 */
 	public static <T> TObjectDoubleMap<T> singletonMap(T key, double value) {
-		TObjectDoubleMap<T> result = new TObjectDoubleHashMap<T>();
+		TObjectDoubleMap<T> result = new TObjectDoubleHashMap<>();
 		result.put(key, value);
 		return result;
 	}
@@ -7242,6 +7242,7 @@ public final class TroveUtils {
 
 	/**
 	 * Adjust or put the values of the source into the target.
+	 * @param <T> the map key type
 	 * @param source the source map
 	 * @param target the destination map
 	 */
@@ -7256,6 +7257,7 @@ public final class TroveUtils {
 	}
 	/**
 	 * Adjust or put the values of the source into the target.
+	 * @param <T> the map key type
 	 * @param source the source map
 	 * @param target the destination map
 	 */

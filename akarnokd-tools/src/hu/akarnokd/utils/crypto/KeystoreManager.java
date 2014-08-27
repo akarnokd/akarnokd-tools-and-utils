@@ -156,13 +156,8 @@ public class KeystoreManager {
 	 * @param password the keystore password if supplied
 	 */
 	public void load(String fileName, char[] password) {
-		try {
-			InputStream in = new FileInputStream(fileName);
-			try {
-				load(in, password);
-			} finally {
-				in.close();
-			}
+		try (InputStream in = new FileInputStream(fileName)) {
+			load(in, password);
 		} catch (IOException ex) {
 			throw new KeystoreFault(ex);
 		}
@@ -188,13 +183,8 @@ public class KeystoreManager {
 	 * @param password the password if supplied
 	 */
 	public void save(String fileName, char[] password) {
-		try {
-			OutputStream out = new FileOutputStream(fileName);
-			try {
-				save(out, password);
-			} finally {
-				out.close();
-			}
+		try (OutputStream out = new FileOutputStream(fileName)) {
+			save(out, password);
 		} catch (IOException ex) {
 			throw new KeystoreFault(ex);
 		}
@@ -394,7 +384,7 @@ public class KeystoreManager {
 			}
 			PrivateKey privKey = (PrivateKey)keystore.getKey(alias, password);
 			
-			List<X509Certificate> certs = new ArrayList<X509Certificate>();
+			List<X509Certificate> certs = new ArrayList<>();
 			CertificateFactory cf = CertificateFactory.getInstance("X509");
 			// collect the certificate elements into a list
 			for (Certificate c : cf.generateCertificates(caReply)) {
@@ -433,7 +423,7 @@ public class KeystoreManager {
 		if (cert.equals(caReply)) {
 			throw new KeystoreFault("The local and reply certificates are identical");
 		}
-		Map<Principal, Set<X509Certificate>> knownCerts = new HashMap<Principal, Set<X509Certificate>>();
+		Map<Principal, Set<X509Certificate>> knownCerts = new HashMap<>();
 		try {
 			if (keystore.size() > 0) {
 				knownCerts.putAll(getCertsByIssuer());
@@ -441,7 +431,7 @@ public class KeystoreManager {
 		} catch (KeyStoreException ex) {
 			throw new KeystoreFault(ex);
 		}
-		LinkedList<X509Certificate> result = new LinkedList<X509Certificate>();
+		LinkedList<X509Certificate> result = new LinkedList<>();
 		buildChain(caReply, result, knownCerts);
 		return result;
 	}
@@ -479,7 +469,7 @@ public class KeystoreManager {
 	 */
 	private Map<Principal, Set<X509Certificate>> getCertsByIssuer() {
 		try {
-			Map<Principal, Set<X509Certificate>> result = new HashMap<Principal, Set<X509Certificate>>();
+			Map<Principal, Set<X509Certificate>> result = new HashMap<>();
 			Enumeration<String> aliases = keystore.aliases();
 			while (aliases.hasMoreElements()) {
 				String alias = aliases.nextElement();
@@ -488,7 +478,7 @@ public class KeystoreManager {
 					Principal principal = cert.getSubjectDN();
 					Set<X509Certificate> list = result.get(principal);
 					if (list == null) {
-						list = new HashSet<X509Certificate>();
+						list = new HashSet<>();
 						result.put(principal, list);
 						list.add(cert);
 					} else {
@@ -518,7 +508,7 @@ public class KeystoreManager {
 			List<X509Certificate> replyCerts, boolean verifyRoot) {
 		PublicKey pubKey = localCert.getPublicKey();
 		X509Certificate current = null;
-		Map<Principal, X509Certificate> chainMap = new HashMap<Principal, X509Certificate>();
+		Map<Principal, X509Certificate> chainMap = new HashMap<>();
 		for (X509Certificate replyCert : replyCerts) {
 			if (pubKey.equals(replyCert.getPublicKey())) {
 				current = replyCert;
@@ -528,7 +518,7 @@ public class KeystoreManager {
 		if (current == null) {
 			throw new KeystoreFault("Certificate reply does not contain public key for " + alias);
 		}
-		List<X509Certificate> result = new ArrayList<X509Certificate>();
+		List<X509Certificate> result = new ArrayList<>();
 		// reorder certificates into chain where the following element signs the previous element
 		while (result.size() < replyCerts.size()) {
 			result.add(current);
@@ -622,20 +612,15 @@ public class KeystoreManager {
 	 * @return the nonnul list of the most trusted certificates
 	 */
 	public static List<X509Certificate> getJDKTrustedCerts() {
-		List<X509Certificate> result = new ArrayList<X509Certificate>();
+		List<X509Certificate> result = new ArrayList<>();
 		String filename = getJDKCertFile();
-		try {
-			FileInputStream fin = new FileInputStream(filename);
-			try {
-				KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-				ks.load(fin, "changeit".toCharArray());
-				
-				PKIXParameters params = new PKIXParameters(ks);
-				for (TrustAnchor a : params.getTrustAnchors()) {
-					result.add(a.getTrustedCert());
-				}
-			} finally {
-				fin.close();
+		try (FileInputStream fin = new FileInputStream(filename)) {
+			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+			ks.load(fin, "changeit".toCharArray());
+			
+			PKIXParameters params = new PKIXParameters(ks);
+			for (TrustAnchor a : params.getTrustAnchors()) {
+				result.add(a.getTrustedCert());
 			}
 		} catch (IOException ex) {
 			throw new KeystoreFault(ex);

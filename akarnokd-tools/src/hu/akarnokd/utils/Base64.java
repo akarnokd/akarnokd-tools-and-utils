@@ -16,6 +16,8 @@
 
 package hu.akarnokd.utils;
 
+import hu.akarnokd.utils.io.Closeables;
+
 /**
  * <p>Encodes and decodes to and from Base64 notation.</p>
  * <p>Homepage: <a href = "http://iharder.net/base64">http://iharder.net/base64</a>.</p>
@@ -704,9 +706,9 @@ public final class Base64 {
 			// the finally {} block is called for cleanup.
 			throw e;
 		} finally {
-			try { gzos.close();  } catch (Exception e) { }
-			try { b64os.close(); } catch (Exception e) { }
-			try { baos.close();  } catch (Exception e) { }
+			Closeables.close(gzos);
+			Closeables.close(b64os);
+			Closeables.close(baos);
 		}   // end finally
 
 		// Return value according to relevant encoding.
@@ -1387,15 +1389,9 @@ public final class Base64 {
 			throw new NullPointerException("Data to encode was null.");
 		}   // end iff
 
-		Base64.OutputStream bos = null;
-		try {
-			bos = new Base64.OutputStream(
-					new java.io.FileOutputStream(filename), Base64.ENCODE);
+		try (Base64.OutputStream bos = new Base64.OutputStream(
+				new java.io.FileOutputStream(filename), Base64.ENCODE)) {
 			bos.write(dataToEncode);
-		} catch (java.io.IOException e) {
-			throw e; // Catch and throw to execute finally {} block
-		} finally {
-			try { bos.close(); } catch (Exception e) { }
 		}   // end finally
 
 	}   // end encodeToFile
@@ -1417,15 +1413,9 @@ public final class Base64 {
 	public static void decodeToFile(String dataToDecode, String filename)
 			throws java.io.IOException {
 
-		Base64.OutputStream bos = null;
-		try {
-			bos = new Base64.OutputStream(
-					new java.io.FileOutputStream(filename), Base64.DECODE);
+		try (Base64.OutputStream bos = new Base64.OutputStream(
+				new java.io.FileOutputStream(filename), Base64.DECODE)) {
 			bos.write(dataToDecode.getBytes(PREFERRED_ENCODING));
-		} catch (java.io.IOException e) {
-			throw e; // Catch and throw to execute finally {} block
-		} finally {
-			try { bos.close(); } catch (Exception e) { }
 		}   // end finally
 
 	}   // end decodeToFile
@@ -1451,24 +1441,22 @@ public final class Base64 {
 			throws java.io.IOException {
 
 		byte[] decodedData = null;
-		Base64.InputStream bis = null;
-		try {
-			// Set up some useful variables
-			java.io.File file = new java.io.File(filename);
-			byte[] buffer = null;
-			int length   = 0;
-			int numBytes = 0;
+		// Set up some useful variables
+		java.io.File file = new java.io.File(filename);
+		byte[] buffer = null;
+		int length   = 0;
+		int numBytes = 0;
 
-			// Check for size of file
-			if (file.length() > Integer.MAX_VALUE) {
-				throw new java.io.IOException("File is too big for this convenience method (" + file.length() + " bytes).");
-			}   // end if: file too big for int index
-			buffer = new byte[ (int)file.length() ];
+		// Check for size of file
+		if (file.length() > Integer.MAX_VALUE) {
+			throw new java.io.IOException("File is too big for this convenience method (" + file.length() + " bytes).");
+		}   // end if: file too big for int index
+		buffer = new byte[ (int)file.length() ];
 
 			// Open a stream
-			bis = new Base64.InputStream(
-					new java.io.BufferedInputStream(
-							new java.io.FileInputStream(file)), Base64.DECODE);
+		try (Base64.InputStream bis = new Base64.InputStream(
+				new java.io.BufferedInputStream(
+						new java.io.FileInputStream(file)), Base64.DECODE)) {
 
 			// Read until done
 			while ((numBytes = bis.read(buffer, length, 4096)) >= 0) {
@@ -1479,10 +1467,6 @@ public final class Base64 {
 			decodedData = new byte[ length ];
 			System.arraycopy(buffer, 0, decodedData, 0, length);
 
-		} catch (java.io.IOException e) {
-			throw e; // Catch and release to execute finally { }
-		} finally {
-			try { bis.close(); } catch (Exception e) { }
 		}   // end finally
 
 		return decodedData;
@@ -1508,19 +1492,17 @@ public final class Base64 {
 			throws java.io.IOException {
 
 		String encodedData = null;
-		Base64.InputStream bis = null;
-		try {
-			// Set up some useful variables
-			java.io.File file = new java.io.File(filename);
-			// Need max() for math on small files (v2.2.1); Need +1 for a few corner cases (v2.3.5)
-			byte[] buffer = new byte[ Math.max((int)(file.length() * 1.4 + 1) , 40) ]; 
-			int length   = 0;
-			int numBytes = 0;
+		// Set up some useful variables
+		java.io.File file = new java.io.File(filename);
+		// Need max() for math on small files (v2.2.1); Need +1 for a few corner cases (v2.3.5)
+		byte[] buffer = new byte[ Math.max((int)(file.length() * 1.4 + 1) , 40) ]; 
+		int length   = 0;
+		int numBytes = 0;
 
-			// Open a stream
-			bis = new Base64.InputStream(
-					new java.io.BufferedInputStream(
-							new java.io.FileInputStream(file)), Base64.ENCODE);
+		// Open a stream
+		try (Base64.InputStream bis = new Base64.InputStream(
+				new java.io.BufferedInputStream(
+						new java.io.FileInputStream(file)), Base64.ENCODE)) {
 
 			// Read until done
 			while ((numBytes = bis.read(buffer, length, 4096)) >= 0) {
@@ -1529,11 +1511,6 @@ public final class Base64 {
 
 			// Save in a variable to return
 			encodedData = new String(buffer, 0, length, Base64.PREFERRED_ENCODING);
-
-		} catch (java.io.IOException e) {
-			throw e; // Catch and release to execute finally { }
-		} finally {
-			try { bis.close(); } catch (Exception e) { }
 		}   // end finally
 
 		return encodedData;
@@ -1551,15 +1528,9 @@ public final class Base64 {
 			throws java.io.IOException {
 
 		String encoded = Base64.encodeFromFile(infile);
-		java.io.OutputStream out = null;
-		try {
-			out = new java.io.BufferedOutputStream(
-					new java.io.FileOutputStream(outfile));
+		try (java.io.OutputStream out = new java.io.BufferedOutputStream(
+				new java.io.FileOutputStream(outfile))) {
 			out.write(encoded.getBytes("US-ASCII")); // Strict, 7-bit output.
-		} catch (java.io.IOException e) {
-			throw e; // Catch and release to execute finally { }
-		} finally {
-			try { out.close(); } catch (Exception ex) { }
 		}   // end finally    
 	}   // end encodeFileToFile
 
@@ -1576,15 +1547,9 @@ public final class Base64 {
 			throws java.io.IOException {
 
 		byte[] decoded = Base64.decodeFromFile(infile);
-		java.io.OutputStream out = null;
-		try {
-			out = new java.io.BufferedOutputStream(
-					new java.io.FileOutputStream(outfile));
+		try (java.io.OutputStream out = new java.io.BufferedOutputStream(
+				new java.io.FileOutputStream(outfile))) {
 			out.write(decoded);
-		} catch (java.io.IOException e) {
-			throw e; // Catch and release to execute finally { }
-		} finally {
-			try { out.close(); } catch (Exception ex) { }
 		}   // end finally    
 	}   // end decodeFileToFile
 

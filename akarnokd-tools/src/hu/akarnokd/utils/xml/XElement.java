@@ -74,13 +74,8 @@ public class XElement extends XElementBase implements ParameterMap {
 	 * @throws XMLStreamException on error
 	 */
 	public static XElement parseXML(File file) throws XMLStreamException {
-		try {
-			InputStream in = new FileInputStream(file);
-			try {
-				return parseXML(in);
-			} finally {
-				in.close();
-			}
+		try (InputStream in = new FileInputStream(file)) {
+			return parseXML(in);
 		} catch (IOException ex) {
 			throw new XMLStreamException(ex);
 		}
@@ -151,13 +146,8 @@ public class XElement extends XElementBase implements ParameterMap {
 	 * @throws XMLStreamException on error
 	 */
 	public static XElement parseXML(String fileName) throws XMLStreamException {
-		try {
-			InputStream in = new FileInputStream(fileName);
-			try {
-				return parseXML(in);
-			} finally {
-				in.close();
-			}
+		try (InputStream in = new FileInputStream(fileName)) {
+			return parseXML(in);
 		} catch (IOException ex) {
 			throw new XMLStreamException(ex);
 		}
@@ -170,11 +160,8 @@ public class XElement extends XElementBase implements ParameterMap {
 	 * @throws IOException on error
 	 */
 	public static XElement parseXML(URL u) throws XMLStreamException, IOException {
-		InputStream in = u.openStream();
-		try {
+		try (InputStream in = u.openStream()) {
 			return parseXML(in);
-		} finally {
-			in.close();
 		}
 	}
 	/**
@@ -199,7 +186,7 @@ public class XElement extends XElementBase implements ParameterMap {
 		XElement root = null;
 		final StringBuilder emptyBuilder = new StringBuilder();
 		StringBuilder b = null;
-		Deque<StringBuilder> stack = new LinkedList<StringBuilder>();
+		Deque<StringBuilder> stack = new LinkedList<>();
 		
 		while (in.hasNext()) {
 			int type = in.next();
@@ -264,13 +251,8 @@ public class XElement extends XElementBase implements ParameterMap {
 	 * @throws XMLStreamException on error
 	 */
 	public static XElement parseXMLGZ(File file) throws XMLStreamException {
-		try {
-			GZIPInputStream gin = new GZIPInputStream(new BufferedInputStream(new FileInputStream(file), 64 * 1024));
-			try {
-				return parseXML(gin);
-			} finally {
-				gin.close();
-			}
+		try (GZIPInputStream gin = new GZIPInputStream(new BufferedInputStream(new FileInputStream(file), 64 * 1024))) {
+			return parseXML(gin);
 		} catch (IOException ex) {
 			throw new XMLStreamException(ex);
 		}
@@ -285,9 +267,9 @@ public class XElement extends XElementBase implements ParameterMap {
 		return parseXMLGZ(new File(fileName));
 	}
 	/** The attribute map. */
-	protected final Map<String, String> attributes = new LinkedHashMap<String, String>();
+	protected final Map<String, String> attributes = new LinkedHashMap<>();
 	/** The child elements. */
-	protected final List<XElement> children = new ArrayList<XElement>();
+	protected final List<XElement> children = new ArrayList<>();
 	/** The parent element. */
 	public XElement parent;
 	/**
@@ -385,7 +367,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	 * @return the iterator
 	 */
 	public Iterable<XElement> childrenWithName(String name) {
-		List<XElement> result = new ArrayList<XElement>(children.size() + 1);
+		List<XElement> result = new ArrayList<>(children.size() + 1);
 		for (XElement e : children) {
 			if (e.name.equals(name)) {
 				result.add(e);
@@ -796,11 +778,8 @@ public class XElement extends XElementBase implements ParameterMap {
 	 * @throws IOException on error
 	 */
 	public void save(File file) throws IOException {
-		FileOutputStream out = new FileOutputStream(file);
-		try {
+		try (FileOutputStream out = new FileOutputStream(file)) {
 			save(out);
-		} finally {
-			out.close();
 		}
 	}
 	/**
@@ -940,7 +919,7 @@ public class XElement extends XElementBase implements ParameterMap {
 	 * @param action the action to invoke, non-null
 	 */
 	public void visit(boolean depthFirst, Action1<? super XElement> action) {
-		Deque<XElement> queue = new LinkedList<XElement>();
+		Deque<XElement> queue = new LinkedList<>();
 		queue.add(this);
 		while (!queue.isEmpty()) {
 			XElement x = queue.removeFirst();

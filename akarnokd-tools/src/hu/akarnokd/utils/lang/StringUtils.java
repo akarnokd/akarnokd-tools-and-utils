@@ -18,6 +18,7 @@ package hu.akarnokd.utils.lang;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.Lists;
 
@@ -293,4 +294,32 @@ public final class StringUtils {
     	
     	return result;
     }
+    /** Escape characters. */
+	private static final String WR_ESCAPE = ".|+(){}[]^$\\";
+	/**
+	 * Convert a wildcard representation into regular expression.
+	 * @param wildcard the wildcard string
+	 * @return the regular expression
+	 */
+	public static Pattern wildcardToRegex(String wildcard) {
+		StringBuilder result = new StringBuilder();
+		result.append("\\b");
+		for (int i = 0; i < wildcard.length(); i++) {
+			char c = wildcard.charAt(i);
+			if (c == '*') {
+				result.append(".*");
+			} else
+			if (c == '?') {
+				result.append('.');
+			} else
+			if (WR_ESCAPE.indexOf(c) >= 0) {
+				result.append('\\').append(c);
+			} else {
+				result.append(c);
+			}
+		}
+		result.append("\\b");
+		return Pattern.compile(result.toString(), Pattern.CASE_INSENSITIVE);
+	}
+
 }

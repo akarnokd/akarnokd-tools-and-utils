@@ -42,10 +42,12 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nonnull;
@@ -2456,66 +2458,66 @@ public class DB implements Closeable {
 		List<TableEntry> result = new ArrayList<>();
 
 		try (ResultSet rs = conn.getMetaData().getTables(catalog, schemaPattern, tableNamePattern, types)) {
-			int cc = rs.getMetaData().getColumnCount();
+			Set<String> names = getColumnNameSet(rs);
 			while (rs.next()) {
-				processTableEntry(result, rs, cc);
+				TableEntry te = new TableEntry();
+				
+				te.catalog = rs.getString("TABLE_CAT");
+				te.schema = rs.getString("TABLE_SCHEM");
+				te.name = rs.getString("TABLE_NAME");
+				te.customType = rs.getString("TABLE_TYPE");
+				te.type = mapTableType(te.customType);
+				te.remarks = rs.getString("REMARKS");
+				if (names.contains("TYPE_CAT")) {
+					te.typesCatalog = rs.getString("TYPE_CAT");
+				}
+				if (names.contains("TYPE_SCHEM")) {
+					te.typesSchema = rs.getString("TYPE_SCHEM");
+				}
+				if (names.contains("TYPE_NAME")) {
+					te.typesName = rs.getString("TYPE_NAME");
+				}
+				if (names.contains("SELF_REFERENCING_COL_NAME")) {
+					te.identifierColumn = rs.getString("SELF_REFERENCING_COL_NAME");
+				}
+				if (names.contains("REF_GENERATION")) {
+					te.customIdentifierGeneration = rs.getString("REF_GENERATION");
+					if (te.customIdentifierGeneration != null) {
+						switch (te.customIdentifierGeneration) {
+						case "SYSTEM":
+							te.identifierGeneration = TableIDGeneration.SYSTEM;
+							break;
+						case "USER":
+							te.identifierGeneration = TableIDGeneration.USER;
+							break;
+						case "DERIVED":
+							te.identifierGeneration = TableIDGeneration.DERIVED;
+							break;
+						default:
+							te.identifierGeneration = TableIDGeneration.OTHER;
+						}
+					}
+				}
+				
+				result.add(te);
 			}
 		}
 		
 		return result;
 	}
 	/**
-	 * Processes a table entry.
-	 * @param result the result list
-	 * @param rs the result set
-	 * @param columnCount the number of information columns
+	 * Returns a set of available column names.
+	 * @param rs the resultset
+	 * @return the set of column names
 	 * @throws SQLException on error
 	 */
-	protected void processTableEntry(List<TableEntry> result, ResultSet rs, int columnCount)
-			throws SQLException {
-		TableEntry te = new TableEntry();
-		
-		switch (columnCount) {
-		case 10:
-			te.customIdentifierGeneration = rs.getString(10);
-			if (te.customIdentifierGeneration != null) {
-				switch (te.customIdentifierGeneration) {
-				case "SYSTEM":
-					te.identifierGeneration = TableIDGeneration.SYSTEM;
-					break;
-				case "USER":
-					te.identifierGeneration = TableIDGeneration.USER;
-					break;
-				case "DERIVED":
-					te.identifierGeneration = TableIDGeneration.DERIVED;
-					break;
-				default:
-					te.identifierGeneration = TableIDGeneration.OTHER;
-				}
-			}
-		case 9:
-			te.identifierColumn = rs.getString(9);
-		case 8:
-			te.typesName = rs.getString(8);
-		case 7:
-			te.typesSchema = rs.getString(7);
-		case 6:
-			te.typesCatalog = rs.getString(6);
-		case 5:
-			te.remarks = rs.getString(5);
-		case 4:
-			te.customType = rs.getString(4);
-			te.type = mapTableType(te.customType);
-		case 3:
-			te.name = rs.getString(3);
-		case 2:
-			te.schema = rs.getString(2);
-		case 1:
-			te.catalog = rs.getString(1);
-		default:
+	protected Set<String> getColumnNameSet(ResultSet rs) throws SQLException {
+		int cc = rs.getMetaData().getColumnCount();
+		Set<String> names = new HashSet<>();
+		for (int i = 1; i <= cc; i++) {
+			names.add(rs.getMetaData().getColumnName(i).toUpperCase());
 		}
-		
-		result.add(te);
+		return names;
 	}
 	/**
 	 * Maps the typical table type strings into the enumeration.
@@ -2614,13 +2616,78 @@ public class DB implements Closeable {
 		List<ColumnEntry> result = new ArrayList<>();
 		
 		try (ResultSet rs = conn.getMetaData().getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern)) {
-			int cc = rs.getMetaData().getColumnCount();
+			Set<String> names = getColumnNameSet(rs);
 			while (rs.next()) {
 				ColumnEntry ce = new ColumnEntry();
 				
-				switch (cc) {
-				case 24: {
-					String s = rs.getString(24);
+				ce.catalog = rs.getString("TABLE_CAT");
+				ce.schema = rs.getString("TABLE_SCHEM");
+				ce.table = rs.getString("TABLE_NAME");
+				ce.name = rs.getString("COLUMN_NAME");
+				ce.dataType = rs.getInt("DATA_TYPE");
+				ce.typeName = rs.getString("TYPE_NAME");
+				ce.size = rs.getInt("COLUMN_SIZE");
+				if (names.contains("BUFFER_LENGHT")) {
+					ce.bufferLength = rs.getString("BUFFER_LENGHT");
+				}
+				ce.decimalDigits = rs.getInt("DECIMAL_DIGITS");
+				ce.precisionRadix = rs.getInt("NUM_PREC_RADIX");
+				switch (rs.getInt("NULLABLE")) {
+				case DatabaseMetaData.columnNoNulls:
+					ce.nullable = YesNoUnknown.NO;
+					break;
+				case DatabaseMetaData.columnNullable:
+					ce.nullable = YesNoUnknown.YES;
+					break;
+				default:
+					ce.nullable = YesNoUnknown.UNKNOWN;
+				}
+				ce.remarks = rs.getString("REMARKS");
+				ce.defaultValue = rs.getString("COLUMN_DEF");
+				ce.sqlDataType = rs.getInt("SQL_DATA_TYPE");
+				ce.sqlDateTimeSub = rs.getInt("SQL_DATETIME_SUB");
+				ce.charOctetLength = rs.getInt("CHAR_OCTET_LENGTH");
+				ce.ordinalPosition = rs.getInt("ORDINAL_POSITION");
+				String s = rs.getString("IS_NULLABLE");
+				if (s != null) {
+					switch (s) {
+					case "YES":
+						ce.isoNullable = YesNoUnknown.YES;
+						break;
+					case "NO":
+						ce.isoNullable = YesNoUnknown.NO;
+						break;
+					default:
+						ce.isoNullable = YesNoUnknown.UNKNOWN;
+					}
+				}
+				if (names.contains("SCOPE_CATALOG")) {
+					ce.scopeCatalog = rs.getString("SCOPE_CATALOG");
+				}
+				if (names.contains("SCOPE_SCHEMA")) {
+					ce.scopeSchema = rs.getString("SCOPE_SCHEMA");
+				}
+				if (names.contains("SCOPE_TABLE")) {
+					ce.scopeTable = rs.getString("SCOPE_TABLE");
+				}
+				if (names.contains("SOURCE_DATA_TYPE")) {
+					ce.sourceDataType = rs.getShort("SOURCE_DATA_TYPE");
+				}
+				s = rs.getString("IS_AUTOINCREMENT");
+				if (s != null) {
+					switch (s) {
+					case "YES":
+						ce.isAutoIncrement = YesNoUnknown.YES;
+						break;
+					case "NO":
+						ce.isAutoIncrement = YesNoUnknown.NO;
+						break;
+					default:
+						ce.isAutoIncrement = YesNoUnknown.UNKNOWN;
+					}
+				}
+				if (names.contains("IS_GENERATEDCOLUMN")) {
+					s = rs.getString("IS_GENERATEDCOLUMN");
 					if (s != null) {
 						switch (s) {
 						case "YES":
@@ -2633,90 +2700,9 @@ public class DB implements Closeable {
 							ce.isGeneratedColumn = YesNoUnknown.UNKNOWN;
 						}
 					}
-				}
-				case 23: {
-					String s = rs.getString(23);
-					if (s != null) {
-						switch (s) {
-						case "YES":
-							ce.isAutoIncrement = YesNoUnknown.YES;
-							break;
-						case "NO":
-							ce.isAutoIncrement = YesNoUnknown.NO;
-							break;
-						default:
-							ce.isAutoIncrement = YesNoUnknown.UNKNOWN;
-						}
-					}
-				}
-				case 22:
-					ce.sourceDataType = rs.getShort(22);
-				case 21:
-					ce.scopeTable = rs.getString(21);
-				case 20:
-					ce.scopeSchema = rs.getString(20);
-				case 19:
-					ce.scopeCatalog = rs.getString(19);
-				case 18: {
-					String s = rs.getString(18);
-					if (s != null) {
-						switch (s) {
-						case "YES":
-							ce.isoNullable = YesNoUnknown.YES;
-							break;
-						case "NO":
-							ce.isoNullable = YesNoUnknown.NO;
-							break;
-						default:
-							ce.isoNullable = YesNoUnknown.UNKNOWN;
-						}
-					}
-				}
-				case 17:
-					ce.ordinalPosition = rs.getInt(17);
-				case 16:
-					ce.charOctetLength = rs.getInt(16);
-				case 15:
-					ce.sqlDateTimeSub = rs.getInt(15);
-				case 14:
-					ce.sqlDataType = rs.getInt(14);
-				case 13:
-					ce.defaultValue = rs.getString(13);
-				case 12:
-					ce.remarks = rs.getString(12);
-				case 11:
-					switch (rs.getInt(11)) {
-					case DatabaseMetaData.columnNoNulls:
-						ce.nullable = YesNoUnknown.NO;
-						break;
-					case DatabaseMetaData.columnNullable:
-						ce.nullable = YesNoUnknown.YES;
-						break;
-					default:
-						ce.nullable = YesNoUnknown.UNKNOWN;
-					}
-				case 10:
-					ce.precisionRadix = rs.getInt(10);
-				case 9:
-					ce.decimalDigits = rs.getInt(9);
-				case 8:
-					ce.bufferLength = rs.getString(8);
-				case 7:
-					ce.size = rs.getInt(7);
-				case 6:
-					ce.typeName = rs.getString(6);
-				case 5:
-					ce.dataType = rs.getInt(5);
-				case 4:
-					ce.name = rs.getString(4);
-				case 3:
-					ce.table = rs.getString(3);
-				case 2:
-					ce.schema = rs.getString(2);
-				case 1:
-					ce.catalog = rs.getString(1);
-				default:
-				}
+				}				
+				
+
 				
 				result.add(ce);
 			}

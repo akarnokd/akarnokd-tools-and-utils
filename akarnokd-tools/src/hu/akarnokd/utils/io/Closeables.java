@@ -34,7 +34,9 @@ import rx.functions.Action0;
  */
 public final class Closeables {
 	/** Utility class. */
-	private Closeables() { throw new IllegalStateException("No instances!"); }
+	private Closeables() {
+		throw new IllegalStateException("No instances!"); 
+	}
 	/** An empty closeable. */
 	@Nonnull 
 	private static final Closeable EMPTY_CLOSEABLE = new Closeable() {
@@ -220,6 +222,19 @@ public final class Closeables {
 	public static void close(Object o) throws IOException {
 		if (o instanceof Closeable) {
 			((Closeable)o).close();
+		}
+	}
+	/**
+	 * Closes an auto-closeable resource silently.
+	 * @param o the auto-closeable resource
+	 */
+	public static void closeSilently(AutoCloseable o) {
+		if (o != null) {
+			try {
+				o.close();
+			} catch (Exception ex) {
+				// swallowed
+			}
 		}
 	}
 	/**

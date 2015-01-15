@@ -40,6 +40,8 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +55,10 @@ import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
+
+import rx.Observable;
+import rx.Subscriber;
+import rx.observables.AbstractOnSubscribe;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -89,7 +95,7 @@ public class DB implements Closeable {
 		public String user;
 		/** Default constructor. */
 		public DBInfo() {
-			
+
 		}
 		/**
 		 * Copy constructor.
@@ -282,7 +288,7 @@ public class DB implements Closeable {
 				defaultId = xdbs.get("default", "default");
 				for (XElement xdb : xdbs.childrenWithName("database")) {
 					DBInfo dbi = new DBInfo();
-					
+
 					dbi.id = xdb.get("id");
 					dbi.driverClass = xdb.childValue("driver-class");
 					dbi.connectionURL = xdb.childValue("connection-url");
@@ -291,11 +297,11 @@ public class DB implements Closeable {
 					dbi.encodePassword = xdb.childElement("password").getBoolean("encoded", false);
 					dbi.schema = xdb.childValue("schema");
 					dbi.maxConnection = Integer.parseInt(xdb.childValue("max-connection"));
-					
+
 					if (dbi.password != null && !dbi.password.isEmpty() && dbi.encodePassword) {
 						dbi.password = new String(Base64.decode(dbi.password), "UTF-8");
 					}
-					
+
 					CONNECTION_INFOS.put(dbi.id, dbi);
 				}
 			} catch (IOException e) {
@@ -331,7 +337,7 @@ public class DB implements Closeable {
 	public static DB connect(@NonNull Connection conn) {
 		DB result = new DB();
 		result.conn = conn;
-		
+
 		return result;
 	}
 	/** The info that created the connection. */
@@ -347,13 +353,13 @@ public class DB implements Closeable {
 		if (dbi == null) {
 			throw new IllegalArgumentException("dbi is null");
 		}
-		
+
 		try {
 			Class.forName(dbi.driverClass);
 		} catch (ClassNotFoundException ex) {
 			throw new IllegalArgumentException("Driver error: " + dbi.driverClass, ex);
 		}
-		
+
 		DB result = new DB();
 		try {
 			result.conn = DriverManager.getConnection(dbi.connectionURL, dbi.user, dbi.password);
@@ -368,7 +374,7 @@ public class DB implements Closeable {
 			throw new IllegalArgumentException("Connection error: " + ex.toString(), ex);
 		}
 		result.dbi = new DBInfo(dbi);
-		
+
 		return result;
 	}
 	/**
@@ -381,7 +387,7 @@ public class DB implements Closeable {
 		DBInfo dbi = CONNECTION_INFOS.get(databaseId);
 		return connect(dbi);
 	}
-	
+
 	/**
 	 * Execute an action under the default connection.
 	 * @param action the action to execute
@@ -942,7 +948,7 @@ public class DB implements Closeable {
 	public static void setParams(
 			@NonNull PreparedStatement pstmt, 
 			@NonNull Iterable<?> values)
-			throws SQLException {
+					throws SQLException {
 		setParams(pstmt, Iterables.toArray(values, Object.class));
 	}
 	/**
@@ -956,7 +962,7 @@ public class DB implements Closeable {
 			int offset,
 			@NonNull PreparedStatement pstmt, 
 			@NonNull Iterable<?> values)
-			throws SQLException {
+					throws SQLException {
 		setParams(offset, pstmt, Iterables.toArray(values, Object.class));
 	}
 	/**
@@ -968,7 +974,7 @@ public class DB implements Closeable {
 	public static void setParams(
 			@NonNull PreparedStatement pstmt, 
 			Object... values)
-			throws SQLException {
+					throws SQLException {
 		setParams(1, pstmt, values);
 	}
 	/**
@@ -982,119 +988,119 @@ public class DB implements Closeable {
 			int offset,
 			@NonNull PreparedStatement pstmt,
 			Object... values)
-			throws SQLException {
+					throws SQLException {
 		int i = offset;
 		for (Object o : values) {
 			if (o instanceof Class<?>) {
 				if (o == byte[].class) {
 					pstmt.setNull(i, Types.BLOB);
 				} else
-				if (o == Short.class) {
-					pstmt.setNull(i, Types.SMALLINT);
+					if (o == Short.class) {
+						pstmt.setNull(i, Types.SMALLINT);
+					} else
+						if (o == Byte.class) {
+							pstmt.setNull(i, Types.TINYINT);
+						} else
+							if (o == Boolean.class) {
+								pstmt.setNull(i, Types.BOOLEAN);
+							} else
+								if (o == Double.class) {
+									pstmt.setNull(i, Types.DOUBLE);
+								} else
+									if (o == Float.class) {
+										pstmt.setNull(i, Types.FLOAT);
+									} else
+										if (o == BigDecimal.class) {
+											pstmt.setNull(i, Types.DECIMAL);
+										} else
+											if (o == BigInteger.class) {
+												pstmt.setNull(i, Types.NUMERIC);
+											} else
+												if (o == Timestamp.class || o == DateTime.class || o == java.util.Date.class) {
+													pstmt.setNull(i, Types.TIMESTAMP);
+												} else
+													if (o == Time.class || o == LocalTime.class) {
+														pstmt.setNull(i, Types.TIME);
+													} else
+														if (o == Date.class || o == DateMidnight.class || o == LocalDate.class) {
+															pstmt.setNull(i, Types.DATE);
+														} else
+															if (o == String.class) {
+																pstmt.setNull(i, Types.VARCHAR);
+															} else
+																if (o == Integer.class) {
+																	pstmt.setNull(i, Types.INTEGER);
+																} else
+																	if (o == Long.class) {
+																		pstmt.setNull(i, Types.BIGINT);
+																	}
+			} else
+				if (o instanceof CharSequence) {
+					pstmt.setString(i, ((CharSequence)o).toString());
 				} else
-				if (o == Byte.class) {
-					pstmt.setNull(i, Types.TINYINT);
-				} else
-				if (o == Boolean.class) {
-					pstmt.setNull(i, Types.BOOLEAN);
-				} else
-				if (o == Double.class) {
-					pstmt.setNull(i, Types.DOUBLE);
-				} else
-				if (o == Float.class) {
-					pstmt.setNull(i, Types.FLOAT);
-				} else
-				if (o == BigDecimal.class) {
-					pstmt.setNull(i, Types.DECIMAL);
-				} else
-				if (o == BigInteger.class) {
-					pstmt.setNull(i, Types.NUMERIC);
-				} else
-				if (o == Timestamp.class || o == DateTime.class || o == java.util.Date.class) {
-					pstmt.setNull(i, Types.TIMESTAMP);
-				} else
-				if (o == Time.class || o == LocalTime.class) {
-					pstmt.setNull(i, Types.TIME);
-				} else
-				if (o == Date.class || o == DateMidnight.class || o == LocalDate.class) {
-					pstmt.setNull(i, Types.DATE);
-				} else
-				if (o == String.class) {
-					pstmt.setNull(i, Types.VARCHAR);
-				} else
-				if (o == Integer.class) {
-					pstmt.setNull(i, Types.INTEGER);
-				} else
-				if (o == Long.class) {
-					pstmt.setNull(i, Types.BIGINT);
-				}
-			} else
-			if (o instanceof CharSequence) {
-				pstmt.setString(i, ((CharSequence)o).toString());
-			} else
-			if (o instanceof Byte) {
-				pstmt.setByte(i, (Byte)o);
-			} else
-			if (o instanceof Short) {
-				pstmt.setShort(i, (Short)o);
-			} else
-			if (o instanceof Integer) {
-				pstmt.setInt(i, (Integer)o);
-			} else
-			if (o instanceof Long) {
-				pstmt.setLong(i, (Long)o);
-			} else
-			if (o instanceof Character) {
-				pstmt.setString(i, ((Character)o).toString());
-			} else
-			if (o instanceof Date) {
-				pstmt.setDate(i, (Date)o);
-			} else
-			if (o instanceof Timestamp) {
-				pstmt.setTimestamp(i, (Timestamp)o);
-			} else
-			if (o instanceof java.util.Date) {
-				pstmt.setTimestamp(i, new Timestamp(((java.util.Date)o).getTime()));
-			} else
-			if (o instanceof Double) {
-				pstmt.setDouble(i, (Double)o);
-			} else
-			if (o instanceof Float) {
-				pstmt.setFloat(i, (Float)o);
-			} else
-			if (o instanceof BigDecimal) {
-				pstmt.setBigDecimal(i, (BigDecimal)o);
-			} else
-			if (o instanceof BigInteger) {
-				pstmt.setBigDecimal(i, new BigDecimal((BigInteger)o));
-			} else
-			if (o instanceof Boolean) {
-				pstmt.setBoolean(i, (Boolean)o);
-			} else
-			if (o instanceof Time) {
-				pstmt.setTime(i, (Time)o);
-			} else 
-			if (o instanceof DateTime) {
-				pstmt.setTimestamp(i, new Timestamp(((DateTime)o).getMillis()));
-			} else
-			if (o instanceof DateMidnight) {
-				pstmt.setDate(i, new Date(((DateMidnight)o).getMillis()));
-			} else
-			if (o instanceof LocalDate) {
-				pstmt.setDate(i, new Date(((LocalDate)o).toDateMidnight().getMillis()));
-			} else
-			if (o instanceof InputStream) {
-				pstmt.setBlob(i, (InputStream)o);
-			} else
-			if (o instanceof byte[]) {
-				pstmt.setBytes(i, (byte[])o);
-			} else
-			if (o instanceof LocalTime) {
-				LocalTime lt = (LocalTime)o;
-				pstmt.setTime(i, toSQLTime(lt));
-			} else {
-				throw new SQLException("Unknown type " + o + ", " + (o != null ? o.getClass() : "?") + " for parameter " + i);
-			}
+					if (o instanceof Byte) {
+						pstmt.setByte(i, (Byte)o);
+					} else
+						if (o instanceof Short) {
+							pstmt.setShort(i, (Short)o);
+						} else
+							if (o instanceof Integer) {
+								pstmt.setInt(i, (Integer)o);
+							} else
+								if (o instanceof Long) {
+									pstmt.setLong(i, (Long)o);
+								} else
+									if (o instanceof Character) {
+										pstmt.setString(i, ((Character)o).toString());
+									} else
+										if (o instanceof Date) {
+											pstmt.setDate(i, (Date)o);
+										} else
+											if (o instanceof Timestamp) {
+												pstmt.setTimestamp(i, (Timestamp)o);
+											} else
+												if (o instanceof java.util.Date) {
+													pstmt.setTimestamp(i, new Timestamp(((java.util.Date)o).getTime()));
+												} else
+													if (o instanceof Double) {
+														pstmt.setDouble(i, (Double)o);
+													} else
+														if (o instanceof Float) {
+															pstmt.setFloat(i, (Float)o);
+														} else
+															if (o instanceof BigDecimal) {
+																pstmt.setBigDecimal(i, (BigDecimal)o);
+															} else
+																if (o instanceof BigInteger) {
+																	pstmt.setBigDecimal(i, new BigDecimal((BigInteger)o));
+																} else
+																	if (o instanceof Boolean) {
+																		pstmt.setBoolean(i, (Boolean)o);
+																	} else
+																		if (o instanceof Time) {
+																			pstmt.setTime(i, (Time)o);
+																		} else 
+																			if (o instanceof DateTime) {
+																				pstmt.setTimestamp(i, new Timestamp(((DateTime)o).getMillis()));
+																			} else
+																				if (o instanceof DateMidnight) {
+																					pstmt.setDate(i, new Date(((DateMidnight)o).getMillis()));
+																				} else
+																					if (o instanceof LocalDate) {
+																						pstmt.setDate(i, new Date(((LocalDate)o).toDateMidnight().getMillis()));
+																					} else
+																						if (o instanceof InputStream) {
+																							pstmt.setBlob(i, (InputStream)o);
+																						} else
+																							if (o instanceof byte[]) {
+																								pstmt.setBytes(i, (byte[])o);
+																							} else
+																								if (o instanceof LocalTime) {
+																									LocalTime lt = (LocalTime)o;
+																									pstmt.setTime(i, toSQLTime(lt));
+																								} else {
+																									throw new SQLException("Unknown type " + o + ", " + (o != null ? o.getClass() : "?") + " for parameter " + i);
+																								}
 			i++;
 		}
 	}
@@ -1107,7 +1113,7 @@ public class DB implements Closeable {
 	public static void setParams(
 			@NonNull ResultSet rs, 
 			@NonNull Iterable<?> values)
-			throws SQLException {
+					throws SQLException {
 		setParams(rs, Iterables.toArray(values, Object.class));
 	}
 	/**
@@ -1124,71 +1130,71 @@ public class DB implements Closeable {
 			if (o instanceof Class<?>) {
 				rs.updateNull(i);
 			} else
-			if (o instanceof CharSequence) {
-				rs.updateString(i, ((CharSequence)o).toString());
-			} else
-			if (o instanceof Byte) {
-				rs.updateByte(i, (Byte)o);
-			} else
-			if (o instanceof Short) {
-				rs.updateShort(i, (Short)o);
-			} else
-			if (o instanceof Integer) {
-				rs.updateInt(i, (Integer)o);
-			} else
-			if (o instanceof Long) {
-				rs.updateLong(i, (Long)o);
-			} else
-			if (o instanceof Character) {
-				rs.updateString(i, ((Character)o).toString());
-			} else
-			if (o instanceof Date) {
-				rs.updateDate(i, (Date)o);
-			} else
-			if (o instanceof Timestamp) {
-				rs.updateTimestamp(i, (Timestamp)o);
-			} else
-			if (o instanceof java.util.Date) {
-				rs.updateTimestamp(i, new Timestamp(((java.util.Date)o).getTime()));
-			} else
-			if (o instanceof Double) {
-				rs.updateDouble(i, (Double)o);
-			} else
-			if (o instanceof Float) {
-				rs.updateFloat(i, (Float)o);
-			} else
-			if (o instanceof BigDecimal) {
-				rs.updateBigDecimal(i, (BigDecimal)o);
-			} else
-			if (o instanceof BigInteger) {
-				rs.updateBigDecimal(i, new BigDecimal((BigInteger)o));
-			} else
-			if (o instanceof Boolean) {
-				rs.updateBoolean(i, (Boolean)o);
-			} else
-			if (o instanceof Time) {
-				rs.updateTime(i, (Time)o);
-			} else 
-			if (o instanceof DateTime) {
-				rs.updateTimestamp(i, new Timestamp(((DateTime)o).getMillis()));
-			} else
-			if (o instanceof DateMidnight) {
-				rs.updateDate(i, new Date(((DateMidnight)o).getMillis()));
-			} else
-			if (o instanceof LocalDate) {
-				rs.updateDate(i, new Date(((LocalDate)o).toDateMidnight().getMillis()));
-			} else
-			if (o instanceof InputStream) {
-				rs.updateBlob(i, (InputStream)o);
-			} else
-			if (o instanceof byte[]) {
-				rs.updateBytes(i, (byte[])o);
-			} else
-			if (o instanceof LocalTime) {
-				rs.updateTime(i, toSQLTime((LocalTime)o));
-			} else {
-				throw new SQLException("Unknown type " + o + ", " + (o != null ? o.getClass() : "?") + " for parameter " + i);
-			}
+				if (o instanceof CharSequence) {
+					rs.updateString(i, ((CharSequence)o).toString());
+				} else
+					if (o instanceof Byte) {
+						rs.updateByte(i, (Byte)o);
+					} else
+						if (o instanceof Short) {
+							rs.updateShort(i, (Short)o);
+						} else
+							if (o instanceof Integer) {
+								rs.updateInt(i, (Integer)o);
+							} else
+								if (o instanceof Long) {
+									rs.updateLong(i, (Long)o);
+								} else
+									if (o instanceof Character) {
+										rs.updateString(i, ((Character)o).toString());
+									} else
+										if (o instanceof Date) {
+											rs.updateDate(i, (Date)o);
+										} else
+											if (o instanceof Timestamp) {
+												rs.updateTimestamp(i, (Timestamp)o);
+											} else
+												if (o instanceof java.util.Date) {
+													rs.updateTimestamp(i, new Timestamp(((java.util.Date)o).getTime()));
+												} else
+													if (o instanceof Double) {
+														rs.updateDouble(i, (Double)o);
+													} else
+														if (o instanceof Float) {
+															rs.updateFloat(i, (Float)o);
+														} else
+															if (o instanceof BigDecimal) {
+																rs.updateBigDecimal(i, (BigDecimal)o);
+															} else
+																if (o instanceof BigInteger) {
+																	rs.updateBigDecimal(i, new BigDecimal((BigInteger)o));
+																} else
+																	if (o instanceof Boolean) {
+																		rs.updateBoolean(i, (Boolean)o);
+																	} else
+																		if (o instanceof Time) {
+																			rs.updateTime(i, (Time)o);
+																		} else 
+																			if (o instanceof DateTime) {
+																				rs.updateTimestamp(i, new Timestamp(((DateTime)o).getMillis()));
+																			} else
+																				if (o instanceof DateMidnight) {
+																					rs.updateDate(i, new Date(((DateMidnight)o).getMillis()));
+																				} else
+																					if (o instanceof LocalDate) {
+																						rs.updateDate(i, new Date(((LocalDate)o).toDateMidnight().getMillis()));
+																					} else
+																						if (o instanceof InputStream) {
+																							rs.updateBlob(i, (InputStream)o);
+																						} else
+																							if (o instanceof byte[]) {
+																								rs.updateBytes(i, (byte[])o);
+																							} else
+																								if (o instanceof LocalTime) {
+																									rs.updateTime(i, toSQLTime((LocalTime)o));
+																								} else {
+																									throw new SQLException("Unknown type " + o + ", " + (o != null ? o.getClass() : "?") + " for parameter " + i);
+																								}
 			i++;
 		}
 	}
@@ -1292,7 +1298,7 @@ public class DB implements Closeable {
 				}
 			}
 		}
-		
+
 	}
 	/**
 	 * Execute a single-valued parametric insert and return a generated long key.
@@ -1637,13 +1643,13 @@ public class DB implements Closeable {
 			Object... params) {
 		try {
 			final PreparedStatement pstmt = prepare(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, sql, params);
-			
+
 			pstmt.setFetchSize(Integer.MIN_VALUE);
 			final ResultSet rs = pstmt.executeQuery();
 			if (fetchSize != 0) {
 				rs.setFetchSize(fetchSize);
 			}
-			
+
 			return new CloseableIterator<T>() {
 				/** The resultset has finished. */
 				boolean done;
@@ -1977,7 +1983,7 @@ public class DB implements Closeable {
 	public int update(
 			@NonNull CharSequence sql, 
 			@NonNull Iterable<?> params)
-	throws SQLException {
+					throws SQLException {
 		return update(sql, Iterables.toArray(params, Object.class));
 	}
 	/**
@@ -2120,5 +2126,682 @@ public class DB implements Closeable {
 			return connect(dbi);
 		}
 		throw new IllegalStateException("DB was not created from a DBInfo object");
+	}
+	/**
+	 * Returns an observable that accepts a single subscriber which will be called for
+	 * each row in the ResultSet.
+	 * @param rs the source resultSet
+	 * @return the Observable
+	 */
+	public Observable<ResultSet> useAsync(final ResultSet rs) {
+		AbstractOnSubscribe<ResultSet, Void> aos = new AbstractOnSubscribe<ResultSet, Void>() {
+			final AtomicBoolean once = new AtomicBoolean();
+			@Override
+			protected Void onSubscribe(
+					Subscriber<? super ResultSet> subscriber) {
+				if (!once.compareAndSet(false, true)) {
+					subscriber.onError(new IllegalStateException("Too many subscribers, only one allowed!"));
+				}
+				try {
+					if (rs.isClosed()) {
+						subscriber.onError(new IllegalStateException("ResultSet closed or depleted!"));
+					}
+				} catch (SQLException ex) {
+					subscriber.onError(new SQLRuntimeException(ex));
+				}
+				return null;
+			}
+			@Override
+			protected void onTerminated(Void state) {
+				try {
+					rs.close();
+				} catch (SQLException ex) {
+					// no place to put this exception now
+				}
+			}
+			@Override
+			protected void next(
+					rx.observables.AbstractOnSubscribe.SubscriptionState<ResultSet, Void> state) {
+				boolean hasNext;
+				try {
+					hasNext = rs.next();
+					if (hasNext) {
+						state.onNext(rs);
+					}
+				} catch (SQLException ex) {
+					state.onError(ex);
+					return;
+				}
+				if (!hasNext) {
+					state.onCompleted();
+				}
+			}
+		};
+		return aos.toObservable();
+	}
+	/**
+	 * Runs the query asynchronously and calls the mapper function for each resulting line.
+	 * <p>Note that JDBC connections don't really support multi-threaded querying.
+	 * @param <T> the result value type
+	 * @param sql the query to execute
+	 * @param map the result mapping function
+	 * @param params the optional parameters for the query
+	 * @return an observable sequence which executes the query asynchronously
+	 */
+	public <T> Observable<T> queryAsync(final CharSequence sql, final Func1E<ResultSet, T, SQLException> map, final Object... params) {
+		return queryAsync(sql, map, Arrays.asList(params));
+	}
+	/**
+	 * Runs the query asynchronously and calls the mapper function for each resulting line.
+	 * <p>Note that JDBC connections don't really support multi-threaded querying.
+	 * @param <T> the result value type
+	 * @param sql the query to execute
+	 * @param map the result mapping function
+	 * @param params the optional parameters for the query
+	 * @return an observable sequence which executes the query asynchronously
+	 */
+	public <T> Observable<T> queryAsync(final CharSequence sql, final Func1E<ResultSet, T, SQLException> map, final Iterable<?> params) {
+		AbstractOnSubscribe<T, Void> aos = new AbstractOnSubscribe<T, Void>() {
+			final AtomicBoolean once = new AtomicBoolean();
+			PreparedStatement pstmt;
+			ResultSet rs;
+			@Override
+			protected Void onSubscribe(
+					Subscriber<? super T> subscriber) {
+				if (!once.compareAndSet(false, true)) {
+					subscriber.onError(new IllegalStateException("Too many subscribers, only one allowed!"));
+				}
+				try {
+					pstmt = prepare(sql, params);
+				} catch (SQLException ex) {
+					subscriber.onError(ex);
+				}
+
+				return null;
+			}
+			@Override
+			protected void onTerminated(Void state) {
+				Closeables.closeSilently(rs);
+				Closeables.closeSilently(pstmt);
+			}
+			@Override
+			protected void next(
+					rx.observables.AbstractOnSubscribe.SubscriptionState<T, Void> state) {
+				try {
+					if (rs == null) {
+						rs = pstmt.executeQuery();
+						if (fetchSize != 0) {
+							rs.setFetchSize(fetchSize);
+						}
+					}
+					if (rs.next()) {
+						state.onNext(map.call(rs));
+					} else {
+						state.onCompleted();
+					}
+				} catch (SQLException ex) {
+					state.onError(ex);
+				}
+			}
+		};
+		return aos.toObservable();
+	}
+	/**
+	 * Represents a schema entry from the DatabaseMetadata.getSchema() resultset.
+	 */
+	public static final class SchemaEntry {
+		/** The table schema name. */
+		public String tableSchema;
+		/** The optional table catalog name. */
+		@Nullable
+		public String tableCatalog;
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("SchemaEntry [tableSchema=");
+			builder.append(tableSchema);
+			builder.append(", tableCatalog=");
+			builder.append(tableCatalog);
+			builder.append("]");
+			return builder.toString();
+		}
+		
+	}
+	/**
+	 * @return a list of schema/catalog entries
+	 * @throws SQLException on error
+	 */
+	public List<SchemaEntry> getSchemas() throws SQLException {
+		List<SchemaEntry> result = new ArrayList<>();
+		try (ResultSet rs = conn.getMetaData().getSchemas()) {
+			while (rs.next()) {
+				processSchemas(rs, result);
+			}
+		}
+		return result;
+	}
+	/**
+	 * Process each schema entry.
+	 * @param rs the resultset
+	 * @param result the result list
+	 * @throws SQLException on error
+	 */
+	private void processSchemas(ResultSet rs, List<SchemaEntry> result) throws SQLException {
+		SchemaEntry e = new SchemaEntry();
+		e.tableSchema = rs.getString(1);
+		e.tableCatalog = rs.getString(2);
+		result.add(e);
+	}
+	/**
+	 * Returns a filtered list of the schema/catalog entries.
+	 * @param catalog a catalog name; must match the catalog name as it is stored
+	 * in the database;"" retrieves those without a catalog; null means catalog
+	 * name should not be used to narrow down the search.
+	 * @param schemaPattern a schema name; must match the schema name as it is
+	 * stored in the database; null means
+	 * schema name should not be used to narrow down the search.	 * @return a list of the filtered schema/catalog entries
+	 * @throws SQLException on error
+	 */
+	public List<SchemaEntry> getSchemas(String catalog, String schemaPattern) throws SQLException {
+		List<SchemaEntry> result = new ArrayList<>();
+		try (ResultSet rs = conn.getMetaData().getSchemas(catalog, schemaPattern)) {
+			while (rs.next()) {
+				processSchemas(rs, result);
+			}
+		}
+		return result;
+	}
+	/**
+	 * Represents a table entry in DatabaseMetadata.getTables resultset.
+	 */
+	public static final class TableEntry {
+		/** The optional catalog. */
+		@Nullable
+		public String catalog;
+		/** The optional schema. */
+		@Nullable
+		public String schema;
+		/** The table name. */
+		public String name;
+		/** The table entry type, if OTHER, see the customType field for the raw type. */
+		public TableType type;
+		/** Contains the raw type name if the type field is OTHER. */
+		@Nullable
+		public String customType;
+		/** The table comment/remarks. */
+		public String remarks;
+		/** The types catalog. */
+		@Nullable
+		public String typesCatalog;
+		/** The types schema. */
+		@Nullable
+		public String typesSchema;
+		/** The types name. */
+		@Nullable
+		public String typesName;
+		/** The self-referencing column name, i.e., the name of the "identifier" column. */
+		@Nullable
+		public String identifierColumn;
+		/** Specifies how values in the identifierColumn are created, if OTHER, see the customIdentifierGeneration field. */
+		@Nullable
+		public TableIDGeneration identifierGeneration;
+		/** Contains the raw identifier generation mode if identifierGeneration is OTHER. */
+		@Nullable
+		public String customIdentifierGeneration;
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("TableEntry [catalog=");
+			builder.append(catalog);
+			builder.append(", schema=");
+			builder.append(schema);
+			builder.append(", name=");
+			builder.append(name);
+			builder.append(", type=");
+			builder.append(type);
+			builder.append(", customType=");
+			builder.append(customType);
+			builder.append(", remarks=");
+			builder.append(remarks);
+			builder.append(", typesCatalog=");
+			builder.append(typesCatalog);
+			builder.append(", typesSchema=");
+			builder.append(typesSchema);
+			builder.append(", typesName=");
+			builder.append(typesName);
+			builder.append(", identifierColumn=");
+			builder.append(identifierColumn);
+			builder.append(", identifierGeneration=");
+			builder.append(identifierGeneration);
+			builder.append(", customIdentifierGeneration=");
+			builder.append(customIdentifierGeneration);
+			builder.append("]");
+			return builder.toString();
+		}
+	}
+	/**
+	 * Values representing how values in an self-referencing column (i.e., identifier column) values are generated. 
+	 */
+	public enum TableIDGeneration {
+		/** See the custom field. */
+		OTHER,
+		/** By system. */
+		SYSTEM,
+		/** User specified. */
+		USER,
+		/** Derived. */
+		DERIVED
+	}
+	/** The table types returned by DatabaseMetadata.getTables. */
+	public enum TableType {
+		/** The table has some other type not supported yet.*/
+		OTHER,
+		/** Regular table. */
+		TABLE,
+		/** A view. */
+		VIEW,
+		/** A system table. */
+		SYSTEM_TABLE,
+		/** A global temporary table. */
+		GLOBAL_TEMPORARY,
+		/** A local temporary table. */
+		LOCAL_TEMPORARY,
+		/** Alias to another table. */
+		ALIAS,
+		/** Synonym of another table. */
+		SYNONYM,
+	}
+	/**
+	 * Returns a list of all table entries from all schemas/catalogs.
+	 * @return the list of all table entries
+	 * @throws SQLException on error
+	 */
+	public List<TableEntry> getTables() throws SQLException {
+		return getTables(null, null, null, (String[])null);
+	}
+	/**
+	 * Returns a list of all table entries from filtered set of schemas/catalogs.
+	 * @param catalog a catalog name; must match the catalog name as it
+	 *        is stored in the database; "" retrieves those without a catalog;
+	 *        <code>null</code> means that the catalog name should not be used to narrow
+	 *        the search
+	 * @param schemaPattern a schema name pattern; must match the schema name
+	 *        as it is stored in the database; "" retrieves those without a schema;
+	 *        <code>null</code> means that the schema name should not be used to narrow
+	 *        the search
+	 * @return the list of all table entries
+	 * @throws SQLException on error
+	 */
+	public List<TableEntry> getTables(String catalog, String schemaPattern) throws SQLException {
+		return getTables(catalog, schemaPattern, null, (String[])null);
+	}
+	/**
+	 * Returns a list of all table entries from filtered set of schemas/catalogs.
+     * @param catalog a catalog name; must match the catalog name as it
+     *        is stored in the database; "" retrieves those without a catalog;
+     *        <code>null</code> means that the catalog name should not be used to narrow
+     *        the search
+     * @param schemaPattern a schema name pattern; must match the schema name
+     *        as it is stored in the database; "" retrieves those without a schema;
+     *        <code>null</code> means that the schema name should not be used to narrow
+     *        the search
+     * @param tableNamePattern a table name pattern; must match the
+     *        table name as it is stored in the database
+     * @param types a list of table types, which must be from the list of table types
+     *         returned from {@link #getTableTypes},to include; <code>null</code> returns
+	 * @return the list of all table entries
+	 * @throws SQLException on error
+	 */
+	public List<TableEntry> getTables(String catalog, String schemaPattern, String tableNamePattern, String... types) throws SQLException {
+		List<TableEntry> result = new ArrayList<>();
+
+		try (ResultSet rs = conn.getMetaData().getTables(catalog, schemaPattern, tableNamePattern, types)) {
+			while (rs.next()) {
+				processTableEntry(result, rs);
+			}
+		}
+		
+		return result;
+	}
+	/**
+	 * Processes a table entry.
+	 * @param result the result list
+	 * @param rs the result set
+	 * @throws SQLException on error
+	 */
+	protected void processTableEntry(List<TableEntry> result, ResultSet rs)
+			throws SQLException {
+		TableEntry te = new TableEntry();
+		
+		te.catalog = rs.getString(1);
+		te.schema = rs.getString(2);
+		te.name = rs.getString(3);
+		te.customType = rs.getString(4);
+		te.type = mapTableType(te.customType);
+		te.remarks = rs.getString(5);
+		te.typesCatalog = rs.getString(6);
+		te.typesSchema = rs.getString(7);
+		te.typesName = rs.getString(8);
+		te.identifierColumn = rs.getString(9);
+		te.customIdentifierGeneration = rs.getString(10);
+		if (te.customIdentifierGeneration != null) {
+			switch (te.customIdentifierGeneration) {
+			case "SYSTEM":
+				te.identifierGeneration = TableIDGeneration.SYSTEM;
+				break;
+			case "USER":
+				te.identifierGeneration = TableIDGeneration.USER;
+				break;
+			case "DERIVED":
+				te.identifierGeneration = TableIDGeneration.DERIVED;
+				break;
+			default:
+				te.identifierGeneration = TableIDGeneration.OTHER;
+			}
+		}
+		
+		result.add(te);
+	}
+	/**
+	 * Maps the typical table type strings into the enumeration.
+	 * @param raw the raw string
+	 * @return null if raw is null, OTHER if unknown
+	 */
+	public TableType mapTableType(String raw) {
+		if (raw != null) {
+			switch (raw) {
+			case "TABLE": 
+				return TableType.TABLE;
+			case "VIEW": 
+				return TableType.VIEW;
+			case "SYSTEM TABLE": 
+				return TableType.SYSTEM_TABLE;
+			case "GLOBAL TEMPORARY": 
+				return TableType.GLOBAL_TEMPORARY;
+			case "LOCAL TEMPORARY": 
+				return TableType.LOCAL_TEMPORARY;
+			case "ALIAS": 
+				return TableType.ALIAS;
+			case "SYNONYM": 
+				return TableType.SYNONYM;
+			default:
+				return TableType.OTHER;
+			}
+		}
+		return null;
+	}
+	/**
+	 * Returns a list of supported table types.
+	 * @return the list of table types, use mapTableType to convert it to a TableType enum
+	 * @throws SQLException on error
+	 */
+	public List<String> getTableTypes() throws SQLException {
+		List<String> result = new ArrayList<>();
+		try (ResultSet rs = conn.getMetaData().getTableTypes()) {
+			while (rs.next()) {
+				result.add(rs.getString(1));
+			}
+		}
+		return result;
+	}
+	/**
+	 * Returns a list of column definitions for a filtered schema/catalog/table/column.
+     * @param catalog a catalog name; must match the catalog name as it
+     *        is stored in the database; "" retrieves those without a catalog;
+     *        <code>null</code> means that the catalog name should not be used to narrow
+     *        the search
+     * @param schemaPattern a schema name pattern; must match the schema name
+     *        as it is stored in the database; "" retrieves those without a schema;
+     *        <code>null</code> means that the schema name should not be used to narrow
+     *        the search
+     * @return a list of column entries
+     * @exception SQLException if a database access error occurs
+	 */
+	public List<ColumnEntry> getColumns(String catalog, String schemaPattern) throws SQLException {
+		return getColumns(catalog, schemaPattern, null, null);
+	}
+	/**
+	 * Returns a list of column definitions for a filtered schema/catalog/table/column.
+     * @param catalog a catalog name; must match the catalog name as it
+     *        is stored in the database; "" retrieves those without a catalog;
+     *        <code>null</code> means that the catalog name should not be used to narrow
+     *        the search
+     * @param schemaPattern a schema name pattern; must match the schema name
+     *        as it is stored in the database; "" retrieves those without a schema;
+     *        <code>null</code> means that the schema name should not be used to narrow
+     *        the search
+     * @param tableNamePattern a table name pattern; must match the
+     *        table name as it is stored in the database
+     * @return a list of column entries
+     * @exception SQLException if a database access error occurs
+	 */
+	public List<ColumnEntry> getColumns(String catalog, String schemaPattern, String tableNamePattern) throws SQLException  {
+		return getColumns(catalog, schemaPattern, tableNamePattern, null);
+	}
+	/**
+	 * Returns a list of column definitions for a filtered schema/catalog/table/column.
+     * @param catalog a catalog name; must match the catalog name as it
+     *        is stored in the database; "" retrieves those without a catalog;
+     *        <code>null</code> means that the catalog name should not be used to narrow
+     *        the search
+     * @param schemaPattern a schema name pattern; must match the schema name
+     *        as it is stored in the database; "" retrieves those without a schema;
+     *        <code>null</code> means that the schema name should not be used to narrow
+     *        the search
+     * @param tableNamePattern a table name pattern; must match the
+     *        table name as it is stored in the database
+     * @param columnNamePattern a column name pattern; must match the column
+     *        name as it is stored in the database
+     * @return a list of column entries
+     * @exception SQLException if a database access error occurs
+	 */
+	public List<ColumnEntry> getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern)  throws SQLException {
+		List<ColumnEntry> result = new ArrayList<>();
+		
+		try (ResultSet rs = conn.getMetaData().getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern)) {
+			while (rs.next()) {
+				ColumnEntry ce = new ColumnEntry();
+				
+				ce.catalog = rs.getString(1);
+				ce.schema = rs.getString(2);
+				ce.table = rs.getString(3);
+				ce.name = rs.getString(4);
+				ce.dataType = rs.getInt(5);
+				ce.typeName = rs.getString(6);
+				ce.size = rs.getInt(7);
+				ce.bufferLength = rs.getString(8);
+				ce.decimalDigits = rs.getInt(9);
+				ce.precisionRadix = rs.getInt(10);
+
+				switch (rs.getInt(11)) {
+				case DatabaseMetaData.columnNoNulls:
+					ce.nullable = YesNoUnknown.NO;
+					break;
+				case DatabaseMetaData.columnNullable:
+					ce.nullable = YesNoUnknown.YES;
+					break;
+				default:
+					ce.nullable = YesNoUnknown.UNKNOWN;
+				}
+				ce.remarks = rs.getString(12);
+				ce.defaultValue = rs.getString(13);
+				ce.sqlDataType = rs.getInt(14);
+				ce.sqlDateTimeSub = rs.getInt(15);
+				ce.charOctetLength = rs.getInt(16);
+				ce.ordinalPosition = rs.getInt(17);
+				
+				String s = rs.getString(18);
+				if (s != null) {
+					switch (s) {
+					case "YES":
+						ce.isoNullable = YesNoUnknown.YES;
+						break;
+					case "NO":
+						ce.isoNullable = YesNoUnknown.NO;
+						break;
+					default:
+						ce.isoNullable = YesNoUnknown.UNKNOWN;
+					}
+				}
+				
+				ce.scopeCatalog = rs.getString(19);
+				ce.scopeSchema = rs.getString(20);
+				ce.scopeTable = rs.getString(21);
+				ce.sourceDataType = rs.getShort(22);
+				
+				s = rs.getString(23);
+				if (s != null) {
+					switch (s) {
+					case "YES":
+						ce.isAutoIncrement = YesNoUnknown.YES;
+						break;
+					case "NO":
+						ce.isAutoIncrement = YesNoUnknown.NO;
+						break;
+					default:
+						ce.isAutoIncrement = YesNoUnknown.UNKNOWN;
+					}
+				}
+				s = rs.getString(24);
+				if (s != null) {
+					switch (s) {
+					case "YES":
+						ce.isGeneratedColumn = YesNoUnknown.YES;
+						break;
+					case "NO":
+						ce.isGeneratedColumn = YesNoUnknown.NO;
+						break;
+					default:
+						ce.isGeneratedColumn = YesNoUnknown.UNKNOWN;
+					}
+				}
+				
+				result.add(ce);
+			}
+		}
+		
+		return result;
+	}
+	/**
+	 * Represents a column entry returned by getMetadata().getColumns resultset.
+	 */
+	public static final class ColumnEntry {
+		/** The catalog. */
+		public String catalog;
+		/** The schema. */
+		public String schema;
+		/** The table. */
+		public String table;
+		/** The column name. */
+		public String name;
+		/** The data type, see java.sql.Types. */
+		public int dataType;
+		/** The raw type name. */
+		public String typeName;
+		/** The column size. For numeric types: the maximum precision, for string types: max characters. */
+		public int size;
+		/** Generally unused. */
+		public String bufferLength;
+		/** The number of fractional digits. 0 indicates not applicable.*/
+		public int decimalDigits;
+		/** The radix (10 or 2). */
+		public int precisionRadix;
+		/** Is the colum nullable. */
+		public YesNoUnknown nullable;
+		/** The column remarks. */
+		public String remarks;
+		/** The default value of the column. */
+		public String defaultValue;
+		/** Generally unused. */
+		public int sqlDataType;
+		/** Generally unused. */
+		public int sqlDateTimeSub;
+		/** For character types, the maximum number of bytes in the column. */
+		public int charOctetLength;
+		/** The index of the column in the table. */
+		public int ordinalPosition;
+		/** Nullness determined via ISO nullability. */
+		@Nullable
+		public YesNoUnknown isoNullable;
+		/** The catalog of the table that is the scope of a reference attribute, or null. */
+		@Nullable
+		public String scopeCatalog;
+		/** The schema of the table that is the scope of a reference attribute, or null. */
+		@Nullable
+		public String scopeSchema;
+		/** The table that is the scope of a reference attribute, or null. */
+		@Nullable
+		public String scopeTable;
+		/** The source type of a distinct type or user-generated ref-type, or the java.sql.Types type. */
+		public short sourceDataType;
+		/** Is the column auto-increment? */
+		@Nullable
+		public YesNoUnknown isAutoIncrement;
+		/** Is the column generated ? */
+		@Nullable
+		public YesNoUnknown isGeneratedColumn;
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("ColumnEntry [catalog=");
+			builder.append(catalog);
+			builder.append(", schema=");
+			builder.append(schema);
+			builder.append(", table=");
+			builder.append(table);
+			builder.append(", name=");
+			builder.append(name);
+			builder.append(", dataType=");
+			builder.append(dataType);
+			builder.append(", typeName=");
+			builder.append(typeName);
+			builder.append(", size=");
+			builder.append(size);
+			builder.append(", bufferLength=");
+			builder.append(bufferLength);
+			builder.append(", decimalDigits=");
+			builder.append(decimalDigits);
+			builder.append(", precisionRadix=");
+			builder.append(precisionRadix);
+			builder.append(", nullable=");
+			builder.append(nullable);
+			builder.append(", remarks=");
+			builder.append(remarks);
+			builder.append(", defaultValue=");
+			builder.append(defaultValue);
+			builder.append(", sqlDataType=");
+			builder.append(sqlDataType);
+			builder.append(", sqlDateTimeSub=");
+			builder.append(sqlDateTimeSub);
+			builder.append(", charOctetLength=");
+			builder.append(charOctetLength);
+			builder.append(", ordinalPosition=");
+			builder.append(ordinalPosition);
+			builder.append(", isoNullable=");
+			builder.append(isoNullable);
+			builder.append(", scopeCatalog=");
+			builder.append(scopeCatalog);
+			builder.append(", scopeSchema=");
+			builder.append(scopeSchema);
+			builder.append(", scopeTable=");
+			builder.append(scopeTable);
+			builder.append(", sourceDataType=");
+			builder.append(sourceDataType);
+			builder.append(", isAutoIncrement=");
+			builder.append(isAutoIncrement);
+			builder.append(", isGeneratedColumn=");
+			builder.append(isGeneratedColumn);
+			builder.append("]");
+			return builder.toString();
+		}
+	}
+	/** Indicates a yes/no/unknown status. */
+	public enum YesNoUnknown {
+		/** No. */
+		NO,
+		/** Yes. */
+		YES,
+		/** Unknown. */
+		UNKNOWN
 	}
 }

@@ -77,8 +77,12 @@ public class BoundedPool<T> implements Pool<T> {
 			}
 		}
 		T obj = objects.take();
-		if (manager.verify(obj)) {
-			return obj;
+		try {
+    		if (manager.verify(obj)) {
+    			return obj;
+    		}
+		} catch (Exception ex) {
+		    // the verification crashed, throw away the object
 		}
 		// create a new one instead
 		synchronized (allObjects) {

@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="WINDOWS-1250" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jardesc>
-    <jar path="C:/Downloads/akarnokd_tools.jar"/>
+    <jar path="c:/Users/akarnokd/Downloads/akarnokd_tools.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/akarnokd-tools/default_jar_create2.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
@@ -12,7 +12,7 @@
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
         <file path="/akarnokd-tools/LICENSE"/>
-        <javaElement handleIdentifier="=akarnokd-tools/test"/>
         <javaElement handleIdentifier="=akarnokd-tools/src"/>
+        <javaElement handleIdentifier="=akarnokd-tools/test"/>
     </selectedElements>
 </jardesc>

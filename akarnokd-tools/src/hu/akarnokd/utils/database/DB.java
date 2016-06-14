@@ -15,15 +15,6 @@
  */
 package hu.akarnokd.utils.database;
 
-import hu.akarnokd.utils.Base64;
-import hu.akarnokd.utils.io.Closeables;
-import hu.akarnokd.utils.lang.Action1E;
-import hu.akarnokd.utils.lang.Action2E;
-import hu.akarnokd.utils.lang.Func1E;
-import hu.akarnokd.utils.lang.Func2E;
-import hu.akarnokd.utils.xml.XElement;
-import ix.CloseableIterator;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,16 +49,23 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.observables.AbstractOnSubscribe;
-
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import hu.akarnokd.utils.Base64;
+import hu.akarnokd.utils.io.Closeables;
+import hu.akarnokd.utils.lang.Action1E;
+import hu.akarnokd.utils.lang.Action2E;
+import hu.akarnokd.utils.lang.Func1E;
+import hu.akarnokd.utils.lang.Func2E;
+import hu.akarnokd.utils.xml.XElement;
+import ix.CloseableIterator;
+import rx.Observable;
+import rx.Observer;
+import rx.observables.SyncOnSubscribe;
 
 /**
  * Simple collection of JDBC access methods.
@@ -2136,25 +2134,24 @@ public class DB implements Closeable {
 	 * @return the Observable
 	 */
 	public Observable<ResultSet> useAsync(final ResultSet rs) {
-		AbstractOnSubscribe<ResultSet, Void> aos = new AbstractOnSubscribe<ResultSet, Void>() {
+		SyncOnSubscribe<Void, ResultSet> aos = new SyncOnSubscribe<Void, ResultSet>() {
 			final AtomicBoolean once = new AtomicBoolean();
 			@Override
-			protected Void onSubscribe(
-					Subscriber<? super ResultSet> subscriber) {
+			protected Void generateState() {
 				if (!once.compareAndSet(false, true)) {
-					subscriber.onError(new IllegalStateException("Too many subscribers, only one allowed!"));
+					throw new IllegalStateException("Too many subscribers, only one allowed!");
 				}
 				try {
 					if (rs.isClosed()) {
-						subscriber.onError(new IllegalStateException("ResultSet closed or depleted!"));
+						throw new IllegalStateException("ResultSet closed or depleted!");
 					}
 				} catch (SQLException ex) {
-					subscriber.onError(new SQLRuntimeException(ex));
+					throw new SQLRuntimeException(ex);
 				}
 				return null;
 			}
 			@Override
-			protected void onTerminated(Void state) {
+			protected void onUnsubscribe(Void state) {
 				try {
 					rs.close();
 				} catch (SQLException ex) {
@@ -2162,8 +2159,7 @@ public class DB implements Closeable {
 				}
 			}
 			@Override
-			protected void next(
-					rx.observables.AbstractOnSubscribe.SubscriptionState<ResultSet, Void> state) {
+			protected Void next(Void s, Observer<? super ResultSet> state) {
 				boolean hasNext;
 				try {
 					hasNext = rs.next();
@@ -2172,14 +2168,15 @@ public class DB implements Closeable {
 					}
 				} catch (SQLException ex) {
 					state.onError(ex);
-					return;
+					return null;
 				}
 				if (!hasNext) {
 					state.onCompleted();
 				}
+				return null;
 			}
 		};
-		return aos.toObservable();
+		return Observable.create(aos);
 	}
 	/**
 	 * Runs the query asynchronously and calls the mapper function for each resulting line.
@@ -2203,32 +2200,30 @@ public class DB implements Closeable {
 	 * @return an observable sequence which executes the query asynchronously
 	 */
 	public <T> Observable<T> queryAsync(final CharSequence sql, final Func1E<ResultSet, T, SQLException> map, final Iterable<?> params) {
-		AbstractOnSubscribe<T, Void> aos = new AbstractOnSubscribe<T, Void>() {
+	    SyncOnSubscribe<Void, T> aos = new SyncOnSubscribe<Void, T>() {
 			final AtomicBoolean once = new AtomicBoolean();
 			PreparedStatement pstmt;
 			ResultSet rs;
 			@Override
-			protected Void onSubscribe(
-					Subscriber<? super T> subscriber) {
+			protected Void generateState() {
 				if (!once.compareAndSet(false, true)) {
-					subscriber.onError(new IllegalStateException("Too many subscribers, only one allowed!"));
+					throw new IllegalStateException("Too many subscribers, only one allowed!");
 				}
 				try {
 					pstmt = prepare(sql, params);
 				} catch (SQLException ex) {
-					subscriber.onError(ex);
+					throw new SQLRuntimeException(ex);
 				}
 
 				return null;
 			}
 			@Override
-			protected void onTerminated(Void state) {
+			protected void onUnsubscribe(Void state) {
 				Closeables.closeSilently(rs);
 				Closeables.closeSilently(pstmt);
 			}
 			@Override
-			protected void next(
-					rx.observables.AbstractOnSubscribe.SubscriptionState<T, Void> state) {
+			protected Void next(Void s, Observer<? super T> state) {
 				try {
 					if (rs == null) {
 						rs = pstmt.executeQuery();
@@ -2244,9 +2239,10 @@ public class DB implements Closeable {
 				} catch (SQLException ex) {
 					state.onError(ex);
 				}
+				return null;
 			}
 		};
-		return aos.toObservable();
+		return Observable.create(aos);
 	}
 	/**
 	 * Represents a schema entry from the DatabaseMetadata.getSchema() resultset.
@@ -2301,7 +2297,8 @@ public class DB implements Closeable {
 	 * name should not be used to narrow down the search.
 	 * @param schemaPattern a schema name; must match the schema name as it is
 	 * stored in the database; null means
-	 * schema name should not be used to narrow down the search.	 * @return a list of the filtered schema/catalog entries
+	 * schema name should not be used to narrow down the search.	 
+	 * @return a list of the filtered schema/catalog entries
 	 * @throws SQLException on error
 	 */
 	public List<SchemaEntry> getSchemas(String catalog, String schemaPattern) throws SQLException {
